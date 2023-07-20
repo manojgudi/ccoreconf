@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/home/valentina/projects/lpwan_examples/build_libyang/install/**",
+                "/home/valentina/projects/lpwan_examples/build_libcbor/install/**",
+                "/home/valentina/projects/lpwan_examples/build_libjansson/install/**"
+
+            ],
+            "defines": [],
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
