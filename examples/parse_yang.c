@@ -2,6 +2,94 @@
 #include <stdlib.h>
 #include <libyang/libyang.h>
 #include <jansson.h>
+#include "hashmap.h"
+#include "sid.h"
+
+/*
+Allot all memory explicitly in the main
+*/
+void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t* root){
+
+    const char* keyMappingString = "key-mapping";
+    json_t* keyMappingJSON = json_object_get(root, keyMappingString);
+    
+    // Check if key-mapping exists in the SID file
+    if (!json_is_object(keyMappingJSON)){
+        fprintf(stderr, "Failed %s does not return a JSON map:", keyMappingString);
+        return;
+    }
+
+    // Iterate over the key-mapping tree to build our own datastructure
+    const char* key;
+    json_t* value;
+    json_object_foreach(keyMappingJSON, key, value){
+        // Convert key to a long value first
+        
+        // Create an initialize an an empty list 
+        DynamicLongListT *dynamicLongList = malloc(sizeof(DynamicLongListT));
+        if (dynamicLongList == NULL){
+            fprintf(stderr, "Failed allocating memory to dynamicLongList for the key %s", key);
+            continue;
+        }
+        initializeDynamicLongList(dynamicLongList);
+
+        char *endPtr;
+        long parentSID = strtol(key, &endPtr, 10);
+        if (endPtr == key){
+            fprintf(stderr, "Failed converting the key to a long %s", key);
+            continue;
+        }
+
+        // If the value is not an array then continue without adding that key
+        if (!json_is_array(value)){
+            fprintf(stderr, "Following key %s doesn't have valid SID children", key);
+            continue;
+        }
+
+        for (size_t i=0; i < json_array_size(value); i++){
+            json_t* childSID = json_array_get(value, i);
+            if (!json_is_integer(childSID)){
+                fprintf(stderr, "Following value is not a valid SID %s ", json_string_value(childSID));
+            }
+            // Get the long value
+            long childSIDLong = json_integer_value(childSID);
+            // Add value to the dynamicLongList
+            addLong(dynamicLongList, childSIDLong);
+        }
+        // Populate the Hashmap
+        KeyMappingT *keyMapping_ = (KeyMappingT *) malloc(sizeof(KeyMappingT));
+        if (keyMapping_ == NULL){
+            fprintf(stderr, "Failed malloc'ing Key Mapping");
+            return;
+        }
+        keyMapping_->dynamicLongList=NULL;
+        keyMapping_->key = parentSID;
+        keyMapping_->dynamicLongList = dynamicLongList;
+        //hashmap_set(keyMappingHashMap, &(struct KeyMappingStruct){.key=parentSID, .dynamicLongList=dynamicLongList});
+        hashmap_set(keyMappingHashMap, keyMapping_);
+    }
+
+}
+
+void printKeyMappingT(const KeyMappingT *keyMapping){
+    printf("For the key %lu: \n", keyMapping->key);
+
+    // Iterate over DynamicLongListT
+    for (int i=0; i < keyMapping->dynamicLongList->size; i++){
+        long childSID = *(keyMapping->dynamicLongList->longList + i);
+        printf("%lu", childSID);
+    }
+}
+
+void printKeyMappingHashMap(struct hashmap *keyMappingHashMap){
+    size_t iter = 0;
+    void *item;
+    while(hashmap_iter(keyMappingHashMap, &iter, &item)){
+        const KeyMappingT *keyMapping = item;
+        printKeyMappingT(keyMapping);
+    }
+}
+
 
 /*Example to read SID file and find a SID and its corresponding value*/
 void main(){
@@ -9,6 +97,9 @@ void main(){
     long fileSize;
     const char* jsonFilePath = "/home/valentina/projects/lpwan_examples/ccoreconf/samples/sid_examples/ietf-schc@2022-12-19.sid";
     const char* keyMappingString = "key-mapping";
+    struct hashmap *keyMappingHashMap;
+
+    initializeKeyMappingHashMap(keyMappingHashMap);
 
     FILE *fp = fopen(jsonFilePath, "r");
     if (!fp){
@@ -50,8 +141,8 @@ void main(){
     }
 
     // Access key-mapping
-    json_t* keyMappingMap = json_object_get(root, keyMappingString);
-    if (!json_is_object(keyMappingMap)){
+    json_t* keyMappingJSON = json_object_get(root, keyMappingString);
+    if (!json_is_object(keyMappingJSON)){
         fprintf(stderr, "Failed %s does not return a JSON map:", keyMappingString);
         fclose(fp);
         return;
@@ -60,7 +151,7 @@ void main(){
     // Iterate over the json
     const char* key;
     json_t* value;
-    json_object_foreach(keyMappingMap, key, value){
+    json_object_foreach(keyMappingJSON, key, value){
         if (!json_is_array(value)){
             printf("Key %s and the value %s \n", key, json_string_value(value));
         } else {
@@ -75,10 +166,20 @@ void main(){
         }
     }
 
+    // Create and populate an internal hashmap
+    // BUILD
+    buildKeyMappingHashMap(keyMappingHashMap, root);
+    // ITERATE
+    size_t iter=0;
+    void* item;
+    while (hashmap_iter(keyMappingHashMap, &iter, &item)){
+        const KeyMappingT *keyMapping = item;
+        printKeyMappingT(keyMapping);
+    }
+
+
     // Cleanup
+    hashmap_free(keyMappingHashMap);
     json_decref(root);
     free(sidFileBuffer);
 }
-
-
-

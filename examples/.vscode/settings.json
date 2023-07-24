@@ -1,5 +1,15 @@
 {
     "files.associations": {
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "hashmap.h": "c",
+        "sid.h": "c",
+        "*.tcc": "c",
+        "string": "c",
+        "unordered_map": "c",
+        "vector": "c",
+        "functional": "c",
+        "memory": "c",
+        "string_view": "c",
+        "system_error": "c"
     }
 }

@@ -15,7 +15,9 @@
                 "-lyang",
                 "-I/home/valentina/projects/lpwan_examples/build_libjansson/install/include/",
                 "-L/home/valentina/projects/lpwan_examples/build_libjansson/install/lib/",
-                "-ljansson"
+                "-ljansson",
+                "hashmap.c",
+                "sid.c"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -44,7 +46,9 @@
                 "-lyang",
                 "-I/home/valentina/projects/lpwan_examples/build_libjansson/install/include/",
                 "-L/home/valentina/projects/lpwan_examples/build_libjansson/install/lib/",
-                "-ljansson"
+                "-ljansson",
+                "hashmap.c",
+                "sid.c"
             ],
             "options": {
                 "cwd": "${fileDirname}"
