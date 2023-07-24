@@ -25,3 +25,6 @@ void freeDynamicLongList(DynamicLongListT *dynamicLongList);
 
 // 
 void initializeKeyMappingHashMap(struct hashmap *keyMappingHashMap);
+
+uint64_t keyMappingHash(const void* item, uint64_t seed0, uint64_t seed1);
+int keyMappingCompare(const void *a, const void *b, void *udata);

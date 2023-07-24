@@ -247,7 +247,7 @@ static bool resize(struct hashmap *map, size_t new_cap) {
 // hashmap_set_with_hash works like hashmap_set but you provide your
 // own hash. The 'hash' callback provided to the hashmap_new function
 // will not be called
-const void *hashmap_set_with_hash(struct hashmap *map, void *item,
+const void *hashmap_set_with_hash(struct hashmap *map, const void *item,
     uint64_t hash)
 {
     hash = clip_hash(hash);
@@ -297,8 +297,7 @@ const void *hashmap_set_with_hash(struct hashmap *map, void *item,
 // replaced then it is returned otherwise NULL is returned. This operation
 // may allocate memory. If the system is unable to allocate additional
 // memory then NULL is returned and hashmap_oom() returns true.
-const void *hashmap_set(struct hashmap *map, void *item) {
-
+const void *hashmap_set(struct hashmap *map, const void *item) {
     return hashmap_set_with_hash(map, item, get_hash(map, item));
 }
 

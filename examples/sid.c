@@ -3,6 +3,7 @@
 #include "hashmap.h"
 #include "sid.h"
 #include <string.h>
+#include <math.h>
 
 #define SID_LENGTH 20
 
@@ -62,7 +63,7 @@ uint64_t keyMappingHash(const void* item, uint64_t seed0, uint64_t seed1){
     const KeyMappingT *keyMapping = (KeyMappingT *) item;
     //char keyString[SID_LENGTH];
     //sprintf(keyString, "%lu", keyMapping->key);
-    return hashmap_sip(&(keyMapping->key), keyMapping->key,seed0, seed1);
+    return hashmap_sip(&keyMapping->key, log(keyMapping->key),seed0, seed1);
 }
 
 void initializeKeyMappingHashMap(struct hashmap *keyMappingHashMap){

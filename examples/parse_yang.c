@@ -57,27 +57,18 @@ void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t* root){
             addLong(dynamicLongList, childSIDLong);
         }
         // Populate the Hashmap
-        KeyMappingT *keyMapping_ = (KeyMappingT *) malloc(sizeof(KeyMappingT));
-        if (keyMapping_ == NULL){
-            fprintf(stderr, "Failed malloc'ing Key Mapping");
-            return;
-        }
-        keyMapping_->dynamicLongList=NULL;
-        keyMapping_->key = parentSID;
-        keyMapping_->dynamicLongList = dynamicLongList;
-        //hashmap_set(keyMappingHashMap, &(struct KeyMappingStruct){.key=parentSID, .dynamicLongList=dynamicLongList});
-        hashmap_set(keyMappingHashMap, keyMapping_);
+        hashmap_set(keyMappingHashMap, &(KeyMappingT){.key=parentSID, .dynamicLongList=dynamicLongList});
     }
 
 }
 
 void printKeyMappingT(const KeyMappingT *keyMapping){
-    printf("For the key %lu: \n", keyMapping->key);
+    printf("\nFor the key %lu: \n", keyMapping->key);
 
     // Iterate over DynamicLongListT
     for (int i=0; i < keyMapping->dynamicLongList->size; i++){
         long childSID = *(keyMapping->dynamicLongList->longList + i);
-        printf("%lu", childSID);
+        printf("%lu, ", childSID);
     }
 }
 
@@ -99,7 +90,8 @@ void main(){
     const char* keyMappingString = "key-mapping";
     struct hashmap *keyMappingHashMap;
 
-    initializeKeyMappingHashMap(keyMappingHashMap);
+    keyMappingHashMap = hashmap_new(sizeof(KeyMappingT), 0, 0, 0, keyMappingHash, keyMappingCompare, NULL, NULL);
+
 
     FILE *fp = fopen(jsonFilePath, "r");
     if (!fp){
@@ -148,6 +140,7 @@ void main(){
         return;
     }
 
+    /*
     // Iterate over the json
     const char* key;
     json_t* value;
@@ -159,12 +152,13 @@ void main(){
             for (int i=0; i < json_array_size(value); i++){
                 json_t *data = json_array_get(value, i);
                 if (json_is_number(data)){
-                    printf("For key %s print %lu\n",key, (long) json_number_value(data));  
+                    //printf("For key %s print %lu\n",key, (long) json_number_value(data));  
                 }
 
                 }
         }
     }
+    */
 
     // Create and populate an internal hashmap
     // BUILD
@@ -176,7 +170,6 @@ void main(){
         const KeyMappingT *keyMapping = item;
         printKeyMappingT(keyMapping);
     }
-
 
     // Cleanup
     hashmap_free(keyMappingHashMap);
