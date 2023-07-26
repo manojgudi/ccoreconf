@@ -10,6 +10,7 @@
         "functional": "c",
         "memory": "c",
         "string_view": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "jansson.h": "c"
     }
 }
