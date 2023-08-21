@@ -12,10 +12,10 @@ void main(){
     
     //const char* sidFilePath1 = "/home/valentina/projects/lpwan_examples/ccoreconf/samples/sid_examples/ietf-schc@2022-12-19.sid";
     // sidFile and corresponding config file
-    //const char* sidFilePath1 = "/home/valentina/projects/lpwan_examples/ccoreconf/samples/basic/example-1@unknown.sid";
-    //const char* configFile1 = "/home/valentina/projects/lpwan_examples/ccoreconf/samples/basic/ex1-config.json";
-    const char* sidFilePath1 = "/home/valentina/projects/lpwan_examples/ccoreconf/samples/libconf/example-2@unknown.sid";
-    const char* configFile1 = "/home/valentina/projects/lpwan_examples/ccoreconf/samples/libconf/ex2-config.json";
+    const char* sidFilePath1 = "/home/valentina/projects/lpwan_examples/ccoreconf/samples/basic/example-1@unknown.sid";
+    const char* configFile1 = "/home/valentina/projects/lpwan_examples/ccoreconf/samples/basic/ex1-config.json";
+    //const char* sidFilePath1 = "/home/valentina/projects/lpwan_examples/ccoreconf/samples/libconf/example-2@unknown.sid";
+    //const char* configFile1 = "/home/valentina/projects/lpwan_examples/ccoreconf/samples/libconf/ex2-config.json";
     
     const char* keyMappingString = "key-mapping";
     SIDModelT *sidModel = malloc(sizeof(SIDModelT));

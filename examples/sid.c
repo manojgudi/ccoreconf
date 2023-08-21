@@ -309,7 +309,7 @@ void toCoreConf(){
 
 }
 
-void formatPath(const char* qualifiedPath, char *formattedPath) {
+void removeTrailingSlashFromPath(const char* qualifiedPath, char *formattedPath) {
     /*
     Remove the trailing '/' character, assumes formattedPath is initialized properly
     */

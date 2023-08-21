@@ -160,6 +160,7 @@ void long2str(char* stringValue, long longValue){
 // Assume *path = "/" and parent = 0 when this function is being invoked
 void lookupSID(json_t *jsonValue, SIDModelT *sidModel){
 
+    // Initial Values
     char* path = "/";
     long parent = 0;
 
@@ -167,31 +168,25 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel){
     initStackStorage(stackStorage, MAX_STACK_SIZE);
 
     StackElementT *initialStackElement = newStackElement();
+    // This element will be used in the while loop to refer current element of the stack
     StackElementT *currentStackElement;
+
+
     initialStackElement->jsonValue = jsonValue;
     initialStackElement->path = path;
     initialStackElement->parent = parent;
 
     char* currentPath = NULL;
     int currentParent = 0;
-    json_t* currentObject = NULL;
 
     push(stackStorage, initialStackElement);
     while (!isEmpty(stackStorage)){
-
-        printf("Original JSON Obj \n");
-        print_json_object(jsonValue);
-        printf("---------\n");
 
         currentStackElement = pop(stackStorage);
         currentPath = malloc( sizeof(char) * PATH_MAX_LENGTH);
         strcpy(currentPath, currentStackElement->path);
         currentParent = currentStackElement->parent;
 
-        //currentObject = (currentStackElement->jsonValue);
-
-        printf("Before\n");
-        print_json_object(currentStackElement->jsonValue);
         if ( json_is_object(currentStackElement->jsonValue)){
             const char *key;
             json_t *value;
@@ -208,7 +203,6 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel){
                 iter = json_object_iter_next(currentStackElement->jsonValue, iter);
             }
 
-            //json_object_foreach(currentStackElement->jsonValue, key, value) {
             for (int i =0; i<json_array_size(jsonKeys); i++){
 
                 StackElementT *inStackElement = newStackElement();
@@ -223,7 +217,7 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel){
                 char *qualifiedPath = malloc( sizeof(char) * PATH_MAX_LENGTH);
                 strcpy(qualifiedPath, currentPath);
                 strcat(qualifiedPath, key);
-                //    user = hashmap_get(map, &(struct user){ .name="Tom" });
+                
                 IdentifierSIDT *identifierSID = hashmap_get(sidModel->identifierSIDHashMap, &(IdentifierSIDT){.identifier= qualifiedPath});
                 if (!identifierSID){
                     fprintf(stderr, "Following qualified path should be in the map but wasn't found %s\n", qualifiedPath);
@@ -238,8 +232,7 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel){
                 // Set the new parent
                 inStackElement->parent = childSIDValue;
 
-                // Set the sidDiff value line 160
-                // If value is not 0 (0 is return for success), then
+                // If value is not 0 (0 is return for success), then fprintf
                 if (json_object_set(inStackElement->jsonValue, 
                     sidKey, value) < 0)
                         fprintf(stderr, "Couldn't update the json value");
@@ -248,21 +241,16 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel){
                 if (json_object_del(inStackElement->jsonValue, key) < 0)
                     fprintf(stderr, "Key %s was not found in the json, this should not happen\n", key);
 
-                // NOTE This function shows that we're putting an extra K:V, put it on line 199 and check if its working properly
-                printf("After\n");
-                print_json_object(inStackElement->jsonValue);
-                //jsonValue = currentStackElement->jsonValue;
-
-                // NOTE fix this line, should it get from currentObject or currentStackElement->jsonValue?
+                // Before pushing to stack, let the stack element point to the internal value of currentStackElement->jsonValue, line 160-161 pycoreconf.py
                 inStackElement->jsonValue = json_object_get(currentStackElement->jsonValue, sidKey);
                 
-                printf("Path %s\n", inStackElement->path);
-                // Dump the content and allot new
+                // Adding the trailing slash and copy the content to inStackElement
                 strcat(qualifiedPath, "/");
                 inStackElement->path = malloc(sizeof(char) * PATH_MAX_LENGTH);
                 strcpy(inStackElement->path, qualifiedPath);
                 push(stackStorage, inStackElement);
-                //currentStackElement->jsonValue
+
+                // Clean up temporary path
                 free(qualifiedPath);
 
             }
@@ -282,7 +270,7 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel){
 
         else {
             char* formattedPath = malloc(sizeof(char) * PATH_MAX_LENGTH);
-            formatPath(currentStackElement->path, formattedPath);
+            removeTrailingSlashFromPath(currentStackElement->path, formattedPath);
 
             printHashMap(sidModel->identifierTypeHashMap, IDENTIFIER_TYPE);
             IdentifierTypeT *identifierType = hashmap_get(sidModel->identifierTypeHashMap, &(IdentifierTypeT){.identifier = formattedPath});
@@ -290,18 +278,17 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel){
                 fprintf(stderr, "No valid identifier found for the formatted qualified path %s\n", formattedPath);
                 return;
             }
-            //enum SchemaIdentifierTypeEnum sidType = identifierType->type;
+            
             free(formattedPath);
         }
-        // check for list, test the dict part first
      
     }
    
     printf("Finalment: \n");
     print_json_object(jsonValue);
     printf("---------\n");
+    // Clean up currentPath
     free(currentPath);
-
     
 }
 

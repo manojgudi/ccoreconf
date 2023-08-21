@@ -20,7 +20,6 @@ enum SchemaIdentifierTypeEnum{
     BOOLEAN
 };
 
-
 // For printing
 
 // Used Internally for debugging/printing
@@ -107,4 +106,4 @@ void printHashMap(struct hashmap* anyHashMap, enum HashMapTypeEnum hashmapType);
 void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON);
 
 // Path format function to remove trailing '\'
-void formatPath(const char* qualifiedPath, char *formattedPath);
+void removeTrailingSlashFromPath(const char* qualifiedPath, char *formattedPath);
