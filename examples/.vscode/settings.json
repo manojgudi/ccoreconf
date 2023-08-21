@@ -12,5 +12,6 @@
         "string_view": "c",
         "system_error": "c",
         "jansson.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "enabledIfIncludesResolve"
 }

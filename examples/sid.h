@@ -8,14 +8,18 @@
  * Right now we just have strict definition for *key-mapping* in KeyMapping Struct
 */
 
-enum IdentifierTypeEnum{
+// Don't forget to update the SchemaIdentifierTypeStrings
+enum SchemaIdentifierTypeEnum{
     STRING,
     UINT_8,
     UINT_16,
+    UINT_32,
+    UINT_64,
     RCS_ALGORITHM,
     DECIMAL64,
     BOOLEAN
 };
+
 
 // For printing
 
@@ -50,7 +54,7 @@ typedef struct SIDIdentifierStruct{
 
 typedef struct IdentifierTypeStruct{
     char *identifier;
-    enum IdentifierTypeEnum type;
+    enum SchemaIdentifierTypeEnum type;
 } IdentifierTypeT;
 
 typedef struct SIDModelStruct{
@@ -70,6 +74,9 @@ typedef struct SIDModelStruct{
     struct hashmap *identifierTypeHashMap;
 
 } SIDModelT;
+
+
+
 
 DynamicLongListT* createDynamicLongList();
 void initializeDynamicLongList(DynamicLongListT *dynamicLongList);
@@ -98,3 +105,6 @@ void printKeyMappingHashMap(struct hashmap *keyMappingHashMap);
 
 void printHashMap(struct hashmap* anyHashMap, enum HashMapTypeEnum hashmapType);
 void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON);
+
+// Path format function to remove trailing '\'
+void formatPath(const char* qualifiedPath, char *formattedPath);

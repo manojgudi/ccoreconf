@@ -1,5 +1,6 @@
 # Ignore files without extensions
 !*
+parse_yang
 
 # Prerequisites
 *.d

@@ -13,12 +13,17 @@
                 "-I/home/valentina/projects/lpwan_examples/build_libyang/install/include/",
                 "-L/home/valentina/projects/lpwan_examples/build_libyang/install/lib/",
                 "-lyang",
+                "-I/home/valentina/projects/lpwan_examples/build_libcbor/install/include",
+                "-L/home/valentina/projects/lpwan_examples/build_libcbor/install/lib",
                 "-I/home/valentina/projects/lpwan_examples/build_libjansson/install/include/",
                 "-L/home/valentina/projects/lpwan_examples/build_libjansson/install/lib/",
-                "-ljansson",
                 "hashmap.c",
                 "sid.c",
-                "-lm"
+                "fileOperations.c",
+                "ccoreconf.c",
+                "-ljansson",
+                "-lm",
+                "-lcbor"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -45,12 +50,17 @@
                 "-I/home/valentina/projects/lpwan_examples/build_libyang/install/include/",
                 "-L/home/valentina/projects/lpwan_examples/build_libyang/install/lib/",
                 "-lyang",
+                "-I/home/valentina/projects/lpwan_examples/build_libcbor/install/include",
+                "-L/home/valentina/projects/lpwan_examples/build_libcbor/install/lib",
                 "-I/home/valentina/projects/lpwan_examples/build_libjansson/install/include/",
                 "-L/home/valentina/projects/lpwan_examples/build_libjansson/install/lib/",
-                "-ljansson",
                 "hashmap.c",
                 "sid.c",
-                "-lm"
+                "fileOperations.c",
+                "ccoreconf.c",
+                "-ljansson",
+                "-lm",
+                "-lcbor"
             ],
             "options": {
                 "cwd": "${fileDirname}"

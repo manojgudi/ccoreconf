@@ -8,9 +8,13 @@
 
 #define SID_LENGTH 20
 // Array of string representations for the enum values
-const char* IdentifierTypeStrings[] = {
+const char* SchemaIdentifierTypeStrings[] = {
     "String",
     "Unsigned Integer 8bit",
+    "Unsigned Integer 16bit",
+    "Unsigned Integer 32bit",
+    "Unsigned Integer 64bit",
+    "RCS Algorithm",
     "Decimal 64bit",
     "Boolean"
 };
@@ -191,7 +195,7 @@ void printSIDIdentifierT(const SIDIdentifierT *sidIdentifier){
 }
 
 void printIdentifierTypeT(const IdentifierTypeT *identifierType){
-    printf("\nIdentifier %s: %s (type) ", identifierType->identifier, IdentifierTypeStrings[identifierType->type]);
+    printf("\nIdentifier %s: %s (type) ", identifierType->identifier, SchemaIdentifierTypeStrings[identifierType->type]);
 }
 
 void printKeyMappingHashMap(struct hashmap *keyMappingHashMap){
@@ -275,7 +279,7 @@ void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON){
             // TODO Handle list types
             if (typeJSON != NULL && json_is_string(typeJSON)){
                 const char* typeString = json_string_value(typeJSON);
-                enum IdentifierTypeEnum type;
+                enum SchemaIdentifierTypeEnum type;
                 // Convert typeJSON to one of the enum
                 if (!strcmp(typeString, "boolean"))
                     type = BOOLEAN;
@@ -304,3 +308,23 @@ void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON){
 void toCoreConf(){
 
 }
+
+void formatPath(const char* qualifiedPath, char *formattedPath) {
+    /*
+    Remove the trailing '/' character, assumes formattedPath is initialized properly
+    */
+    size_t len = strlen(qualifiedPath);
+
+    if (qualifiedPath[len-1]=='/'){
+
+    // Copy all characters except the last one to the new string.
+    strncpy(formattedPath, qualifiedPath, len - 1);
+    formattedPath[len] = '\0'; // Add null-terminator.
+
+    } else {
+        fprintf(stderr, "Wrong usage of formatPath function");
+        strcpy(formattedPath, qualifiedPath);
+    }
+
+}
+
