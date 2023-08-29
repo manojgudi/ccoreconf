@@ -19,6 +19,7 @@ typedef struct StackElementStruct{
     json_t *jsonValue;
     char *path;
     int parent;
+    int delta;
 
 } StackElementT;
 
@@ -47,3 +48,5 @@ StackElementT* newStackElement(void);
 void freeStackStorage(StackStorageT *stackStorage);
 
 void lookupSID(json_t *jsonValue, SIDModelT *sidModel);
+json_t* traverseCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int64_t sid );
+void print_json_object(json_t *json);

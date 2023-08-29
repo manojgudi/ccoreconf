@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
+#include <errno.h> 
 #include "hashmap.h"
 #include "sid.h"
 #include <string.h>
@@ -305,8 +307,43 @@ void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON){
 }
 
 
-void toCoreConf(){
+int64_t char2int64(char *keyString){
+    // Convert char* to int64_t using strtoimax
+    intmax_t intValue = strtoimax(keyString, NULL, 10);
+    if (intValue == INTMAX_MIN || intValue == INTMAX_MAX) {
+        fprintf(stderr, "Conversion error or out of range");
+        return NULL;
+    }
 
+    // Check for valid conversion
+    if (errno == ERANGE) {
+        fprintf(stderr, "Value out of range");
+        return NULL;
+    }
+
+    // Convert intmax_t to int64_t
+    int64_t int64Value = (int64_t)intValue;
+
+    return int64Value;
+}
+
+char* int2str(char *keyString, int64_t keyInt64){
+     int keyStringLength = snprintf(NULL, 0, "%" PRIu64, keyInt64);
+    if (keyStringLength < 0) {
+        fprintf(stderr, "snprintf error");
+        return NULL;
+    }
+
+    // Allocate memory for the char* string
+    keyString = (char *)malloc((keyStringLength + 1) * sizeof(char));
+    if (keyString == NULL) {
+        fprintf(stderr,"Memory allocation failed");
+        return NULL;
+    }
+
+    // Convert uint64_t to char*
+    snprintf(keyString, keyStringLength + 1, "%" PRIu64, keyInt64);
+    return keyString;
 }
 
 void removeTrailingSlashFromPath(const char* qualifiedPath, char *formattedPath) {
