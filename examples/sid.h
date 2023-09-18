@@ -22,7 +22,7 @@ typedef struct DynamicLongListStruct {
 } DynamicLongListT;
 
 typedef struct KeyMappingStruct {
-    long key;
+    int64_t key;
     DynamicLongListT *dynamicLongList;
 } KeyMappingT;
 

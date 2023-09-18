@@ -223,6 +223,7 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel) {
                             "Following qualified path should be in the map but "
                             "wasn't found %s\n",
                             qualifiedPath);
+                    free(identifierSID);
                     return;
                 }
 
@@ -285,10 +286,11 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel) {
                 hashmap_get(sidModel->identifierTypeHashMap, &(IdentifierTypeT){.identifier = formattedPath});
             if (identifierType == NULL) {
                 fprintf(stderr,
-                        "No valid identifier found for the formatted qualified "
+                        "No valid type found for the Identifier "
                         "path %s\n",
                         formattedPath);
-                return;
+                free(formattedPath);
+                continue;
             }
 
             free(formattedPath);
@@ -427,7 +429,7 @@ json_t *traverseCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int64_t sid
         if (json_is_object(currentStackElement->jsonValue)) {
 
             // Check
-            if (((uint64_t)currentStackElement->parent == sid)) {
+            if (((int64_t)currentStackElement->parent == sid)) {
                 char *keyString = int2str(keyString, sid);
                 json_object_set(returnValue, keyString, currentStackElement->jsonValue);
                 return returnValue;
@@ -446,7 +448,8 @@ json_t *traverseCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int64_t sid
 
                 // if key matches then return the value
                 int64_t deltaKey = char2int64(keyString);
-                if (!deltaKey)
+                // If deltaKey is INTMAX_MIN then an error has occured
+                if (deltaKey == INTMAX_MIN)
                     return NULL;
 
                 int64_t currentElementSID = deltaKey + currentStackElement->parent;
@@ -464,7 +467,7 @@ json_t *traverseCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int64_t sid
             }
 
             // Check
-            if (((uint64_t)currentStackElement->parent == sid)) {
+            if (((int64_t)currentStackElement->parent == sid)) {
                 char *keyString = int2str(keyString, sid);
                 json_object_set(returnValue, keyString, currentStackElement->jsonValue);
                 return returnValue;
@@ -488,11 +491,13 @@ json_t *traverseCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int64_t sid
             // currentStackElement->jsonValue
 
             // Check
-            if (((uint64_t)currentStackElement->parent == sid)) {
+            if (((int64_t)currentStackElement->parent == sid)) {
                 char *keyString = int2str(keyString, sid);
                 json_object_set(returnValue, keyString, currentStackElement->jsonValue);
                 return returnValue;
             }
         }
     }
+    // TODO free stackStorage
+    // TODO free keyString, parentSID
 }

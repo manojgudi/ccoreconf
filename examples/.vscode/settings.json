@@ -2,7 +2,6 @@
     "editor.formatOnSave": true, // This will trigger formatting when you save the file
     "clang-format.executable": "clang-format", // Path to the clang-format executable (make sure it's in your system's PATH)
     "clang-format.style": "file", // This will use a .clang-format file in your project directory for formatting rules
-
     "files.associations": {
         "stdio.h": "c",
         "hashmap.h": "c",
@@ -16,7 +15,8 @@
         "string_view": "c",
         "system_error": "c",
         "jansson.h": "c",
-        "ccoreconf.h": "c"
+        "ccoreconf.h": "c",
+        "inttypes.h": "c"
     },
     "C_Cpp.errorSquiggles": "enabledIfIncludesResolve"
 }

@@ -35,7 +35,7 @@ json_t *readJSON(const char *filePath) {
         free(fileBuffer);
         return jsonFromFile;
     } else {
-        printf("File content read %zu", bytesRead);
+        printf("File content read %zu\n", bytesRead);
     }
 
     // Parse the JSON File
