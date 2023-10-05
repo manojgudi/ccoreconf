@@ -9,7 +9,17 @@
  */
 
 // Don't forget to update the SchemaIdentifierTypeStrings
-enum SchemaIdentifierTypeEnum { STRING, UINT_8, UINT_16, UINT_32, UINT_64, RCS_ALGORITHM, DECIMAL64, BOOLEAN };
+enum SchemaIdentifierTypeEnum {
+    STRING,
+    UINT_8,
+    UINT_16,
+    UINT_32,
+    UINT_64,
+    RCS_ALGORITHM,
+    DECIMAL64,
+    BOOLEAN,
+    IDENTITY_REF
+};
 
 // For printing
 
@@ -92,3 +102,4 @@ void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON);
 void removeTrailingSlashFromPath(const char *qualifiedPath, char *formattedPath);
 int64_t char2int64(char *keyString);
 char *int2str(char *keyString, int64_t keyInt64);
+char *getSubstringAfterLastColon(const char *input);

@@ -31,7 +31,8 @@ typedef struct StackStorageStruct {
 
 } StackStorageT;
 
-void convertToCBORType(json_t *jsonItem, enum SchemaIdentifierTypeEnum identifierType, cbor_item_t *cborItem);
+void convertToCBORType(json_t *jsonItem, enum SchemaIdentifierTypeEnum identifierType, cbor_item_t *cborItem,
+                       SIDModelT *sidModel);
 void convertToCORECONF(cbor_item_t *cborMap, json_t *jsonMap);
 void unwrapValues(json_t *jsonValue);
 

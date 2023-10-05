@@ -17,7 +17,8 @@ const char *SchemaIdentifierTypeStrings[] = {"String",
                                              "Unsigned Integer 64bit",
                                              "RCS Algorithm",
                                              "Decimal 64bit",
-                                             "Boolean"};
+                                             "Boolean",
+                                             "Identity Ref"};
 
 DynamicLongListT *createDynamicLongList() {
     DynamicLongListT *dynamicLongList = (DynamicLongListT *)malloc(sizeof(DynamicLongListT));
@@ -299,6 +300,8 @@ void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON) {
                     type = UINT_64;
                 else if (!strcmp(typeString, "rcs-algorithm-type"))
                     type = RCS_ALGORITHM;
+                else if (!strcmp(typeString, "identityref"))
+                    type = IDENTITY_REF;
                 else {
                     fprintf(stderr, "Unknown Identifier type, assigning type as STRING: %s\n", typeString);
                     type = STRING;
@@ -368,5 +371,18 @@ void removeTrailingSlashFromPath(const char *qualifiedPath, char *formattedPath)
     } else {
         fprintf(stderr, "Wrong usage of formatPath function");
         strcpy(formattedPath, qualifiedPath);
+    }
+}
+
+// Used it in coreconf to find the SID of a given identifier
+char *getSubstringAfterLastColon(const char *input) {
+    char *lastColon = strrchr(input, ':');
+
+    if (lastColon != NULL) {
+        // Return the substring after the last ':'
+        return lastColon + 1;
+    } else {
+        // If ':' is not found, return the original string
+        return (char *)input;
     }
 }

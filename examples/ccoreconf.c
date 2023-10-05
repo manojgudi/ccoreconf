@@ -117,23 +117,22 @@ void print_json_object(json_t *json) {
     if (json == NULL) {
         return;
     }
-
     // Print the type of the JSON object.
     switch (json_typeof(json)) {
     case JSON_NULL:
-        printf("NULL\n");
+        printf("NULL,\n");
         break;
     case JSON_FALSE:
-        printf("FALSE\n");
+        printf("FALSE,\n");
         break;
     case JSON_TRUE:
-        printf("TRUE\n");
+        printf("TRUE,\n");
         break;
     case JSON_INTEGER:
-        printf("%f\n", json_number_value(json));
+        printf("%f,\n", json_number_value(json));
         break;
     case JSON_STRING:
-        printf("%s\n", json_string_value(json));
+        printf("\"%s\",\n", json_string_value(json));
         break;
     case JSON_ARRAY:
         printf("[\n");
@@ -147,7 +146,7 @@ void print_json_object(json_t *json) {
         for (json_t *iter = json_object_iter(json); iter; iter = json_object_iter_next(json, iter)) {
             const char *key = json_object_iter_key(iter);
             json_t *value = json_object_iter_value(iter);
-            printf("\t%s: ", key);
+            printf("\t \"%s\": ", key);
             print_json_object(value);
         }
         printf("}\n");
@@ -164,6 +163,9 @@ void long2str(char *stringValue, long longValue) { sprintf(stringValue, "%ld", l
 
 // Assume *path = "/" and parent = 0 when this function is being invoked
 void lookupSID(json_t *jsonValue, SIDModelT *sidModel) {
+    // Look at this exampel to allcate, tag and deallocate tags & items
+    // https://bard.google.com/chat/89f043aa4b2be5a1
+    cbor_item_t *CBOR_SID_TAG = cbor_new_tag(47);
 
     // Initial Values
     char *path = "/";
@@ -279,11 +281,105 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel) {
 
         // If the currentStackElement->jsonValue is a leaf (such as JSONString)
         else {
+            char *identityRefStringValue = NULL;
             char *formattedPath = malloc(sizeof(char) * PATH_MAX_LENGTH);
             removeTrailingSlashFromPath(currentStackElement->path, formattedPath);
 
             IdentifierTypeT *identifierType =
                 hashmap_get(sidModel->identifierTypeHashMap, &(IdentifierTypeT){.identifier = formattedPath});
+            //  /ietf-schc:schc/rule/entry/field-length HAS Type as an json array.
+
+            // Check if formattedPath has the type identityref
+            if (identifierType == NULL) {
+
+                fprintf(stderr,
+                        "No basic types or identityref type found for the Identifier "
+                        "path %s\n",
+                        formattedPath);
+                free(formattedPath);
+
+                // if currentStackElement->jsonValue is a Json String, then try to find its SID value and update it
+                if (json_is_string(currentStackElement->jsonValue)) {
+                    // Remove the leading ":" from the identityRefStringValue
+                    identityRefStringValue =
+                        getSubstringAfterLastColon(json_string_value(currentStackElement->jsonValue));
+
+                    // If identityRefStringValue is NULL or if its same as the formattedPath
+                    if (!identityRefStringValue ||
+                        !(strcmp(identityRefStringValue, json_string_value(currentStackElement->jsonValue)))) {
+                        fprintf(stderr,
+                                "No basic types or identityref type found for the Identifier "
+                                "path %s\n",
+                                formattedPath);
+                        free(formattedPath);
+                        continue;
+                    }
+                    // find SID of the identifier from the map
+                    IdentifierSIDT *identifierSID = hashmap_get(
+                        sidModel->identifierSIDHashMap, &(IdentifierSIDT){.identifier = identityRefStringValue});
+                    if (!identifierSID) {
+                        fprintf(stderr, "No SID found for the following identifier %s\n", identityRefStringValue);
+                        free(identifierSID);
+                        continue;
+                    }
+
+                    // TODO
+                    // This is a hack because as soon as I point currentStackElement->jsonValue =
+                    // json_integer(identifierSID->sid); it corrupts the json reference and the model is not updated.
+                    // value
+                    char *sidString_ = malloc(sizeof(char) * SID_KEY_SIZE);
+                    json_string_set(currentStackElement->jsonValue, int2str(sidString_, identifierSID->sid));
+                    free(sidString_);
+                }
+
+                continue;
+            }
+
+            switch (identifierType->type) {
+            case IDENTITY_REF:
+                // Check if currentStackElement->jsonValue is a json string
+                if (!json_is_string(currentStackElement->jsonValue)) {
+                    fprintf(stderr,
+                            "Expected a json string for the Leaf Node with *identityref* type %s "
+                            "but found something else\n",
+                            formattedPath);
+                    free(formattedPath);
+                    continue;
+                }
+
+                // Remove the leading ":" from the identityRefStringValue
+                identityRefStringValue = getSubstringAfterLastColon(json_string_value(currentStackElement->jsonValue));
+
+                // If identityRefStringValue is NULL or if its same as the formattedPath
+                if (!identityRefStringValue ||
+                    !(strcmp(identityRefStringValue, json_string_value(currentStackElement->jsonValue)))) {
+                    fprintf(stderr,
+                            "No basic types or identityref type found for the Identifier "
+                            "path %s\n",
+                            formattedPath);
+                    free(formattedPath);
+                    continue;
+                }
+                // find SID of the identifier from the map
+                IdentifierSIDT *identifierSID = hashmap_get(sidModel->identifierSIDHashMap,
+                                                            &(IdentifierSIDT){.identifier = identityRefStringValue});
+                if (!identifierSID) {
+                    fprintf(stderr, "No SID found for the following identifier %s\n", identityRefStringValue);
+                    free(identifierSID);
+                    continue;
+                }
+
+                // TODO
+                // This is a hack because as soon as I point currentStackElement->jsonValue =
+                // json_integer(identifierSID->sid); it corrupts the json reference and the model is not updated. value
+                char *sidString_ = malloc(sizeof(char) * SID_KEY_SIZE);
+                json_string_set(currentStackElement->jsonValue, int2str(sidString_, identifierSID->sid));
+                free(sidString_);
+                break;
+            default:
+                break;
+            }
+
             if (identifierType == NULL) {
                 fprintf(stderr,
                         "No valid type found for the Identifier "
@@ -306,7 +402,8 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel) {
     freeStackStorage(stackStorage);
 }
 
-void convertToCBORType(json_t *jsonItem, enum SchemaIdentifierTypeEnum identifierType, cbor_item_t *cborItem) {
+void convertToCBORType(json_t *jsonItem, enum SchemaIdentifierTypeEnum identifierType, cbor_item_t *cborItem,
+                       SIDModelT *sidModel) {
     size_t jsonStringLength;
     switch (identifierType) {
     // For null terminated UTF-8 string
@@ -338,6 +435,11 @@ void convertToCBORType(json_t *jsonItem, enum SchemaIdentifierTypeEnum identifie
     case BOOLEAN:
         bool jsonValue_b = json_boolean_value(jsonItem);
         cbor_set_bool(cborItem, jsonValue_b);
+    case IDENTITY_REF:
+        // Tag 47 is for YANG Schema Identifier
+        // change 12 to its value
+        cbor_tag_set_item(cbor_new_tag(47), (uint64_t)12);
+        break;
     default:
         // Treat it as a string
         // Deallocate previous cborItem as cbor_build_stringn allocates new

@@ -59,7 +59,7 @@ void main() {
 
     buildSIDModel(sidModel, sidFile1JSON);
     buildSIDModel(sidModel, sidFile2JSON);
-    printHashMap(sidModel->sidIdentifierHashMap, SID_IDENTIFIER);
+    // printHashMap(sidModel->sidIdentifierHashMap, SID_IDENTIFIER);
     // printHashMap(sidModel->identifierSIDHashMap, IDENTIFIER_SID);
     // printHashMap(sidModel->identifierTypeHashMap, IDENTIFIER_TYPE);
 
@@ -67,10 +67,30 @@ void main() {
     lookupSID(configFileJSON, sidModel);
 
     printf("Finalment: \n");
-    print_json_object(configFileJSON);
+    // print_json_object(configFileJSON);
     printf("---------\n");
+
+    /* Dump the CORECONF representation into a JSON File
+    // Open a file for writing
+    FILE *file = fopen("output.json", "w");
+    if (!file) {
+        fprintf(stderr, "Error opening file for writing\n");
+        return 1;
+    }
+
+    // Dump the JSON object into the file
+    int ret = json_dumpf(configFileJSON, file, JSON_INDENT(4));
+
+    if (ret != 0) {
+        fprintf(stderr, "Error dumping JSON to file\n");
+        fclose(file);
+        json_decref(configFileJSON);
+        return 1;
+    }
+    */
+
     json_t *traversedJSON = json_object();
-    traversedJSON = traverseCORECONF(configFileJSON, sidModel, 60004);
+    traversedJSON = traverseCORECONF(configFileJSON, sidModel, 1000095);
     printf("Traversed: \n");
     print_json_object(traversedJSON);
     printf("---------\n");
