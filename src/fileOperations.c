@@ -1,4 +1,4 @@
-#include "fileOperations.h"
+#include "../include/fileOperations.h"
 #include <jansson.h>
 #include <stdio.h>
 #include <stdlib.h>

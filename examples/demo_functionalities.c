@@ -1,6 +1,6 @@
-#include "ccoreconf.h"
-#include "fileOperations.h"
-#include "hashmap.h"
+#include "../include/ccoreconf.h"
+#include "../include/fileOperations.h"
+#include "../include/hashmap.h"
 #include <jansson.h>
 #include <libyang/libyang.h>
 #include <stdio.h>
@@ -17,14 +17,14 @@ void main() {
     // const char* configFile1 =
     // "/home/valentina/projects/lpwan_examples/ccoreconf/samples/basic/ex1-config.json";
     const char *sidFilePath1 =
-        "/home/valentina/projects/lpwan_examples/openschc/examples/datamodel/ietf-schc@2022-12-19.sid";
+        "./model_sid_files/ietf-schc@2022-12-19.sid";
     const char *sidFilePath2 =
-        "/home/valentina/projects/lpwan_examples/openschc/examples/datamodel/ietf-schc-oam@2021-11-10.sid";
+        "./model_sid_files/ietf-schc-oam@2021-11-10.sid";
 
     // const char *configFile1 = "/home/valentina/projects/lpwan_examples/"
     //"ccoreconf/samples/libconf/ex2-config.json";
 
-    const char *configFile2 = "/home/valentina/projects/lpwan_examples/openschc/examples/datamodel/model.json";
+    const char *configFile2 = "./model_sid_files/model.json";
 
     const char *keyMappingString = "key-mapping";
     SIDModelT *sidModel = malloc(sizeof(SIDModelT));
@@ -59,9 +59,6 @@ void main() {
 
     buildSIDModel(sidModel, sidFile1JSON);
     buildSIDModel(sidModel, sidFile2JSON);
-    // printHashMap(sidModel->sidIdentifierHashMap, SID_IDENTIFIER);
-    // printHashMap(sidModel->identifierSIDHashMap, IDENTIFIER_SID);
-    // printHashMap(sidModel->identifierTypeHashMap, IDENTIFIER_TYPE);
 
     // Build CORECONF of the config file
     lookupSID(configFileJSON, sidModel);
@@ -89,22 +86,34 @@ void main() {
     }
     */
 
-    json_t *traversedJSON = json_object();
-    traversedJSON = traverseCORECONF(configFileJSON, sidModel, 1000095);
-    printf("Traversed: \n");
-    print_json_object(traversedJSON);
-    printf("---------\n");
+    // Test traverseCORECONF
+    /*
+        json_t *traversedJSON = json_object();
+        traversedJSON = traverseCORECONF(configFileJSON, sidModel, 1000096);
+        printf("Traversed: \n");
+        print_json_object(traversedJSON);
+        printf("---------\n");
+    */
+
+   // TODO show functionalities
+   // Build coreconf
+   // Fetching coreconf models
+   // traversing with keys
 
     // keys MUST be initialized properly and must be NON Empty
-    int64_t keys[] = {7};
+    int64_t keys[] = {5, 3, 1000068, 1, 1000018, 0};
     size_t keyLength = sizeof(keys) / sizeof(keys[0]);
-    // json_t *traversedJSON_ = traverseCORECONFWithKeys(configFileJSON, sidModel, 60004, keys, keyLength);
-
-    // test getCCORECONF
-    json_t *traversedJSON_ = getCCORECONF(configFileJSON, sidModel, 60004, keys, keyLength, 0, 0, NULL);
+    // Build a valid SidIdentifierT object and then call traverseCORECONFWithKeys
+    IdentifierSIDT *sidIdentifier = malloc(sizeof(IdentifierSIDT));
+    sidIdentifier->sid = INT64_MIN;
+    sidIdentifier->identifier = "/ietf-schc:schc/rule/entry/target-value/value";
+    json_t *traversedJSON_ = traverseCORECONFWithKeys(configFileJSON, sidModel, sidIdentifier, keys, keyLength);
 
     printf("OUTPUT ");
     print_json_object(traversedJSON_);
+
+    // Cleanup
+    free(sidIdentifier);
 
     // Cleanup
     hashmap_free(sidModel->keyMappingHashMap);
@@ -114,7 +123,7 @@ void main() {
 
     json_decref(sidFile1JSON);
     json_decref(configFileJSON);
-    json_decref(traversedJSON);
+    // json_decref(traversedJSON);
     json_decref(traversedJSON_);
     free(sidModel);
 }

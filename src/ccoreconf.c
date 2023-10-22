@@ -1,5 +1,5 @@
-#include "ccoreconf.h"
-#include "hashmap.h"
+#include "../include/ccoreconf.h"
+#include "../include/hashmap.h"
 #include <cbor.h>
 #include <jansson.h>
 #include <libyang/libyang.h>
@@ -129,7 +129,7 @@ void print_json_object(json_t *json) {
         printf("TRUE,\n");
         break;
     case JSON_INTEGER:
-        printf("%f,\n", json_number_value(json));
+        printf("%.1f,\n", json_number_value(json));
         break;
     case JSON_STRING:
         printf("\"%s\",\n", json_string_value(json));
@@ -197,6 +197,7 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel) {
         if (json_is_object(currentStackElement->jsonValue)) {
             const char *key;
             json_t *value;
+            char *identityRefStringValue = NULL;
 
             // TODO Improve the logic, you ideally should never need to do this.
             // Get a list of keys We are doing this since we are mutating json_t
@@ -253,6 +254,30 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel) {
                 // internal value of currentStackElement->jsonValue, line
                 // 160-161 pycoreconf.py
                 inStackElement->jsonValue = json_object_get(currentStackElement->jsonValue, sidKey);
+                // NOTE Check if inStackElement->jsonValue is a string, and if yes, convert it into a long
+
+                if (json_is_string(inStackElement->jsonValue)) {
+                    // Remove the leading ":" from the identityRefStringValue
+                    identityRefStringValue = getSubstringAfterLastColon(json_string_value(inStackElement->jsonValue));
+
+                    // find SID of the identifier from the map
+                    IdentifierSIDT *identifierSID = hashmap_get(
+                        sidModel->identifierSIDHashMap, &(IdentifierSIDT){.identifier = identityRefStringValue});
+                    if (!identifierSID) {
+                        fprintf(stderr, "No SID found for the following identifier %s\n", identityRefStringValue);
+                        free(identifierSID);
+                        continue;
+                    }
+
+                    // TODO
+                    // This is a hack because as soon as I point currentStackElement->jsonValue =
+                    // json_integer(identifierSID->sid); it corrupts the json reference and the model is not updated.
+
+                    // json_decref(currentStackElement->jsonValue);
+                    // json_integer_set(currentStackElement->jsonValue, identifierSID->sid);
+                    inStackElement->jsonValue = json_integer(identifierSID->sid);
+                    json_object_set(currentStackElement->jsonValue, sidKey, inStackElement->jsonValue);
+                }
 
                 // Adding the trailing slash and copy the content to
                 // inStackElement
@@ -326,10 +351,14 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel) {
                     // TODO
                     // This is a hack because as soon as I point currentStackElement->jsonValue =
                     // json_integer(identifierSID->sid); it corrupts the json reference and the model is not updated.
-                    // value
+
                     char *sidString_ = malloc(sizeof(char) * SID_KEY_SIZE);
                     json_string_set(currentStackElement->jsonValue, int2str(sidString_, identifierSID->sid));
                     free(sidString_);
+
+                    // json_decref(currentStackElement->jsonValue);
+                    // json_integer_set(currentStackElement->jsonValue, identifierSID->sid);
+                    // currentStackElement->jsonValue = json_integer(identifierSID->sid);
                 }
 
                 continue;
@@ -372,9 +401,13 @@ void lookupSID(json_t *jsonValue, SIDModelT *sidModel) {
                 // TODO
                 // This is a hack because as soon as I point currentStackElement->jsonValue =
                 // json_integer(identifierSID->sid); it corrupts the json reference and the model is not updated. value
+
                 char *sidString_ = malloc(sizeof(char) * SID_KEY_SIZE);
                 json_string_set(currentStackElement->jsonValue, int2str(sidString_, identifierSID->sid));
                 free(sidString_);
+
+                // json_decref(currentStackElement->jsonValue);
+                // currentStackElement->jsonValue = json_real(identifierSID->sid);
                 break;
             default:
                 break;
@@ -602,4 +635,310 @@ json_t *traverseCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int64_t sid
     }
     // TODO free stackStorage
     // TODO free keyString, parentSID
+}
+
+json_t *traverseCORECONFWithKeys(json_t *coreconfModel, SIDModelT *sidModel, IdentifierSIDT *sidIdentifier,
+                                 int64_t keys[], size_t keyLength) {
+
+    /* Disable the check for timebeing
+    // Get key mapping for requested SID
+    KeyMappingT *keyMapping = hashmap_get(sidModel->keyMappingHashMap, &(KeyMappingT){.key = sid});
+    if (!keyMapping) {
+        fprintf(stderr, "No keymapping found for %" PRIu64 "\n", sid);
+        return NULL;
+    }
+    */
+
+    /* Disable the check for timebeing
+    // Check if number of keys not eq to DynamicLongList obtained by the key-mapping from SID
+    if (keyLength <= keyMapping->dynamicLongList->size) {
+        fprintf(stderr, "Length of keys is not the same as key-mapping found in .sid file\n");
+        return NULL;
+    }
+    */
+
+    int64_t sid = INT64_MIN;
+    // If SID is passed as an argument then update the local sid variable
+    if (sidIdentifier->sid != INT64_MIN) {
+        sid = sidIdentifier->sid;
+    } else if (sidIdentifier->identifier) {
+        // If identifier is passed as an argument then find the corresponding SID and update the variable
+        IdentifierSIDT *foundIdentiferSID =
+            hashmap_get(sidModel->identifierSIDHashMap, &(IdentifierSIDT){.identifier = sidIdentifier->identifier});
+        if (foundIdentiferSID)
+            sid = foundIdentiferSID->sid;
+        else
+            fprintf(stderr, "No SID found for the following identifier %s\n", sidIdentifier->identifier);
+    }
+
+    // Check if the SID to be queried is valid, if not, then return
+    if (sid == INT64_MIN) {
+        fprintf(stderr, "Valid SID %lu is not found!\n", sid);
+        return NULL;
+    }
+
+    StackStorageT *stackStorage = (StackStorageT *)malloc(sizeof(StackStorageT));
+    initStackStorage(stackStorage, MAX_STACK_SIZE);
+
+    // TODO Should this be a new Struct type?
+    StackElementT *initialStackElement = newStackElement();
+    // Top of the stack
+    StackElementT *currentStackElement;
+
+    initialStackElement->jsonValue = coreconfModel;
+    // Save Delta
+    initialStackElement->delta = 0;
+    initialStackElement->parent = 0;
+
+    // return value
+    json_t *returnValue = json_object();
+
+    // Base SID used during recalculation
+    char *parentSID = NULL;
+
+    push(stackStorage, initialStackElement);
+
+    // multiple occurence of required SID possible if we are traversing in a
+    // list
+    bool traversingInList = false;
+
+    while (!isEmpty(stackStorage)) {
+
+        currentStackElement = pop(stackStorage);
+
+        if (json_is_object(currentStackElement->jsonValue)) {
+
+            // Check
+            if (((int64_t)currentStackElement->parent == sid)) {
+                char *keyString = int2str(keyString, sid);
+                json_object_set(returnValue, keyString, currentStackElement->jsonValue);
+
+                if (!traversingInList) {
+                    return returnValue;
+                } else {
+                }
+            }
+
+            /* obj is a JSON object */
+            const char *keyString;
+            json_t *value;
+
+            json_object_foreach(currentStackElement->jsonValue, keyString, value) {
+
+                // If parentSID is NULL then get the first
+                if (!parentSID) {
+                    parentSID = keyString;
+                }
+
+                // if key matches then return the value
+                int64_t deltaKey = char2int64(keyString);
+                // If deltaKey is INTMAX_MIN then an error has occured
+                if (deltaKey == INTMAX_MIN)
+                    return NULL;
+
+                int64_t currentElementSID = deltaKey + currentStackElement->parent;
+
+                StackElementT *inStackElement = newStackElement();
+                inStackElement->jsonValue = value;
+                inStackElement->parent = currentElementSID;
+                push(stackStorage, inStackElement);
+            }
+
+        } else if (json_is_array(currentStackElement->jsonValue)) {
+            // Set the flag
+            if (!traversingInList)
+                traversingInList = true;
+
+            // Can you have list of models as the outermost model?
+            if (!parentSID) {
+                parentSID = int2str(parentSID, currentStackElement->parent);
+            }
+
+            // Check
+            if (((int64_t)currentStackElement->parent == sid)) {
+                char *keyString = int2str(keyString, sid);
+                json_object_set(returnValue, keyString, currentStackElement->jsonValue);
+                return returnValue;
+            }
+
+            size_t arrayLength = json_array_size(currentStackElement->jsonValue);
+            for (int i = 0; i < arrayLength; i++) {
+                StackElementT *inStackElement = newStackElement();
+                inStackElement->jsonValue = json_array_get(currentStackElement->jsonValue, i);
+                inStackElement->parent = currentStackElement->parent;
+                push(stackStorage, inStackElement);
+            }
+        } else {
+            // LEAVES
+            // Can you have list of models as the outermost model?
+            if (!parentSID) {
+                parentSID = int2str(parentSID, currentStackElement->parent);
+            }
+
+            // Adjust the SID
+            // currentStackElement->jsonValue
+
+            // Check
+            if (((int64_t)currentStackElement->parent == sid)) {
+                char *keyString = int2str(keyString, sid);
+                json_object_set(returnValue, keyString, currentStackElement->jsonValue);
+                return returnValue;
+            }
+        }
+    }
+}
+
+json_t *getCCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int sid, int keys[], size_t keyLength, int delta,
+                     int depth, json_t *value) {
+
+    if (sid == delta) {
+        // If value is NONE
+        if ((value == NULL) || (json_object_size(value) == 0))
+            return coreconfModel;
+
+        // If value is not NONE
+        coreconfModel = value;
+        // XXX return True in python
+        return coreconfModel;
+    }
+
+    // If the coreconfModel is not an object, then return NULL
+    if (!json_is_object(coreconfModel)) {
+        return NULL;
+    }
+
+    // Henceforth coreconfModel is only a JSON object
+    json_t *result = json_object();
+    int sidDiff = sid - delta;
+
+    // check if sidDiff is one of the keys in the coreconfModel
+    char *sidDiffString = int2str(sidDiffString, sidDiff);
+    json_t *sidDiffValue = json_object_get(coreconfModel, sidDiffString);
+
+    // If no keys are given and sidDiff is part of coreconfModel, then:
+    if ((keyLength == 0) && (sidDiffValue)) {
+        if (value) {
+            json_object_set(coreconfModel, sidDiffString, value);
+            return coreconfModel;
+        } else {
+            json_object_set(result, sidDiffString, sidDiffValue);
+            return result;
+        }
+    }
+
+    // If no keys are given and value is not NULL, then:
+    if ((keyLength == 0) && (value)) {
+        json_object_set(coreconfModel, sidDiffString, value);
+        return coreconfModel;
+    }
+
+    // Iterate through coreconfModel for all keys and values
+    const char *keyString;
+    json_t *keyValue;
+    json_object_foreach(coreconfModel, keyString, keyValue) {
+        // convert keyValue from const char* to int64_t
+        int64_t keyValue_int64 = char2int64(keyString);
+
+        if (keyValue_int64 == INTMAX_MIN)
+            return NULL;
+
+        int64_t newSID = keyValue_int64 + delta;
+
+        // check if newSID is in sidModel->keyMappingHashMap, if not found, then return NULL
+        KeyMappingT *keyMapping = hashmap_get(sidModel->keyMappingHashMap, &(KeyMappingT){.key = newSID});
+
+        if (keyMapping) {
+            // newSID exists in sid key mapping
+
+            // check if keyLength is equal to keyMapping->dynamicLongList->size, if not equal, then return NULL
+            if (keyLength != keyMapping->dynamicLongList->size) {
+                fprintf(stderr, "Length of keys is not the same as key-mapping found in .sid file\n");
+                return NULL;
+            }
+
+            // XXX Should keySearchObject be an internal hashmap?
+            json_t *keySearchObject = json_object();
+            // Iterate through dynamicLongList to build keySearchObject
+            char *newDeltaString = NULL;
+            for (int i = 0; i < keyMapping->dynamicLongList->size; i++) {
+                int64_t mappedKey = *(keyMapping->dynamicLongList->longList + i);
+                int64_t newDelta = mappedKey - newSID;
+                // XXX pop value from keys
+                int64_t sidKey = *(keys + i);
+                newDeltaString = int2str(newDeltaString, newDelta);
+                json_object_set(keySearchObject, newDeltaString, json_integer(sidKey));
+            }
+            free(newDeltaString);
+
+            json_t *foundST = json_object();
+            int foundIndex = 0;
+            if (!json_is_array(keyValue)) {
+                fprintf(stderr, "keyValue is not an object. This shouldn't happen\n");
+                return NULL;
+            }
+
+            /* keyValue is a JSON array */
+            size_t leafIndex;
+            json_t *leafValue;
+            json_array_foreach(keyValue, leafIndex, leafValue) {
+                if (json_object_size(keySearchObject) != json_object_size(leafValue)) {
+                    foundST = leafValue;
+                    break;
+                }
+                foundIndex += 1;
+            }
+
+            if (json_object_size(foundST) != 0) {
+                if (sid == newSID) {
+                    if ((value != NULL) && (json_object_size(value) != 0)) {
+                        json_array_set(keyValue, foundIndex, value);
+                        return coreconfModel;
+                    }
+                    // If value is NULL, then create a new json_t object stDeltaAdjusted and populate it with key, value
+                    // from foundST
+                    json_t *stDeltaAdjusted = json_object();
+                    const char *key1;
+                    json_t *value1;
+                    json_object_foreach(foundST, key1, value1) {
+                        int64_t key1_int64 = char2int64(key1);
+                        int64_t adjustedDelta = key1_int64 + newSID;
+                        char *adjustedDeltaString = int2str(adjustedDeltaString, adjustedDelta);
+                        json_object_set(stDeltaAdjusted, adjustedDeltaString, value1);
+                        free(adjustedDeltaString);
+                    }
+                    return stDeltaAdjusted;
+                }
+
+                return getCCORECONF(foundST, sidModel, sid, keys, keyLength, newSID, depth + 1, value);
+            }
+
+            // if foundST is not NULL or empty, then check for value
+            if ((value != NULL) && (json_object_size(value) != 0)) {
+                printf("Add it \n");
+                print_json_object(keySearchObject);
+                json_t *keySearchObjectCopy = json_copy(keySearchObject);
+                // Iterate over value and set it to keySearchObjectCopy
+                const char *updateKey;
+                json_t *updateValue;
+                json_object_foreach(value, updateKey, updateValue) {
+                    if (json_object_get(keySearchObjectCopy, updateKey) != NULL) {
+                        printf("Key already exists and is already set %s", updateKey);
+                    } else {
+                        json_object_set(keySearchObjectCopy, updateKey, updateValue);
+                    }
+                }
+                json_array_append(keyValue, keySearchObjectCopy);
+                return coreconfModel;
+            }
+
+        } else { // if newSID is not found in the keyMappingHashMap
+            if (json_object_size(result) == 0)
+                result = getCCORECONF(keyValue, sidModel, sid, keys, keyLength, newSID, depth + 1, value);
+        }
+    }
+
+    free(sidDiffString);
+
+    if (json_object_size(result) != 0)
+        return result;
 }

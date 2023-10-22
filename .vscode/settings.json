@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "fileoperations.h": "c",
+        "jansson.h": "c"
+    }
+}

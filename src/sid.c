@@ -1,5 +1,5 @@
-#include "sid.h"
-#include "hashmap.h"
+#include "../include/sid.h"
+#include "../include/hashmap.h"
 #include <errno.h>
 #include <inttypes.h>
 #include <jansson.h>
