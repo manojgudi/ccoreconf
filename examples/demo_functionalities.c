@@ -9,31 +9,22 @@
 /*Example to read SID file and find a SID and its corresponding value*/
 void main() {
 
-    // const char* sidFilePath1 =
-    // "/home/valentina/projects/lpwan_examples/ccoreconf/samples/sid_examples/ietf-schc@2022-12-19.sid";
-    //  sidFile and corresponding config file
-    // const char* sidFilePath1 =
-    // "/home/valentina/projects/lpwan_examples/ccoreconf/samples/basic/example-1@unknown.sid";
-    // const char* configFile1 =
-    // "/home/valentina/projects/lpwan_examples/ccoreconf/samples/basic/ex1-config.json";
+    /*
+    Supply all the SID files and the model files and read the json files
+    */ 
     const char *sidFilePath1 =
         "./model_sid_files/ietf-schc@2022-12-19.sid";
     const char *sidFilePath2 =
         "./model_sid_files/ietf-schc-oam@2021-11-10.sid";
 
-    // const char *configFile1 = "/home/valentina/projects/lpwan_examples/"
-    //"ccoreconf/samples/libconf/ex2-config.json";
-
     const char *configFile2 = "./model_sid_files/model.json";
 
     const char *keyMappingString = "key-mapping";
     SIDModelT *sidModel = malloc(sizeof(SIDModelT));
-    // struct hashmap *keyMappingHashMap, *identifierSIDHashMap,
-    // *sidIdentifierHashMap, *identifierTypeHashMap;
 
     json_t *sidFile1JSON = readJSON(sidFilePath1);
     json_t *sidFile2JSON = readJSON(sidFilePath2);
-    json_t *configFileJSON = readJSON(configFile2);
+    json_t *coreconfModel = readJSON(configFile2);
 
     // Access key-mapping
     json_t *keyMappingJSON = json_object_get(sidFile1JSON, keyMappingString);
@@ -57,17 +48,18 @@ void main() {
     sidModel->identifierTypeHashMap =
         hashmap_new(sizeof(IdentifierTypeT), 0, 0, 0, identifierTypeHash, identifierTypeCompare, NULL, NULL);
 
+    // Build SIDModel 
     buildSIDModel(sidModel, sidFile1JSON);
     buildSIDModel(sidModel, sidFile2JSON);
 
-    // Build CORECONF of the config file
-    lookupSID(configFileJSON, sidModel);
+    // Build CORECONF representation of the model file
+    lookupSID(coreconfModel, sidModel);
 
-    printf("Finalment: \n");
-    // print_json_object(configFileJSON);
+    printf("Print the CORECONF model\n");
+    print_json_object(coreconfModel);
     printf("---------\n");
 
-    /* Dump the CORECONF representation into a JSON File
+    /* Dump the CORECONF model representation into a JSON format
     // Open a file for writing
     FILE *file = fopen("output.json", "w");
     if (!file) {
@@ -76,41 +68,39 @@ void main() {
     }
 
     // Dump the JSON object into the file
-    int ret = json_dumpf(configFileJSON, file, JSON_INDENT(4));
+    int ret = json_dumpf(coreconfModel, file, JSON_INDENT(4));
 
     if (ret != 0) {
         fprintf(stderr, "Error dumping JSON to file\n");
         fclose(file);
-        json_decref(configFileJSON);
+        json_decref(coreconfModel);
         return 1;
     }
     */
 
-    // Test traverseCORECONF
-    /*
-        json_t *traversedJSON = json_object();
-        traversedJSON = traverseCORECONF(configFileJSON, sidModel, 1000096);
-        printf("Traversed: \n");
-        print_json_object(traversedJSON);
-        printf("---------\n");
-    */
+    /* Find the nodes corresponding to SID 1000096  */
+    json_t *traversedJSON = json_object();
+    traversedJSON = traverseCORECONF(coreconfModel, sidModel, 1000096);
+    printf("Obtained the subtree: \n");
+    print_json_object(traversedJSON);
+    printf("---------\n");
+    
 
-   // TODO show functionalities
-   // Build coreconf
-   // Fetching coreconf models
-   // traversing with keys
+    /*Find the nodes corresponding to a String Characteristics and specific keys*/
 
     // keys MUST be initialized properly and must be NON Empty
     int64_t keys[] = {5, 3, 1000068, 1, 1000018, 0};
     size_t keyLength = sizeof(keys) / sizeof(keys[0]);
+    
     // Build a valid SidIdentifierT object and then call traverseCORECONFWithKeys
     IdentifierSIDT *sidIdentifier = malloc(sizeof(IdentifierSIDT));
     sidIdentifier->sid = INT64_MIN;
     sidIdentifier->identifier = "/ietf-schc:schc/rule/entry/target-value/value";
-    json_t *traversedJSON_ = traverseCORECONFWithKeys(configFileJSON, sidModel, sidIdentifier, keys, keyLength);
+    json_t *traversedJSON_ = traverseCORECONFWithKeys(coreconfModel, sidModel, sidIdentifier, keys, keyLength);
 
-    printf("OUTPUT ");
+    printf("Obtained the subtree: \n");
     print_json_object(traversedJSON_);
+    printf("---------\n");
 
     // Cleanup
     free(sidIdentifier);
@@ -122,7 +112,7 @@ void main() {
     hashmap_free(sidModel->identifierTypeHashMap);
 
     json_decref(sidFile1JSON);
-    json_decref(configFileJSON);
+    json_decref(coreconfModel);
     // json_decref(traversedJSON);
     json_decref(traversedJSON_);
     free(sidModel);
