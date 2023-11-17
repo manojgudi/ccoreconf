@@ -1,0 +1,121 @@
+{
+  "assignment-ranges": [
+    {
+      "entry-point": 1000,
+      "size": 300
+    }
+  ],
+  "module-name": "sensor",
+  "module-revision": "unknown",
+  "items": [
+    {
+      "namespace": "module",
+      "identifier": "sensor",
+      "status": "unstable",
+      "sid": 1000
+    },
+    {
+      "namespace": "identity",
+      "identifier": "battery-indicator-base-type",
+      "status": "unstable",
+      "sid": 1001
+    },
+    {
+      "namespace": "identity",
+      "identifier": "high-level",
+      "status": "unstable",
+      "sid": 1002
+    },
+    {
+      "namespace": "identity",
+      "identifier": "low-level",
+      "status": "unstable",
+      "sid": 1003
+    },
+    {
+      "namespace": "identity",
+      "identifier": "manufacturer",
+      "status": "unstable",
+      "sid": 1004
+    },
+    {
+      "namespace": "identity",
+      "identifier": "med-level",
+      "status": "unstable",
+      "sid": 1005
+    },
+    {
+      "namespace": "identity",
+      "identifier": "sensor-type",
+      "status": "unstable",
+      "sid": 1006
+    },
+    {
+      "namespace": "data",
+      "identifier": "/sensor:sensorHealth",
+      "status": "unstable",
+      "sid": 1007
+    },
+    {
+      "namespace": "data",
+      "identifier": "/sensor:sensorHealth/healthReadings",
+      "status": "unstable",
+      "sid": 1008
+    },
+    {
+      "namespace": "data",
+      "identifier": "/sensor:sensorHealth/healthReadings/battery",
+      "status": "unstable",
+      "sid": 1009,
+      "type": "identityref"
+    },
+    {
+      "namespace": "data",
+      "identifier": "/sensor:sensorHealth/healthReadings/healthValue",
+      "status": "unstable",
+      "sid": 1010,
+      "type": "uint32"
+    },
+    {
+      "namespace": "data",
+      "identifier": "/sensor:sensorHealth/healthReadings/readingIndex",
+      "status": "unstable",
+      "sid": 1011,
+      "type": "uint8"
+    },
+    {
+      "namespace": "data",
+      "identifier": "/sensor:sensordata",
+      "status": "unstable",
+      "sid": 1012
+    },
+    {
+      "namespace": "data",
+      "identifier": "/sensor:sensordata/dataReadings",
+      "status": "unstable",
+      "sid": 1013
+    },
+    {
+      "namespace": "data",
+      "identifier": "/sensor:sensordata/dataReadings/dataValue",
+      "status": "unstable",
+      "sid": 1014,
+      "type": "uint16"
+    },
+    {
+      "namespace": "data",
+      "identifier": "/sensor:sensordata/dataReadings/readingIndex",
+      "status": "unstable",
+      "sid": 1015,
+      "type": "uint8"
+    }
+  ],
+  "key-mapping": {
+    "/sensor:sensordata/dataReadings": [
+      "/sensor:sensordata/dataReadings/readingIndex"
+    ],
+    "/sensor:sensorHealth/healthReadings": [
+      "/sensor:sensorHealth/healthReadings/readingIndex"
+    ]
+  }
+}
