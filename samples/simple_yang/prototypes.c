@@ -11,9 +11,9 @@
     Module: data 
     Identifier: /sensor:sensorHealth
     function params: 
-    Stable: None
+    Stable: false
 */
-void get_sensor_sensorHealth(){
+void get_sensorHealth(){
 	}
 
 
@@ -23,9 +23,9 @@ void get_sensor_sensorHealth(){
     Module: data 
     Identifier: /sensor:sensorHealth/healthReadings
     function params: /sensor:sensorHealth/healthReadings/readingIndex
-    Stable: None
+    Stable: false
 */
-void get_sensor_sensorHealth_healthReadings(json_t *instance, SIDModelT *sidModel, uint8_t sensor_sensorHealth_healthReadings_readingIndex){
+json_t * get_healthReadings(json_t *instance, SIDModelT *sidModel, uint8_t readingIndex){
     int64_t keys[] = {1011};
     size_t keyLength = 1;
     IdentifierSIDT *sidIdentifier = malloc(sizeof(IdentifierSIDT));
@@ -44,9 +44,9 @@ void get_sensor_sensorHealth_healthReadings(json_t *instance, SIDModelT *sidMode
     Module: data 
     Identifier: /sensor:sensorHealth/healthReadings/healthValue
     function params: /sensor:sensorHealth/healthReadings/readingIndex
-    Stable: None
+    Stable: false
 */
-uint32_t get_sensor_sensorHealth_healthReadings_healthValue(json_t *instance, SIDModelT *sidModel, uint8_t sensor_sensorHealth_healthReadings_readingIndex){
+json_t * get_healthValue(json_t *instance, SIDModelT *sidModel, uint8_t readingIndex){
     int64_t keys[] = {1011};
     size_t keyLength = 1;
     IdentifierSIDT *sidIdentifier = malloc(sizeof(IdentifierSIDT));
@@ -65,9 +65,9 @@ uint32_t get_sensor_sensorHealth_healthReadings_healthValue(json_t *instance, SI
     Module: data 
     Identifier: /sensor:sensordata
     function params: 
-    Stable: None
+    Stable: false
 */
-void get_sensor_sensordata(){
+void get_sensordata(){
 	}
 
 
@@ -77,9 +77,9 @@ void get_sensor_sensordata(){
     Module: data 
     Identifier: /sensor:sensordata/dataReadings
     function params: /sensor:sensordata/dataReadings/readingIndex
-    Stable: None
+    Stable: false
 */
-void get_sensor_sensordata_dataReadings(json_t *instance, SIDModelT *sidModel, uint8_t sensor_sensordata_dataReadings_readingIndex){
+json_t * get_dataReadings(json_t *instance, SIDModelT *sidModel, uint8_t readingIndex){
     int64_t keys[] = {1015};
     size_t keyLength = 1;
     IdentifierSIDT *sidIdentifier = malloc(sizeof(IdentifierSIDT));
@@ -98,9 +98,9 @@ void get_sensor_sensordata_dataReadings(json_t *instance, SIDModelT *sidModel, u
     Module: data 
     Identifier: /sensor:sensordata/dataReadings/dataValue
     function params: /sensor:sensordata/dataReadings/readingIndex
-    Stable: None
+    Stable: false
 */
-uint16_t get_sensor_sensordata_dataReadings_dataValue(json_t *instance, SIDModelT *sidModel, uint8_t sensor_sensordata_dataReadings_readingIndex){
+json_t * get_dataValue(json_t *instance, SIDModelT *sidModel, uint8_t readingIndex){
     int64_t keys[] = {1015};
     size_t keyLength = 1;
     IdentifierSIDT *sidIdentifier = malloc(sizeof(IdentifierSIDT));
