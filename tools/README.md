@@ -14,7 +14,7 @@ _generateStubs.py_ is a tool used to generate C _getter_ function stubs for the 
 
 ![image-20231124103312702](./readme_img/image-20231124103312702.png)
 
-2. Run the _generateStubs.py_ for the SID file, and it prints the auto-generated on the _stdout_. You can pipe it out to a file like this:
+3. Run the _generateStubs.py_ for the SID file, and it prints the auto-generated on the _stdout_. You can pipe it out to a file like this:
 
 `$ python3 generateStubs.py ../samples/simple_yang/sensor@unknown.sid  > prototypes.c`
 
@@ -22,9 +22,9 @@ _generateStubs.py_ is a tool used to generate C _getter_ function stubs for the 
 
 ## Understanding Stubs
 
-Let's try to understand what is the generated C function stub is trying to do. Suppose the **objective** of an user is to programmatically get value of the leaf _healthValue_  (at position 2) from [sensor_instance.json](https://github.com/manojgudi/ccoreconf/blob/stub_generation/samples/simple_yang/sensor_instance.json) file. Note, in a real-embedded system, this json data can be encoded in CBOR as well, and received from a CoAP request from a controller.
+Let's try to understand what is the generated in the C function stub. Suppose the **objective** of an user is to programmatically get value of the leaf _healthValue_  (at position 2) from [sensor_instance.json](https://github.com/manojgudi/ccoreconf/blob/stub_generation/samples/simple_yang/sensor_instance.json) file. *Note: In a real-embedded system, this json data can be encoded in CBOR as well, and received from a CoAP request from a controller.*
 
-So, for example it will be, the *_healthvalue* at the 2nd position is 876543, and according to our [YANG model](https://github.com/manojgudi/ccoreconf/blob/stub_generation/samples/simple_yang/sensor.yang) it is indexed by the SID key _readingIndex_.
+So, for our example, the *_healthValue* at the 2nd position is **876543**, and according to our [YANG model](https://github.com/manojgudi/ccoreconf/blob/stub_generation/samples/simple_yang/sensor.yang) _healthValue_ is indexed by the SID key _readingIndex_.
 
 ![image-20231125162723696](./readme_img/image-20231125162723696.png)
 
@@ -34,13 +34,13 @@ And let us take a look at the C Stub generated:
 
 Here the _get_healthValue_ function is a similar to a _getter_ function which takes in:
 
-* `json_t*` tree of [sensor_instance.json](https://github.com/manojgudi/ccoreconf/blob/stub_generation/samples/simple_yang/sensor_instance.json) file. `json_t`  type is defined in [Jansson library](https://jansson.readthedocs.io/), 
-* `SIDModelT *` instance defined by the _ccoreconf_ library which contains information about SID key mappings. You can build as shown in the [the demo_functionalities.c](https://github.com/manojgudi/ccoreconf/blob/stub_generation/examples/demo_functionalities.c#L51) file
+* `json_t*` instance of [sensor_instance.json](https://github.com/manojgudi/ccoreconf/blob/stub_generation/samples/simple_yang/sensor_instance.json) file. `json_t`  type is defined in [Jansson library](https://jansson.readthedocs.io/), 
+* `SIDModelT *` instance as defined by the _ccoreconf_ library which contains information about SID key mappings. You can build your own instance of this `SIDModelT` as shown in the [the demo_functionalities.c](https://github.com/manojgudi/ccoreconf/blob/stub_generation/examples/demo_functionalities.c#L51) example.
 * `uint8_t` type of value for the key for _healthValue_, which in this case is _readingIndex_. 
 
 Internally it makes use of the key-mapping, sets the correct Identifier for querying _healthValue_ and calls [traverseCORECONFWithKeys](https://github.com/manojgudi/ccoreconf/blob/stub_generation/src/ccoreconf.c#L640) method defined from _ccoreconf_ library. 
 
-Lastly, this function returns the `json_t* ` instance containing _healthValue_ if it exists, else the pointer returns to NULL.
+Lastly, this function returns the `json_t* ` instance containing _healthValue_ if it exists, else the instance points to NULL.
 
 This function easily be integrated in your _main.c_ like this:
 
