@@ -194,7 +194,7 @@ You may quickly build this RIOT example-project on native platform and perform a
 
 3. Perform a CoAP request from your host machine to the emulated sensor running natively:
 
-![image-20231128115722459](/home/valentina/projects/lpwan_examples/ccoreconf/tools/readme_img/image-20231128115722459.png)
+![image-20231128115722459](./readme_img/image-20231128115722459.png)
 
 And as you can see for sid=1010, the sensors queries the health value and returns the value from ADC (which is 26).
 
