@@ -27,6 +27,28 @@ cborTypeToCMapping = {
 }
 
 
+# Define default/NULL values for each type
+defaultTypeValue = {
+    "uint8": "0",
+    "uint16": "0",
+    "uint32": "0",
+    "uint64": "0",
+    "int8": "0",
+    "int16": "0",
+    "int32": "0",
+    "int64": "0",
+    "float32": "0",
+    "float64": "0",
+    "decimal64": "0",
+    "boolean": "false",
+    "binary" : "false",
+    "string": "NULL",
+    "bytes": "NULL",
+    "array": "NULL",
+    "identityref" : "NULL",
+    "void" : "NULL"
+}
+
 def formatIdentifier(identifier):
     """
     Format the identifier by replacing "/", "-", ":" with "_"
@@ -46,6 +68,40 @@ def formatIdentifier(identifier):
 
     return identifier
 
+
+def generateSIDPreprocessors(items):
+    """
+    Take items as input and generate C headers for all the items
+    For each item which has a valid type, add a line
+        # define LEAF LEAF_SID_NUMBER
+    """
+    # Map of leafIdentifier to number of times it has been referred
+    leafIdentifierCount = {}
+    cHeaders = ""
+    for item in items:
+        if item.get("type") in cborTypeToCMapping:
+            formattedItemIdentifier =  formatIdentifier(item["identifier"])
+            # Check if formattedItemIdentifier is already in leafIdentifierCount
+            if formattedItemIdentifier in leafIdentifierCount:
+                leafIdentifierCount[formattedItemIdentifier] += 1
+                formattedItemIdentifier += str(leafIdentifierCount[formattedItemIdentifier])
+            else:
+                leafIdentifierCount[formattedItemIdentifier] = 0
+
+            # Take absolute value of the difference between 20 and len(identifier)
+            calculateSpaces = abs( 19 - len( formattedItemIdentifier) ) + 1 # +1 in case the difference is 0
+            cHeaders += "#define  SID_" + formattedItemIdentifier.upper() + " " * calculateSpaces + str(item["sid"]) + "\n"
+    return cHeaders
+
+def generateFunctionPreprocessors(functionPrefix, item):
+    """
+    Construct function name and its SID and put them as synonyms in the preprocessor
+    """
+    functionName = formatIdentifier(item["identifier"])
+    functionSID = item["sid"]
+    calculateSpaces = abs( 19 - len(functionName) ) + 1 # +1 in case the difference is 0
+    return "#define " + functionPrefix + functionName + " "*calculateSpaces + functionPrefix + str(functionSID) + "\n"
+
 class SIDItem:
     def __init__(self, namespace, identifier, sid, type_=None, stable=False):
         self.namespace = namespace
@@ -53,6 +109,8 @@ class SIDItem:
         self.sid = sid
         self.stable = stable
         self.sidKeyItems = []
+        self.functionPrototype = ""
+
         if type_:
             # NOTE fix this later
             if type(type_) == list:
@@ -70,6 +128,9 @@ class SIDItem:
         
     def addSidKey(self, sidKeyItem):
         self.sidKeyItems.append(sidKeyItem)
+    
+    def addFunctionPrototype(self, functionPrototype):
+        self.functionPrototype = functionPrototype
     
     def generateDocStrings(self):
         """
@@ -100,26 +161,29 @@ class SIDItem:
         """
         Invoke manipulateCORECONF function properly
         """
+        leafInitialization = ""
+        leafReturn = ""
+        # If the type is void, then don't initialize the leaf, else initialize with default value
+        if self.type != "void":
+            leafInitialization = cborTypeToCMapping[self.type] + " " + formatIdentifier(self.identifier) + "Instance" + "  = " + defaultTypeValue[self.type] + ";\n\t"
+            leafReturn = "// Return the leaf \n"+ "    return " + formatIdentifier(self.identifier) + "Instance;"
+        
         functionBodyTemplate = """{
-    int64_t keys[] = {%s};
-    size_t keyLength = %s;
-    IdentifierSIDT *sidIdentifier = malloc(sizeof(IdentifierSIDT));
-    sidIdentifier->sid = INT64_MIN;
-    sidIdentifier->identifier = "%s";
-    json_t *traversedJSON_ = traverseCORECONFWithKeys(instance, sidModel, sidIdentifier, keys, keyLength);
-    free(sidIdentifier);
-    return traversedJSON_;
+    // Initialize the leaf if it has a return type with a default value;
+    %s
+    // Do something with the leaf
+    %s
 }
         """
 
-        functionBody = functionBodyTemplate % (", ".join([str(x.sid) for x in self.sidKeyItems]), str(len(self.sidKeyItems)), self.identifier);
+        functionBody = functionBodyTemplate % (leafInitialization, leafReturn);
         return functionBody
 
     def generateCGetMethods(self):
         """
         Generate C code for this item, the sidKeys will be passed as parameters to the function
         """
-        getString = "get_"
+        readString = "read_"
         # Don't do anything if the namespace is not "data"
         if self.namespace != "data":
             return ""
@@ -131,12 +195,16 @@ class SIDItem:
         functionName = formatIdentifier(self.identifier)
         # generate C function argument string from the sidKeyItems
         ### MODIFY FROM HERE, function args should contain any keys if its required
-        functionArgs = "json_t *instance, SIDModelT *sidModel, "
-        functionBody = self.generateFunctionBody() if self.sidKeyItems else "{\n\t}"
+        functionArgs = ""
+        functionBody = self.generateFunctionBody() if self.sidKeyItems else "{\n}"
 
         # If no sidKeyItems are found directly return the function string
         if not self.sidKeyItems:
-            functionString = docString + cborTypeToCMapping[self.type] + " " + getString + functionName + "()" + functionBody + "\n"
+            functionPrototype = cborTypeToCMapping[self.type] + " " + readString + functionName + "(void)"
+            functionString = docString + functionPrototype + functionBody + "\n"
+            
+            # Add the function prototype to the list of function prototypes
+            self.addFunctionPrototype("%s;"%(functionPrototype))
             return functionString
 
         lastSidKeyItem = self.sidKeyItems[-1]
@@ -150,8 +218,12 @@ class SIDItem:
 
         # generate C function return type from the self.type
         #functionReturnType = cborTypeToCMapping[self.type]
-        functionReturnType = "json_t *"
-        functionString = docString + functionReturnType + " " + getString + functionName + "(" + functionArgs + ")" + functionBody + "\n"
+        functionReturnType = cborTypeToCMapping[self.type]
+        functionPrototype = functionReturnType + " " + readString + functionName + "(" + functionArgs + ")"
+        functionString = docString + functionPrototype + functionBody + "\n"
+        
+        # Add the function prototype to the list of function prototypes
+        self.addFunctionPrototype("%s;"%(functionPrototype))
         return functionString
 
 def findIdentifierBlockBySID(sid, items):
@@ -232,10 +304,17 @@ def main():
     # write a command line parser to accept .sid file as input
     parser = argparse.ArgumentParser(description='Generate a C header file with stubs for all the SID functions')
     parser.add_argument('input', metavar='input', type=str, help='The input .sid file')
-    #parser.add_argument('output', metavar='output', type=str, help='The output .h file')
+    parser.add_argument('proto', metavar='proto', type=str, help='Two files will be generated, one with the function stubs and the other with the headers')
     args = parser.parse_args()
 
-    includeString = "#include <stdlib.h>\n#include <stdint.h>\n#include <stdbool.h>\n#include <string.h>\n#include <coreconf.h>\n"
+    headersFile = "./%s" %args.proto + ".h"
+    stubsFile = "./%s" %args.proto + ".c"
+
+    # This will be put in the header file
+    functionPrototypes = []
+
+    cIncludeString = "#include <stdlib.h>\n#include <stdint.h>\n#include <stdbool.h>\n#include <string.h>\n#include \"%s\"\n"%(args.proto + ".h")
+    hIncludeString = "#include <stdlib.h>\n#include <stdint.h>\n#include <stdbool.h>\n#include <string.h>\n\n"
 
     # read the .sid file and parse it as JSON
     with open(args.input, 'r') as f:
@@ -265,18 +344,16 @@ def main():
 
             dataItems.append(item)
 
-    # Iterate through dataItems and generate C code for each item
+    # Contain all the contents of the H & C file
+    hCode = ""
     cCode = ""
 
-    """
-     dataReadings (json_t instance, uint8_t readingIndex){}
-    healthReadings(json_t instance, uint8_t readingIndex){}
-    // get keys to reach this healthValue
-    get_healthValue_key(json_t* instance,  get_healthValue)
-    get_battery_key((json_t* instance,  get_healthValue)
-    get_dataValue_key(json_t* instance,  get_healthValue)
-    """
+    # Iterate through dataItems and generate preprocessor directives for each item
+    preprocessorDirectives = generateSIDPreprocessors(dataItems)
+    hCode += preprocessorDirectives + "\n\n"
 
+    # Iterate through dataItems and generate C code for each item
+    hFunctionPrototypes = ""
     for item in dataItems:
         itemIdentifier = item["identifier"]
         itemSID = item["sid"]
@@ -289,6 +366,8 @@ def main():
         if itemType == "identityref":
             continue
         
+        hCode += generateFunctionPreprocessors("read_", item)
+
         # Generate C code for this item
         sidItem = SIDItem(item["namespace"], itemIdentifier, itemSID, itemType, item.get("stable", "false"))
         # Find out the keys for this item
@@ -306,10 +385,31 @@ def main():
             sidItem.addSidKey(sidKeyItem)
 
         cCode += sidItem.generateCGetMethods() + "\n"
+        hFunctionPrototypes += sidItem.functionPrototype + "\n"
+
+    # Add the function prototypes to the header file
+    hCode += "\n\n" + hFunctionPrototypes
+
+    # print the H code to stdout
+    print("Headers\n-----------\n")
+    print(hIncludeString)
+    print(hCode)
+    # Write the H code to headersFile
+    with open(headersFile, 'w') as f:
+        f.write(hIncludeString)
+        f.write(hCode)
 
     # print the C code to stdout
-    print(includeString)
+    print("Code File\n-----------\n")
+    print(cIncludeString)
     print(cCode)
+
+    # Write the C code to stubsFile
+    with open(stubsFile, 'w') as f:
+        f.write(cIncludeString)
+        f.write(cCode)
+    
+
 
 if __name__ == "__main__":
     main()

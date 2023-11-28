@@ -121,8 +121,10 @@ void initializeKeyMappingHashMap(struct hashmap *keyMappingHashMap) {
 
 /*
 Allot all memory explicitly in the main
+sidFileJSON has the form {"identifierString" : ["identifierKey"] }
+need sidModel to convert identifierString to lookup sid numbers
 */
-void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJSON) {
+void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJSON, SIDModelT* sidModel) {
 
     const char *keyMappingString = "key-mapping";
     json_t *keyMappingJSON = json_object_get(sidFileJSON, keyMappingString);
@@ -134,25 +136,37 @@ void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJS
     }
 
     // Iterate over the key-mapping tree to build our own datastructure
-    const char *key;
+    const char *unformattedIdentifer;
     json_t *value;
-    json_object_foreach(keyMappingJSON, key, value) {
+    json_object_foreach(keyMappingJSON, unformattedIdentifer, value) {
 
         // Create an initialize an an empty list
         DynamicLongListT *dynamicLongList = malloc(sizeof(DynamicLongListT));
         if (dynamicLongList == NULL) {
-            fprintf(stderr, "Failed allocating memory to dynamicLongList for the key %s", key);
+            fprintf(stderr, "Failed allocating memory to dynamicLongList for the key %s", unformattedIdentifer);
             continue;
         }
         initializeDynamicLongList(dynamicLongList);
 
-        // Convert key to a long value first
-        char *endPtr;
-        int64_t parentSID = strtoll(key, &endPtr, 10);
-        if (*endPtr != '\0') {
-            fprintf(stderr, "Failed converting the key to a int64_t %s", key);
-            continue;
+        // Change all instances of ":" to "/" in the unformattedIdentifer which is the key
+        char *key = malloc((strlen(unformattedIdentifer) + 1) * sizeof(char));
+        strcpy(key, unformattedIdentifer);
+        char *colon = strchr(key, ':');
+        while (colon != NULL) {
+            *colon = '/';
+            colon = strchr(colon, ':');
         }
+
+        // lookup the key in the sidModel
+        // find SID of the identifier from the map
+        IdentifierSIDT *identifierSID = hashmap_get(
+            sidModel->identifierSIDHashMap, &(IdentifierSIDT){.identifier = key});
+        if (!identifierSID) {
+            fprintf(stderr, "No SID found for the following identifier %s\n", key);
+            free(identifierSID);   
+        }
+
+        int64_t parentSID = identifierSID->sid;
 
         // If the value is not an array then continue without adding that key
         if (!json_is_array(value)) {
@@ -160,19 +174,43 @@ void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJS
             continue;
         }
 
+        // Iterate over the array of children
         for (size_t i = 0; i < json_array_size(value); i++) {
             json_t *childSIDJSON = json_array_get(value, i);
-            if (!json_is_integer(childSIDJSON)) {
+            if (!json_is_string(childSIDJSON)) {
                 fprintf(stderr, "Following value is not a valid SID %s ", json_string_value(childSIDJSON));
                 continue;
             }
+            // Get the string value
+            const char *childSIDString = json_string_value(childSIDJSON);
+            // Replace all instances of ":" with "/" in childSIDString
+            char *childSIDStringWithSlash = malloc((strlen(childSIDString) + 1) * sizeof(char));
+            strcpy(childSIDStringWithSlash, childSIDString);
+            char *colon = strchr(childSIDStringWithSlash, ':');
+            while (colon != NULL) {
+                *colon = '/';
+                colon = strchr(colon, ':');
+            }
+
+
+            // Get the SID value from the sidModel
+            IdentifierSIDT *identifierSIDChild = hashmap_get(
+                sidModel->identifierSIDHashMap, &(IdentifierSIDT){.identifier = childSIDStringWithSlash});
+            if (!identifierSIDChild) {
+                fprintf(stderr, "No SID found for the following identifier %s\n", childSIDStringWithSlash);
+                free(identifierSIDChild);
+            }
             // Get the long value
-            long childSIDLong = json_integer_value(childSIDJSON);
+            long childSIDLong = identifierSIDChild->sid;
             // Add value to the dynamicLongList
             addLong(dynamicLongList, childSIDLong);
+
         }
+
+    
         // Populate the Hashmap
         hashmap_set(keyMappingHashMap, &(KeyMappingT){.key = parentSID, .dynamicLongList = dynamicLongList});
+
     }
 }
 
@@ -246,11 +284,50 @@ void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON) {
         return;
     }
 
+    // Get the first item from itemsJSON and extract its identifier, prefix it with "/" and add it to the sidIdentifierHashmap and identifierSIDHashmap
+    json_t *firstItemMap = json_array_get(itemsJSON, 0);
+    if (json_is_object(firstItemMap)) {
+        json_t *identifierJSON = json_object_get(firstItemMap, "identifier");
+        // convert identifier to char *
+        if (!json_is_string(identifierJSON)) {
+            fprintf(stderr, "Following item at 0 does not have a valid identifier");
+            return;
+        }
+        const char *identifier = json_string_value(identifierJSON);
+        // Add "/" to the identifier
+        char *identifierWithSlash = malloc((strlen(identifier) + 2) * sizeof(char));
+        strcpy(identifierWithSlash, "/");
+        strcat(identifierWithSlash, identifier);
+
+        // Get the SID value
+        json_t *firstSIDJSON = json_object_get(firstItemMap, "sid");
+        // convert SID JSON to long
+        if (!json_is_integer(firstSIDJSON)) {
+            fprintf(stderr, "Following item at %s does not have a valid SID", identifierWithSlash);
+            return;    
+        }
+        long firstSID = json_integer_value(firstSIDJSON);
+        // clean up if necessary any memory allocated
+        json_decref(firstSIDJSON);
+
+
+        // Set both the maps
+        hashmap_set(sidModel->sidIdentifierHashMap,
+                    &(SIDIdentifierT){.sid = firstSID, .identifier = (char *)identifierWithSlash});
+
+        hashmap_set(sidModel->identifierSIDHashMap,
+                    &(IdentifierSIDT){.sid = firstSID, .identifier = (char *)identifierWithSlash});
+    }
+    // Clean up if necessary any memory allocated
+    json_decref(firstItemMap);
+
+
     // Iterate through the "items" containing JSON Maps
     size_t itemsSize = json_array_size(itemsJSON);
     for (size_t i = 0; i < itemsSize; i++) {
         json_t *itemMap = json_array_get(itemsJSON, i);
         if (json_is_object(itemMap)) {
+        
             json_t *sidJSON = json_object_get(itemMap, "sid");
             // convert SID JSON to long
             if (!json_is_integer(sidJSON)) {
@@ -267,12 +344,22 @@ void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON) {
             }
             const char *identifier = json_string_value(identifierJSON);
 
+            // HACK replace all instances of ":" by "/" in identifier
+            char *itemIdentifierWithSlash = malloc((strlen(identifier) + 1) * sizeof(char));
+            strcpy(itemIdentifierWithSlash, identifier);    
+            char *colon = strchr(itemIdentifierWithSlash, ':');
+            while (colon != NULL) {
+                *colon = '/';
+                colon = strchr(colon, ':');
+            }
+            
+            
             // Set both the maps
             hashmap_set(sidModel->sidIdentifierHashMap,
-                        &(SIDIdentifierT){.sid = sid, .identifier = (char *)identifier});
+                        &(SIDIdentifierT){.sid = sid, .identifier = (char *)itemIdentifierWithSlash});
 
             hashmap_set(sidModel->identifierSIDHashMap,
-                        &(IdentifierSIDT){.sid = sid, .identifier = (char *)identifier});
+                        &(IdentifierSIDT){.sid = sid, .identifier = (char *)itemIdentifierWithSlash});
 
             // typeJSON can be optional
             json_t *typeJSON = json_object_get(itemMap, "type");
@@ -308,7 +395,7 @@ void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON) {
                     // continue;
                 }
                 hashmap_set(sidModel->identifierTypeHashMap,
-                            &(IdentifierTypeT){.identifier = (char *)identifier, .type = type});
+                            &(IdentifierTypeT){.identifier = (char *)itemIdentifierWithSlash, .type = type});
             }
         }
     }

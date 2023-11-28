@@ -91,7 +91,7 @@ int identifierTypeCompare(const void *a, const void *b, void *udata);
 uint64_t identifierTypeHash(const void *item, uint64_t seed0, uint64_t seed1);
 
 // Tools
-void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJSON);
+void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJSON, SIDModelT *sidModel);
 void printKeyMappingT(const KeyMappingT *keyMapping);
 void printKeyMappingHashMap(struct hashmap *keyMappingHashMap);
 
