@@ -91,12 +91,14 @@ int identifierTypeCompare(const void *a, const void *b, void *udata);
 uint64_t identifierTypeHash(const void *item, uint64_t seed0, uint64_t seed1);
 
 // Tools
-void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJSON, SIDModelT *sidModel);
+void buildKeyMappingHashMap2(struct hashmap *keyMappingHashMap, json_t *sidFileJSON, SIDModelT *sidModel);
+void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJSON) ;
 void printKeyMappingT(const KeyMappingT *keyMapping);
 void printKeyMappingHashMap(struct hashmap *keyMappingHashMap);
 
 void printHashMap(struct hashmap *anyHashMap, enum HashMapTypeEnum hashmapType);
 void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON);
+void buildSIDModel2(SIDModelT *sidModel, json_t *sidFileJSON);
 
 // Path format function to remove trailing '\'
 void removeTrailingSlashFromPath(const char *qualifiedPath, char *formattedPath);

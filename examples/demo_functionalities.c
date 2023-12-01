@@ -89,14 +89,14 @@ void main() {
     /*Find the nodes corresponding to a String Characteristics and specific keys*/
 
     // keys MUST be initialized properly and must be NON Empty
-    int64_t keys[] = {5, 3, 1000068, 1, 1000018, 0};
-    size_t keyLength = sizeof(keys) / sizeof(keys[0]);
+    int64_t keys[] = {5, 3, 1000068, 1, 1000018};
+    size_t keyLength =  5;//sizeof(keys) / sizeof(keys[0]);
     
     // Build a valid SidIdentifierT object and then call traverseCORECONFWithKeys
     IdentifierSIDT *sidIdentifier = malloc(sizeof(IdentifierSIDT));
-    sidIdentifier->sid = INT64_MIN;
-    sidIdentifier->identifier = "/ietf-schc:schc/rule/entry/target-value/value";
-    json_t *traversedJSON_ = traverse0CORECONFWithKeys(coreconfModel, sidModel, sidIdentifier, keys, keyLength);
+    sidIdentifier->sid = 1000113 ;//INT64_MIN;
+    sidIdentifier->identifier = ""; //ietf-schc:schc/rule/entry/target-value";
+    json_t *traversedJSON_ = traverseCORECONFWithKeys2(coreconfModel, sidModel, sidIdentifier, keys, keyLength);
 
     printf("Obtained the subtree: \n");
     print_json_object(traversedJSON_);

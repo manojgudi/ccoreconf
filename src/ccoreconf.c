@@ -926,7 +926,7 @@ json_t *getCCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int sid,
   json_t *sidDiffValue = json_object_get(coreconfModel, sidDiffString);
 
   // If no keys are given and sidDiff is part of coreconfModel, then:
-  if ((keyLength == 0) && (sidDiffValue)) {
+  if ((keyLength == 0) && (sidDiffValue != NULL) ) {
     if (value) {
       json_object_set(coreconfModel, sidDiffString, value);
       return coreconfModel;
@@ -964,7 +964,7 @@ json_t *getCCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int sid,
 
       // check if keyLength is equal to keyMapping->dynamicLongList->size, if
       // not equal, then return NULL
-      if (keyLength != keyMapping->dynamicLongList->size) {
+      if (keyLength > keyMapping->dynamicLongList->size) {
         fprintf(stderr, "Length of keys is not the same as key-mapping found "
                         "in .sid file\n");
         return NULL;

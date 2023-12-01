@@ -61,12 +61,12 @@ void main() {
         hashmap_new(sizeof(IdentifierTypeT), 0, 0, 0, identifierTypeHash, identifierTypeCompare, NULL, NULL);
 
     // Build SIDModel 
-    buildSIDModel(sidModel, sidFile1JSON);
+    buildSIDModel2(sidModel, sidFile1JSON);
 
     // Build keyMappingHashMap
     sidModel->keyMappingHashMap =
         hashmap_new(sizeof(KeyMappingT), 0, 0, 0, keyMappingHash, keyMappingCompare, NULL, NULL);
-    buildKeyMappingHashMap(sidModel->keyMappingHashMap, sidFile1JSON, sidModel);
+    buildKeyMappingHashMap2(sidModel->keyMappingHashMap, sidFile1JSON, sidModel );
 
 
     printKeyMappingHashMap(sidModel->keyMappingHashMap);
@@ -113,7 +113,7 @@ void main() {
 
     /* Find the nodes corresponding to SID 1000096  */
     json_t *traversedJSON = json_object();
-    traversedJSON = traverseCORECONF(coreconfModel, sidModel, 1012);
+    traversedJSON = traverseCORECONF(coreconfModel, sidModel, 1010);
     printf("Obtained the subtree: \n");
     print_json_object(traversedJSON);
     printf("---------\n");
@@ -128,7 +128,7 @@ void main() {
     // Build a valid SidIdentifierT object and then call traverseCORECONFWithKeys
     IdentifierSIDT *sidIdentifier = malloc(sizeof(IdentifierSIDT));
     sidIdentifier->sid = INT64_MIN;
-    sidIdentifier->identifier = "/sensor/sensorHealth/healthReadings/healthValue";
+    sidIdentifier->identifier = "/sensor:sensorHealth/healthReadings";
     json_t *traversedJSON_ = traverseCORECONFWithKeys2(coreconfModel, sidModel, sidIdentifier, keys, keyLength);
 
     printf("Obtained the subtree2: \n");

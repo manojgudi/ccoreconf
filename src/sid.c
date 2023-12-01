@@ -124,7 +124,65 @@ Allot all memory explicitly in the main
 sidFileJSON has the form {"identifierString" : ["identifierKey"] }
 need sidModel to convert identifierString to lookup sid numbers
 */
-void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJSON, SIDModelT* sidModel) {
+
+/*
+Allot all memory explicitly in the main
+*/
+void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJSON) {
+
+    const char *keyMappingString = "key-mapping";
+    json_t *keyMappingJSON = json_object_get(sidFileJSON, keyMappingString);
+
+    // Check if key-mapping exists in the SID file
+    if (!json_is_object(keyMappingJSON)) {
+        fprintf(stderr, "Failed %s does not return a JSON map:", keyMappingString);
+        return;
+    }
+
+    // Iterate over the key-mapping tree to build our own datastructure
+    const char *key;
+    json_t *value;
+    json_object_foreach(keyMappingJSON, key, value) {
+
+        // Create an initialize an an empty list
+        DynamicLongListT *dynamicLongList = malloc(sizeof(DynamicLongListT));
+        if (dynamicLongList == NULL) {
+            fprintf(stderr, "Failed allocating memory to dynamicLongList for the key %s", key);
+            continue;
+        }
+        initializeDynamicLongList(dynamicLongList);
+
+        // Convert key to a long value first
+        char *endPtr;
+        int64_t parentSID = strtoll(key, &endPtr, 10);
+        if (*endPtr != '\0') {
+            fprintf(stderr, "Failed converting the key to a int64_t %s", key);
+            continue;
+        }
+
+        // If the value is not an array then continue without adding that key
+        if (!json_is_array(value)) {
+            fprintf(stderr, "Following key %s doesn't have valid SID children", key);
+            continue;
+        }
+
+        for (size_t i = 0; i < json_array_size(value); i++) {
+            json_t *childSIDJSON = json_array_get(value, i);
+            if (!json_is_integer(childSIDJSON)) {
+                fprintf(stderr, "Following value is not a valid SID %s ", json_string_value(childSIDJSON));
+                continue;
+            }
+            // Get the long value
+            long childSIDLong = json_integer_value(childSIDJSON);
+            // Add value to the dynamicLongList
+            addLong(dynamicLongList, childSIDLong);
+        }
+        // Populate the Hashmap
+        hashmap_set(keyMappingHashMap, &(KeyMappingT){.key = parentSID, .dynamicLongList = dynamicLongList});
+    }
+}
+
+void buildKeyMappingHashMap2(struct hashmap *keyMappingHashMap, json_t *sidFileJSON, SIDModelT* sidModel) {
 
     const char *keyMappingString = "key-mapping";
     json_t *keyMappingJSON = json_object_get(sidFileJSON, keyMappingString);
@@ -274,7 +332,86 @@ void printHashMap(struct hashmap *anyHashMap, enum HashMapTypeEnum hashmapType) 
     }
 }
 
+
 void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON) {
+    const char *itemsString = "items";
+    json_t *itemsJSON = json_object_get(sidFileJSON, itemsString);
+
+    // Check if itemsString exists in the SID file and if its correctly parsed
+    if (!json_is_array(itemsJSON)) {
+        fprintf(stderr, "Failed %s does not return a JSON array:", itemsString);
+        return;
+    }
+
+    // Iterate through the "items" containing JSON Maps
+    size_t itemsSize = json_array_size(itemsJSON);
+    for (size_t i = 0; i < itemsSize; i++) {
+        json_t *itemMap = json_array_get(itemsJSON, i);
+        if (json_is_object(itemMap)) {
+            json_t *sidJSON = json_object_get(itemMap, "sid");
+            // convert SID JSON to long
+            if (!json_is_integer(sidJSON)) {
+                fprintf(stderr, "Following item at %zu does not have a valid SID", i);
+                continue;
+            }
+            long sid = json_integer_value(sidJSON);
+
+            json_t *identifierJSON = json_object_get(itemMap, "identifier");
+            // convert identifier to char *
+            if (!json_is_string(identifierJSON)) {
+                fprintf(stderr, "Following item at %zu does not have a valid identifier", i);
+                continue;
+            }
+            const char *identifier = json_string_value(identifierJSON);
+
+            // Set both the maps
+            hashmap_set(sidModel->sidIdentifierHashMap,
+                        &(SIDIdentifierT){.sid = sid, .identifier = (char *)identifier});
+
+            hashmap_set(sidModel->identifierSIDHashMap,
+                        &(IdentifierSIDT){.sid = sid, .identifier = (char *)identifier});
+
+            // typeJSON can be optional
+            json_t *typeJSON = json_object_get(itemMap, "type");
+
+            // TODO Handle list types
+            if (typeJSON != NULL && json_is_string(typeJSON)) {
+                const char *typeString = json_string_value(typeJSON);
+                enum SchemaIdentifierTypeEnum type;
+                // Convert typeJSON to one of the enum
+                if (!strcmp(typeString, "boolean"))
+                    type = BOOLEAN;
+                else if (!strcmp(typeString, "binary"))
+                    type = BOOLEAN;
+                else if (!strcmp(typeString, "string"))
+                    type = STRING;
+                else if (!strcmp(typeString, "decimal64"))
+                    type = DECIMAL64;
+                else if (!strcmp(typeString, "uint8"))
+                    type = UINT_8;
+                else if (!strcmp(typeString, "uint16"))
+                    type = UINT_16;
+                else if (!strcmp(typeString, "uint32"))
+                    type = UINT_32;
+                else if (!strcmp(typeString, "uint64"))
+                    type = UINT_64;
+                else if (!strcmp(typeString, "rcs-algorithm-type"))
+                    type = RCS_ALGORITHM;
+                else if (!strcmp(typeString, "identityref"))
+                    type = IDENTITY_REF;
+                else {
+                    fprintf(stderr, "Unknown Identifier type, assigning type as STRING: %s\n", typeString);
+                    type = STRING;
+                    // continue;
+                }
+                hashmap_set(sidModel->identifierTypeHashMap,
+                            &(IdentifierTypeT){.identifier = (char *)identifier, .type = type});
+            }
+        }
+    }
+}
+
+void buildSIDModel2(SIDModelT *sidModel, json_t *sidFileJSON) {
     const char *itemsString = "items";
     json_t *itemsJSON = json_object_get(sidFileJSON, itemsString);
 
