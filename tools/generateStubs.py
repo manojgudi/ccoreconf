@@ -4,6 +4,7 @@
 # Read the .sid file and parse it as JSON
 import argparse
 import json
+import cbor2
 
 cborTypeToCMapping = {
     "uint8": "uint8_t",
@@ -67,6 +68,28 @@ def formatIdentifier(identifier):
     identifier = identifier.split("_")[-1]
 
     return identifier
+
+# Function to generate CBOR mapping of key-mapping
+def generateCBORMapping(keyMapping, identifierSIDKeyMapping):
+    """
+    Replace the string identifiers in keyMapping into SIDs
+    and dump it into CBOR mapping
+    """
+    # Replace identifiers in key, values of keyMapping with SIDs
+    sidKeyMapping = {}
+    for identifierKey, keyList in keyMapping.items():
+        # Find SID for identifierKey
+        sidKey = identifierSIDKeyMapping[identifierKey]
+        sidKeyMapping[sidKey] = []
+
+        for key in keyList:
+            sidKeyMapping[sidKey].append(identifierSIDKeyMapping[key])
+    
+    # Dump the sidKeyMapping into CBOR mapping
+    cborMapping = cbor2.dumps(sidKeyMapping)
+    # Format the string to store as bytestrings in C
+    cborMapping = str(cborMapping).replace("b'","").replace("'","")
+    return cborMapping
 
 
 def generateSIDPreprocessors(items):
@@ -314,7 +337,7 @@ def main():
     functionPrototypes = []
 
     cIncludeString = "#include <stdlib.h>\n#include <stdint.h>\n#include <stdbool.h>\n#include <string.h>\n#include \"%s\"\n"%(args.proto + ".h")
-    hIncludeString = "#include <stdlib.h>\n#include <stdint.h>\n#include <stdbool.h>\n#include <string.h>\n\n"
+    hIncludeString = "#include <stdlib.h>\n#include <stdint.h>\n#include <stdbool.h>\n#include <string.h>\n#include <cbor.h>\n\n"
 
     # read the .sid file and parse it as JSON
     with open(args.input, 'r') as f:
@@ -386,6 +409,10 @@ def main():
 
         cCode += sidItem.generateCGetMethods() + "\n"
         hFunctionPrototypes += sidItem.functionPrototype + "\n"
+
+    # Add CBOR mapping to the header file
+    cborMapping = generateCBORMapping(keyMapping, identifierSIDKeyMapping)
+    hCode += "\nchar* keyMapping = \"%s\";\n"%(cborMapping)
 
     # Add the function prototypes to the header file
     hCode += "\n\n" + hFunctionPrototypes
