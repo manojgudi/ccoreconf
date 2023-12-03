@@ -21,7 +21,6 @@ JANSSON_LIB = -ljansson
 LIBCBOR_LIB = -lcbor
 LIBYANG_LIB = -lyang
 
-
 # Include directories for external libraries
 INCLUDE_DIRS =   -I/home/valentina/projects/lpwan_examples/build_libcbor/install/include/ -I/home/valentina/projects/lpwan_examples/build_libyang/install/include/ -I/home/valentina/projects/lpwan_examples/build_libjansson/install/include/
 

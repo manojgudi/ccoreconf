@@ -83,8 +83,6 @@ void main() {
 
 
 
-
-
     // Build CORECONF representation of the model file
     lookupSID(coreconfModel, sidModel);
 
@@ -113,7 +111,7 @@ void main() {
 
     /* Find the nodes corresponding to SID 1000096  */
     json_t *traversedJSON = json_object();
-    traversedJSON = traverseCORECONF(coreconfModel, sidModel, 1010);
+    traversedJSON = traverseCORECONF(coreconfModel, 1008);
     printf("Obtained the subtree: \n");
     print_json_object(traversedJSON);
     printf("---------\n");
@@ -122,14 +120,19 @@ void main() {
     /*Find the nodes corresponding to a String Characteristics and specific keys*/
 
     // keys MUST be initialized properly and must be NON Empty
-    int64_t keys[] = {1};
+    int64_t keys[] = {2};
     size_t keyLength = sizeof(keys) / sizeof(keys[0]);
     
     // Build a valid SidIdentifierT object and then call traverseCORECONFWithKeys
     IdentifierSIDT *sidIdentifier = malloc(sizeof(IdentifierSIDT));
     sidIdentifier->sid = INT64_MIN;
     sidIdentifier->identifier = "/sensor:sensorHealth/healthReadings";
-    json_t *traversedJSON_ = traverseCORECONFWithKeys2(coreconfModel, sidModel, sidIdentifier, keys, keyLength);
+    json_t *traversedJSON_ = traverseCORECONFWithKeys(coreconfModel, sidModel, sidIdentifier, keys, keyLength);
+    
+
+    // check if traversedJSON_ is a JSON Arry or JSON INT
+   
+    
 
     printf("Obtained the subtree2: \n");
     print_json_object(traversedJSON_);

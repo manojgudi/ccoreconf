@@ -1,8 +1,9 @@
+#ifndef CCORECONF_H
+#define CCORECONF_H
+
 #include "hashmap.h"
 #include "sid.h"
-#include <cbor.h>
 #include <jansson.h>
-#include <libyang/libyang.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -31,9 +32,6 @@ typedef struct StackStorageStruct {
 
 } StackStorageT;
 
-void convertToCBORType(json_t *jsonItem, enum SchemaIdentifierTypeEnum identifierType, cbor_item_t *cborItem,
-                       SIDModelT *sidModel);
-void convertToCORECONF(cbor_item_t *cborMap, json_t *jsonMap);
 void unwrapValues(json_t *jsonValue);
 
 void initStackStorage(StackStorageT *stackStorage, int capacity);
@@ -45,13 +43,12 @@ StackElementT *newStackElement(void);
 void freeStackStorage(StackStorageT *stackStorage);
 
 void lookupSID(json_t *jsonValue, SIDModelT *sidModel);
-json_t *traverseCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int64_t sid);
-json_t *traverseCORECONFWithKeys(json_t *coreconfModel, SIDModelT *sidModel, IdentifierSIDT *sidIdentifier,
-                                 int64_t keys[], size_t keyLength);
-json_t *traverseCORECONFWithKeys2(json_t *jsonInstance, SIDModelT *sidModel,
+json_t *traverseCORECONF(json_t *coreconfModel, int64_t sid);
+json_t *traverseCORECONFWithKeys(json_t *jsonInstance, SIDModelT *sidModel,
                                   IdentifierSIDT *sidIdentifier, int64_t keys[],
                                   size_t keyLength);
 
-json_t *getCCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int sid, int keys[], size_t keyLength, int delta,
+json_t *getCCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int sid, int64_t keys[], size_t keyLength, int delta,
                      int depth, json_t *value);
 void print_json_object(json_t *json);
+#endif

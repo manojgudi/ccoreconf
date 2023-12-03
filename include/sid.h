@@ -70,7 +70,7 @@ typedef struct SIDModelStruct {
 
 } SIDModelT;
 
-DynamicLongListT *createDynamicLongList();
+DynamicLongListT *createDynamicLongList(void);
 void initializeDynamicLongList(DynamicLongListT *dynamicLongList);
 void addLong(DynamicLongListT *dynamicLongList, long value);
 void freeDynamicLongList(DynamicLongListT *dynamicLongList);
