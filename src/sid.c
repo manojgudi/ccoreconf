@@ -217,11 +217,11 @@ void buildKeyMappingHashMap2(struct hashmap *keyMappingHashMap, json_t *sidFileJ
 
         // lookup the key in the sidModel
         // find SID of the identifier from the map
-        IdentifierSIDT *identifierSID = hashmap_get(
+        const IdentifierSIDT *identifierSID = hashmap_get(
             sidModel->identifierSIDHashMap, &(IdentifierSIDT){.identifier = key});
         if (!identifierSID) {
             fprintf(stderr, "No SID found for the following identifier %s\n", key);
-            free(identifierSID);   
+            //free(identifierSID);   
         }
 
         int64_t parentSID = identifierSID->sid;
@@ -252,11 +252,11 @@ void buildKeyMappingHashMap2(struct hashmap *keyMappingHashMap, json_t *sidFileJ
 
 
             // Get the SID value from the sidModel
-            IdentifierSIDT *identifierSIDChild = hashmap_get(
+            const IdentifierSIDT *identifierSIDChild = hashmap_get(
                 sidModel->identifierSIDHashMap, &(IdentifierSIDT){.identifier = childSIDStringWithSlash});
             if (!identifierSIDChild) {
                 fprintf(stderr, "No SID found for the following identifier %s\n", childSIDStringWithSlash);
-                free(identifierSIDChild);
+                //free(identifierSIDChild);
             }
             // Get the long value
             long childSIDLong = identifierSIDChild->sid;

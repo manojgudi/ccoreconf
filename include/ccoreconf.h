@@ -45,10 +45,10 @@ void freeStackStorage(StackStorageT *stackStorage);
 void lookupSID(json_t *jsonValue, SIDModelT *sidModel);
 json_t *traverseCORECONF(json_t *coreconfModel, int64_t sid);
 json_t *traverseCORECONFWithKeys(json_t *jsonInstance, SIDModelT *sidModel,
-                                  IdentifierSIDT *sidIdentifier, int64_t keys[],
+                                  IdentifierSIDT *sidIdentifier, int keys[],
                                   size_t keyLength);
 
-json_t *getCCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int sid, int64_t keys[], size_t keyLength, int delta,
+json_t *getCCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int sid, int keys[], size_t keyLength, int delta,
                      int depth, json_t *value);
 void print_json_object(json_t *json);
 #endif

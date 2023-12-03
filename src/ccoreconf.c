@@ -627,7 +627,7 @@ json_t *traverseCORECONF(json_t *coreconfModel,
 }
 
 json_t *traverseCORECONFWithKeys(json_t *jsonInstance, SIDModelT *sidModel,
-                                  IdentifierSIDT *sidIdentifier, int64_t keys[],
+                                  IdentifierSIDT *sidIdentifier, int keys[],
                                   size_t keyLength) {
 
   int64_t sid = INT64_MIN;
@@ -663,7 +663,7 @@ json_t *traverseCORECONFWithKeys(json_t *jsonInstance, SIDModelT *sidModel,
 
   // Check if the SID to be queried is valid, if not, then return
   if (sid == INT64_MIN) {
-    fprintf(stderr, "Valid SID %lld is not found!\n", sid);
+    fprintf(stderr, "Valid SID %d is not found!\n", (int) sid);
     return NULL;
   }
 
@@ -678,7 +678,7 @@ json_t *traverseCORECONFWithKeys(json_t *jsonInstance, SIDModelT *sidModel,
 
 
 json_t *getCCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int sid,
-                     int64_t keys[], size_t keyLength, int delta, int depth,
+                     int keys[], size_t keyLength, int delta, int depth,
                      json_t *value) {
 
   if (sid == delta) {
@@ -719,7 +719,7 @@ json_t *getCCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int sid,
   }
 
   // If no keys are given and value is not NULL, then:
-  if ((keyLength == 0) && (value)) {
+  if ((keyLength == 0) && (value != NULL)) {
     json_object_set(coreconfModel, sidDiffString, value);
     return coreconfModel;
   }
