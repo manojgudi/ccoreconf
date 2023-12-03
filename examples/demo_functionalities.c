@@ -80,7 +80,7 @@ void main() {
 
     /* Find the nodes corresponding to SID 1000096  */
     json_t *traversedJSON = json_object();
-    traversedJSON = traverseCORECONF(coreconfModel, sidModel, 1000096);
+    traversedJSON = traverseCORECONF(coreconfModel, 1000096);
     printf("Obtained the subtree: \n");
     print_json_object(traversedJSON);
     printf("---------\n");
@@ -89,14 +89,14 @@ void main() {
     /*Find the nodes corresponding to a String Characteristics and specific keys*/
 
     // keys MUST be initialized properly and must be NON Empty
-    int64_t keys[] = {5, 3, 1000068, 1, 1000018};
-    size_t keyLength =  5;//sizeof(keys) / sizeof(keys[0]);
+    int64_t keys[] = {5, 3, 1000068, 1, 1000018, 0};
+    size_t keyLength = sizeof(keys) / sizeof(keys[0]);
     
     // Build a valid SidIdentifierT object and then call traverseCORECONFWithKeys
     IdentifierSIDT *sidIdentifier = malloc(sizeof(IdentifierSIDT));
-    sidIdentifier->sid = 1000113 ;//INT64_MIN;
+    sidIdentifier->sid = 1000113 ;//INT64_MIN; // Check for 1000115
     sidIdentifier->identifier = ""; //ietf-schc:schc/rule/entry/target-value";
-    json_t *traversedJSON_ = traverseCORECONFWithKeys2(coreconfModel, sidModel, sidIdentifier, keys, keyLength);
+    json_t *traversedJSON_ = traverseCORECONFWithKeys(coreconfModel, sidModel, sidIdentifier, keys, keyLength);
 
     printf("Obtained the subtree: \n");
     print_json_object(traversedJSON_);

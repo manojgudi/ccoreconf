@@ -746,7 +746,7 @@ json_t *getCCORECONF(json_t *coreconfModel, SIDModelT *sidModel, int sid,
 
       // check if keyLength is equal to keyMapping->dynamicLongList->size, if
       // not equal, then return NULL
-      if (keyLength > keyMapping->dynamicLongList->size) {
+      if (keyLength < keyMapping->dynamicLongList->size) {
         fprintf(stderr, "Length of keys is not the same as key-mapping found "
                         "in .sid file\n");
         return NULL;
