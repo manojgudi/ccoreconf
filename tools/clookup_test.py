@@ -102,7 +102,6 @@ def getParents(identifier, formatSID, identifierToSIDMap):
 
             # Find the SID of the parent
             parents.append( identifierToSIDMap[parent] )
-    print(parents)
     return parents
 
 
@@ -120,8 +119,6 @@ def findDependencies(sid, keyMap, identifierToSIDMap, sidToIdentifierMap):
         requiredKeyCount += len(keys)
         parentSIDKeyTuples.append( (parentSID, keys)  )
 
-    print("Req Count", requiredKeyCount)
-    print(parentSIDKeyTuples)
     return parentSIDKeyTuples
 
 
@@ -180,28 +177,37 @@ def buildSIDMaps(items):
 
 def main():
 
+    """
+    Supply with SID Model file, CORECONF Model and uncomment which example you want to run
+    These examples are exactly the same example used for openschc
+    """
+
     # DONT use the 2022-10-09 version of the sidModel as SIDs conflict
-    sidModel = json.load(open("./samples/sid_examples/ietf-schc@2022-12-19.sid"))
+    sidModel = json.load(open("../samples/sid_examples/ietf-schc@2022-12-19.sid"))
     sidItems = sidModel["items"]
 
     sidToIdentifierMap, identifierToSIDMap = buildSIDMaps(sidItems)
 
-    ccModel = json.load(open("./samples/sid_examples/coreconf.json"))
+    ccModel = json.load(open("../samples/sid_examples/coreconf.json"))
     keyMap = sidModel["key-mapping"]
 
 
     #Example1
     sid = 1000095
     keys = [5, 3]
+
     #Example2
     #sid = 1000113
     #keys = [5, 3, 1000073, 1, 1000018]
+
     #Example3
     #sid = 1000115
     #keys = [5, 3, 1000073, 1, 1000018,0]
+
     #Example4
     #sid = 1000113
     #keys = [5, 3, 1000057, 1, 1000018]
+
     #Example5
     #sid = 1000115
     #keys = [5, 3, 1000057, 1, 1000018, 1]
@@ -211,10 +217,12 @@ def main():
 
     leafLookup = {}
     leafLookup = createChumpLookup(ccModel, leafLookup, 0)
+    print("CLookup generated: ")
     pp.pprint(leafLookup)
+    print("...........")
     keyRequirements = findKeyRequirements(sid, leafLookup, keyMap, depth=10)
     keyRequirements.insert(0, [sid, keyMap.get(sid, [])])
-    
+    print("For the SID: %s and SIDKeys %s, I found the subtree: \n"%(str(sid), ','.join([str(x) for x in keys])))
     pprint.pprint(("Subtree ", examineCoreconf(ccModel, keyMap, sid, keys, keyRequirements)))
 
 
