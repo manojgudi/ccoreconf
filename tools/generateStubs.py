@@ -23,7 +23,8 @@ cborTypeToCMapping = {
     "string": "char *",
     "bytes": "uint8_t *",
     "array": "uint8_t *",
-    "identityref" : "char *",
+    "enum" : "enum",
+    "identityref" : "char *",   # Map identityref to a char* since we dont have identityMap
     "void" : "void"
 }
 
@@ -46,9 +47,13 @@ defaultTypeValue = {
     "string": "NULL",
     "bytes": "NULL",
     "array": "NULL",
+    "enum" : "enum",
     "identityref" : "NULL",
     "void" : "NULL"
 }
+
+enumTypes = {}
+functionNameWithEnumTypes = {}
 
 def formatIdentifier(identifier):
     """
@@ -101,8 +106,25 @@ def generateSIDPreprocessors(items):
     # Map of leafIdentifier to number of times it has been referred
     leafIdentifierCount = {}
     cHeaders = ""
+
     for item in items:
-        if item.get("type") in cborTypeToCMapping:
+        itemType = item.get("type")
+            
+        # Resolve Enumeration type
+        if type(itemType) == dict:
+            functionName = formatIdentifier(item["identifier"])
+            enumDefinition = ", ".join(f'{value} = {key}' for key, value in itemType.items()) 
+            # Signal the code generator that this is an enum type
+            item["type"] = "enum"
+            # Populate the enumTypes
+            enumTypeName = functionName.title() + "Enum"
+            enumTypes[enumTypeName] = enumDefinition
+            functionNameWithEnumTypes[functionName] = enumTypeName
+
+            # Continue the next section
+            continue
+
+        if itemType in cborTypeToCMapping:
             formattedItemIdentifier =  formatIdentifier(item["identifier"])
             # Check if formattedItemIdentifier is already in leafIdentifierCount
             if formattedItemIdentifier in leafIdentifierCount:
@@ -146,8 +168,11 @@ class SIDItem:
 
     def checkType(self):
         # Ideally this should come from libcbor?
-        if self.type not in cborTypeToCMapping:
-            raise Exception("Invalid type: " + self.type)
+        # Check if self.type is an ENUM
+        if type(self.type) != dict:
+            # Check if self.type in cborType 
+            if (self.type not in cborTypeToCMapping):
+                raise Exception("Invalid type: " + self.type)
         
     def addSidKey(self, sidKeyItem):
         self.sidKeyItems.append(sidKeyItem)
@@ -186,10 +211,18 @@ class SIDItem:
         """
         leafInitialization = ""
         leafReturn = ""
+        functionName = formatIdentifier(self.identifier)
+        instanceName = formatIdentifier(self.identifier) + "Instance"
+
+        # If the type is enum, then initialize it differently
+        if self.type == "enum":
+            leafInitialization = cborTypeToCMapping[self.type] + " " + functionNameWithEnumTypes.get(functionName, "") + " " + instanceName + ";\n\t"; 
+            leafReturn = "// Return the leaf \n"+ "    return " + instanceName + ";"
+
         # If the type is void, then don't initialize the leaf, else initialize with default value
-        if self.type != "void":
-            leafInitialization = cborTypeToCMapping[self.type] + " " + formatIdentifier(self.identifier) + "Instance" + "  = " + defaultTypeValue[self.type] + ";\n\t"
-            leafReturn = "// Return the leaf \n"+ "    return " + formatIdentifier(self.identifier) + "Instance;"
+        elif self.type != "void":
+            leafInitialization = cborTypeToCMapping[self.type] + " " +  instanceName + "  = " + defaultTypeValue[self.type] + ";\n\t"
+            leafReturn = "// Return the leaf \n"+ "    return " + instanceName + ";"
         
         functionBodyTemplate = """{
     // Initialize the leaf if it has a return type with a default value;
@@ -223,7 +256,7 @@ class SIDItem:
 
         # If no sidKeyItems are found directly return the function string
         if not self.sidKeyItems:
-            functionPrototype = cborTypeToCMapping[self.type] + " " + readString + functionName + "(void)"
+            functionPrototype = cborTypeToCMapping[self.type] + " " + functionNameWithEnumTypes.get(functionName, "")  + " " + readString + functionName + "(void)"
             functionString = docString + functionPrototype + functionBody + "\n"
             
             # Add the function prototype to the list of function prototypes
@@ -242,7 +275,7 @@ class SIDItem:
         # generate C function return type from the self.type
         #functionReturnType = cborTypeToCMapping[self.type]
         functionReturnType = cborTypeToCMapping[self.type]
-        functionPrototype = functionReturnType + " " + readString + functionName + "(" + functionArgs + ")"
+        functionPrototype = functionReturnType + " " + functionNameWithEnumTypes.get(functionName, "") + " " + readString + functionName + "(" + functionArgs + ")"
         functionString = docString + functionPrototype + functionBody + "\n"
         
         # Add the function prototype to the list of function prototypes
@@ -385,9 +418,6 @@ def main():
         if itemSID in sidKeySet:
             continue
 
-        # Ignore item type if its a identityref
-        if itemType == "identityref":
-            continue
         
         hCode += generateFunctionPreprocessors("read_", item)
 
@@ -413,6 +443,10 @@ def main():
     # Add CBOR mapping to the header file
     cborMapping = generateCBORMapping(keyMapping, identifierSIDKeyMapping)
     hCode += "\nchar* keyMapping = \"%s\";\n"%(cborMapping)
+
+    # Add enum type
+    for enumTypeName, enumDefinition in enumTypes.items():
+        hCode += "enum %s {%s};\n"%(enumTypeName, enumDefinition)
 
     # Add the function prototypes to the header file
     hCode += "\n\n" + hFunctionPrototypes
