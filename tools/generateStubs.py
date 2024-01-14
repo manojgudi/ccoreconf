@@ -207,7 +207,7 @@ class SIDItem:
 
     def generateFunctionBody(self):
         """
-        Invoke manipulateCORECONF function properly
+        Generate function body to be placed inside the prototype functions
         """
         leafInitialization = ""
         leafReturn = ""
@@ -252,7 +252,7 @@ class SIDItem:
         # generate C function argument string from the sidKeyItems
         ### MODIFY FROM HERE, function args should contain any keys if its required
         functionArgs = ""
-        functionBody = self.generateFunctionBody() if self.sidKeyItems else "{\n}"
+        functionBody = self.generateFunctionBody()
 
         # If no sidKeyItems are found directly return the function string
         if not self.sidKeyItems:
