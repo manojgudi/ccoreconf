@@ -109,10 +109,11 @@ def generateSIDPreprocessors(items):
 
     for item in items:
         itemType = item.get("type")
+        formattedItemIdentifier =  formatIdentifier(item["identifier"])
             
         # Resolve Enumeration type
         if type(itemType) == dict:
-            functionName = formatIdentifier(item["identifier"])
+            functionName = formattedItemIdentifier
             enumDefinition = ", ".join(f'{value} = {key}' for key, value in itemType.items()) 
             # Signal the code generator that this is an enum type
             item["type"] = "enum"
@@ -121,11 +122,13 @@ def generateSIDPreprocessors(items):
             enumTypes[enumTypeName] = enumDefinition
             functionNameWithEnumTypes[functionName] = enumTypeName
 
+            # Add an alias in the header
+            cHeaders += "#define  SID_" + formattedItemIdentifier.upper() + " " * calculateSpaces + str(item["sid"]) + "\n"
+
             # Continue the next section
             continue
 
         if itemType in cborTypeToCMapping:
-            formattedItemIdentifier =  formatIdentifier(item["identifier"])
             # Check if formattedItemIdentifier is already in leafIdentifierCount
             if formattedItemIdentifier in leafIdentifierCount:
                 leafIdentifierCount[formattedItemIdentifier] += 1
@@ -452,7 +455,7 @@ def main():
     hCode += "\n\n" + hFunctionPrototypes
 
     # print the H code to stdout
-    print("Headers\n-----------\n")
+    print("//Headers\n//-----------\n")
     print(hIncludeString)
     print(hCode)
     # Write the H code to headersFile
@@ -461,7 +464,7 @@ def main():
         f.write(hCode)
 
     # print the C code to stdout
-    print("Code File\n-----------\n")
+    print("//Code File\n//-----------\n")
     print(cIncludeString)
     print(cCode)
 
