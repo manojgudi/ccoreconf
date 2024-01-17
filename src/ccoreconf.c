@@ -4,11 +4,91 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <math.h>
 
 
 #define PATH_MAX_LENGTH 100
 #define MAX_STACK_SIZE 100
 #define SID_KEY_SIZE 21
+#define MAX_CORECONF_RECURSION_DEPTH 50
+
+/**
+ * Functions related to CLookup HashMap
+*/
+int clookupCompare(const void *a, const void *b, void *udata) {
+  const CLookupT *clookup1 = a;
+  const CLookupT *clookup2 = b;
+
+  return (clookup1->childSID != clookup2->childSID);
+}
+
+uint64_t clookupHash(const void *item, uint64_t seed0, uint64_t seed1) {
+  const CLookupT *clookup = (CLookupT *) item;
+  return hashmap_sip(&clookup->childSID, sizeof(uint64_t),seed0, seed1);
+}
+
+/**
+ * Build a Chump Lookup or a CLookup hashmap from the coreconf model in JSON
+*/
+void buildCLookupHashmap(json_t *coreconfModel, struct hashmap *clookupHashmap, int64_t parentSID, int recursionDepth){
+  // If the depth exceeds than the MAX then return
+  if (recursionDepth > MAX_CORECONF_RECURSION_DEPTH)
+    return;
+  
+
+  if (json_is_object(coreconfModel)){
+    const char *key;
+    json_t *value;
+    // Iterate through coreconfModel and build the CLookup hashmap
+
+    json_object_foreach(coreconfModel, key, value) {
+      uint64_t sidDiffValue = char2int64((char*) key);
+      uint64_t childSIDValue = sidDiffValue + parentSID;
+
+      // Get the dynamicLongList for the childSIDValue from clookupHashmap
+      // if there is none, make a new dynamicLongList element and add it to clookupHashmap
+      CLookupT *clookup = hashmap_get(clookupHashmap, &(CLookupT){.childSID = childSIDValue});
+      if (!clookup){
+        clookup = malloc(sizeof(CLookupT));
+        clookup->childSID = childSIDValue;
+        clookup->dynamicLongList = malloc(sizeof(DynamicLongListT));
+        initializeDynamicLongList(clookup->dynamicLongList);
+        // Add the parentSID only if it doesn't exist in the dynamicLongList
+        addUniqueLong(clookup->dynamicLongList, parentSID);
+        hashmap_set(clookupHashmap, clookup);
+      } else {
+        // Add parentSID to the dynamicLongList only if it doesn't exist already
+        addUniqueLong(clookup->dynamicLongList, parentSID);
+      }
+      // Recursively call buildCLookupHashmap for the value
+      buildCLookupHashmap(value, clookupHashmap, childSIDValue, recursionDepth + 1);
+    }
+  }
+  else if (json_is_array(coreconfModel)){
+    size_t arrayLength = json_array_size(coreconfModel);
+    for (int i = 0; i < (int) arrayLength; i++) {
+      json_t *arrayElement = json_array_get(coreconfModel, i);
+      buildCLookupHashmap(arrayElement, clookupHashmap, parentSID, recursionDepth + 1);
+    }
+  }
+  else {
+    // LEAVES 
+    // Do nothing
+  }
+}
+
+/**
+ * Function to iterate through cLookupHashmap and print its contents
+*/
+void printCLookupHashmap(struct hashmap *clookupHashmap){
+  size_t iter = 0;
+  void *item;
+  while (hashmap_iter(clookupHashmap, &iter, &item)) {
+      CLookupT *clookupObject = item;
+      printf("(Child SID =%lu) ", clookupObject->childSID);
+      printDynamicLongList(clookupObject->dynamicLongList);
+  }
+}
 
 /**
  * Stack related methods

@@ -7,6 +7,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+typedef struct CLookup {
+    int64_t childSID;
+    DynamicLongListT *dynamicLongList;
+} CLookupT;
+
 typedef struct GenericValueStruct {
     enum { DICT, LIST, LEAF } type;
     // json_t of value
@@ -32,6 +38,12 @@ typedef struct StackStorageStruct {
 
 } StackStorageT;
 
+
+int clookupCompare(const void *a, const void *b, void *udata);
+uint64_t clookupHash(const void *item, uint64_t seed0, uint64_t seed1);
+void buildCLookupHashmap(json_t *coreconfModel, struct hashmap *clookupHashmap, int64_t parentSID, int recursionDepth);
+void printCLookupHashmap(struct hashmap *clookupHashmap);
+
 void unwrapValues(json_t *jsonValue);
 
 void initStackStorage(StackStorageT *stackStorage, int capacity);
@@ -41,6 +53,8 @@ void push(StackStorageT *stackStorage, StackElementT *stackElement);
 StackElementT *pop(StackStorageT *stackStorage);
 StackElementT *newStackElement(void);
 void freeStackStorage(StackStorageT *stackStorage);
+
+
 
 void lookupSID(json_t *jsonValue, SIDModelT *sidModel);
 json_t *traverseCORECONF(json_t *coreconfModel, int64_t sid);

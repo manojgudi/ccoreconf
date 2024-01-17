@@ -24,7 +24,7 @@ enum SchemaIdentifierTypeEnum {
 // For printing
 
 // Used Internally for debugging/printing
-enum HashMapTypeEnum { KEY_MAPPING, IDENTIFIER_SID, SID_IDENTIFIER, IDENTIFIER_TYPE };
+enum HashMapTypeEnum { KEY_MAPPING, IDENTIFIER_SID, SID_IDENTIFIER, IDENTIFIER_TYPE, CLOOKUP_TYPE };
 
 typedef struct DynamicLongListStruct {
     long *longList;
@@ -73,7 +73,9 @@ typedef struct SIDModelStruct {
 DynamicLongListT *createDynamicLongList(void);
 void initializeDynamicLongList(DynamicLongListT *dynamicLongList);
 void addLong(DynamicLongListT *dynamicLongList, long value);
+void addUniqueLong(DynamicLongListT *dynamicLongList, long value);
 void freeDynamicLongList(DynamicLongListT *dynamicLongList);
+void printDynamicLongList(DynamicLongListT *dynamicLongList);
 
 // TODO This doesn't work
 void initializeKeyMappingHashMap(struct hashmap *keyMappingHashMap);

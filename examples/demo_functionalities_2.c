@@ -14,8 +14,8 @@ void main() {
     Supply all the SID files and the model files and read the json files
     */ 
     const char *sidFilePath1 =
-        "/home/valentina/projects/lpwan_examples/ccoreconf/samples/simple_yang/sensor@unknown.sid";
-    const char *configFile2 = "/home/valentina/projects/lpwan_examples/ccoreconf/samples/simple_yang/sensor_instance.json";
+        "../samples/simple_yang/sensor@unknown.sid";
+    const char *configFile2 = "../samples/simple_yang/sensor_instance.json";
 
     const char *keyMappingString = "key-mapping";
     SIDModelT *sidModel = malloc(sizeof(SIDModelT));
@@ -39,6 +39,9 @@ void main() {
     // Build identifierTypeHashMap
     sidModel->identifierTypeHashMap =
         hashmap_new(sizeof(IdentifierTypeT), 0, 0, 0, identifierTypeHash, identifierTypeCompare, NULL, NULL);
+
+    // Create a clookup hashmap for faster lookups
+    struct hashmap *clookupHashmap = hashmap_new(sizeof(CLookupT), 0, 0, 0, clookupHash, clookupCompare, NULL, NULL);
 
     // Build SIDModel 
     buildSIDModel2(sidModel, sidFile1JSON);
@@ -69,6 +72,13 @@ void main() {
     printf("Print the CORECONF model\n");
     print_json_object(coreconfModel);
     printf("---------\n");
+
+    // Build the CLookup hashmap
+    buildCLookupHashmap(coreconfModel, clookupHashmap, 0, 0);
+
+    // print the clookup hashmap
+    printf("Chump lookup: \n");
+    printCLookupHashmap(clookupHashmap);
 
     /* Dump the CORECONF model representation into a JSON format
     // Open a file for writing
@@ -119,6 +129,7 @@ void main() {
     free(sidIdentifier);
 
     // Cleanup
+    hashmap_free(clookupHashmap);
     hashmap_free(sidModel->keyMappingHashMap);
     hashmap_free(sidModel->identifierSIDHashMap);
     hashmap_free(sidModel->sidIdentifierHashMap);

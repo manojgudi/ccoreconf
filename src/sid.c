@@ -58,6 +58,26 @@ void addLong(DynamicLongListT *dynamicLongList, long value) {
     dynamicLongList->longList[currentListSize] = value;
 }
 
+
+void addUniqueLong(DynamicLongListT *dynamicLongList, long value){
+    // Check if the value already exists in the list
+    for (int i = 0; i < dynamicLongList->size; i++) {
+        if (dynamicLongList->longList[i] == value) {
+            return;
+        }
+    }
+    addLong(dynamicLongList, value);
+}
+
+
+void printDynamicLongList(DynamicLongListT *dynamicLongList) {
+    printf("DLL: ");
+    for (int i = 0; i < dynamicLongList->size; i++) {
+        printf("%lu, ", dynamicLongList->longList[i]);
+    }
+    printf("\n");
+}
+
 void freeDynamicLongList(DynamicLongListT *dynamicLongList) {
     // If its NULL, then do nothing
     if (!dynamicLongList)
@@ -78,7 +98,7 @@ uint64_t keyMappingHash(const void *item, uint64_t seed0, uint64_t seed1) {
     // char keyString[SID_LENGTH];
     // sprintf(keyString, "%lu", keyMapping->key);
     //  TODO Can you replace log with something else?
-    return hashmap_sip(&keyMapping->key, (keyMapping->key % 10), seed0, seed1);
+    return hashmap_sip(&keyMapping->key, sizeof(uint64_t), seed0, seed1);
 }
 
 int identifierSIDCompare(const void *a, const void *b, void *udata) {

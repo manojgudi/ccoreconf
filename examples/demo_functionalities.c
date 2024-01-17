@@ -48,6 +48,9 @@ void main() {
     sidModel->identifierTypeHashMap =
         hashmap_new(sizeof(IdentifierTypeT), 0, 0, 0, identifierTypeHash, identifierTypeCompare, NULL, NULL);
 
+    // Create a clookup hashmap for faster lookups
+    struct hashmap *clookupHashmap = hashmap_new(sizeof(CLookupT), 0, 0, 0, clookupHash, clookupCompare, NULL, NULL);
+
     // Build SIDModel 
     buildSIDModel(sidModel, sidFile1JSON);
     buildSIDModel(sidModel, sidFile2JSON);
@@ -78,11 +81,18 @@ void main() {
     }
     */
 
+    // Build the CLookup hashmap
+    buildCLookupHashmap(coreconfModel, clookupHashmap, 0, 0);
+
+    // print the clookup hashmap
+    printf("Chump lookup: \n");
+    printCLookupHashmap(clookupHashmap);
+
     /* Find the nodes corresponding to SID 1000096  */
     json_t *traversedJSON = json_object();
     traversedJSON = traverseCORECONF(coreconfModel, 1000096);
     printf("Obtained the subtree: \n");
-    print_json_object(traversedJSON);
+    //print_json_object(traversedJSON);
     printf("---------\n");
     
 
@@ -99,13 +109,14 @@ void main() {
     json_t *traversedJSON_ = traverseCORECONFWithKeys(coreconfModel, sidModel, sidIdentifier, keys, keyLength);
 
     printf("Obtained the subtree: \n");
-    print_json_object(traversedJSON_);
+    //print_json_object(traversedJSON_);
     printf("---------\n");
 
     // Cleanup
     free(sidIdentifier);
 
     // Cleanup
+    hashmap_free(clookupHashmap);
     hashmap_free(sidModel->keyMappingHashMap);
     hashmap_free(sidModel->identifierSIDHashMap);
     hashmap_free(sidModel->sidIdentifierHashMap);
