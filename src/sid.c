@@ -40,6 +40,53 @@ void initializeDynamicLongList(DynamicLongListT *dynamicLongList) {
     dynamicLongList->size = 0;
 }
 
+// Comparison function for qsort
+long compareLong(const void *a, const void *b) {
+    return (*(int *)a - *(int *)b);
+}
+
+// Function to sort the dynamic long list, it assumes sortedArray is already correctly inititliazed to dynamicLongList->size
+void sortDynamicLongList(DynamicLongListT* dynamicLongList, long sortedArray[]){
+    // populate the sortedArray with dynamicLongList values
+    for (int i = 0; i < dynamicLongList->size; i++) {
+        sortedArray[i] = dynamicLongList->longList[i];
+    }
+
+    // Sort the array
+    qsort(sortedArray, dynamicLongList->size, sizeof(long), compareLong);
+    // Add the sorted array to the sortedDynamicLongList
+}
+
+// Function to compare two dynamicLongList which converts to a sorted long array and then compares the array
+bool compareDynamicLongList(DynamicLongListT* dynamicLongList1, DynamicLongListT* dynamicLongList2){
+    size_t array1Size = dynamicLongList1->size;
+    size_t array2Size = dynamicLongList2->size;
+
+    // Check if either of the dynamicLongLists have size = 0
+    if ((array1Size == 0) || (array2Size == 0))
+        return false;
+
+    if (array1Size !=array2Size)
+        return false;
+
+    // Created two long arrays for sorting with size of dynamicLongLists
+    long array1[array1Size];
+    long array2[array1Size];
+
+    // sort the two dynamicLongLists
+    sortDynamicLongList(dynamicLongList1, array1);
+    sortDynamicLongList(dynamicLongList2, array2);
+
+    // Compare the two arrays, and return true if array1 is exactly the same as array2
+    for (int i = 0; i < array1Size; i++){
+        if (array1[i] != array2[i])
+            return false;
+    }
+
+    return true;
+}
+
+
 void addLong(DynamicLongListT *dynamicLongList, long value) {
     size_t currentListSize;
     if (dynamicLongList == NULL) {
@@ -47,6 +94,7 @@ void addLong(DynamicLongListT *dynamicLongList, long value) {
     } else {
         currentListSize = dynamicLongList->size;
     }
+    printDynamicLongList(dynamicLongList);
 
     dynamicLongList->longList = (long *)realloc(dynamicLongList->longList, (currentListSize + 1) * sizeof(long));
     // Check if realloc happened properly, if no, then realloc failed and longList will be NULL
@@ -56,6 +104,35 @@ void addLong(DynamicLongListT *dynamicLongList, long value) {
     }
     dynamicLongList->size = currentListSize + 1;
     dynamicLongList->longList[currentListSize] = value;
+    printDynamicLongList(dynamicLongList);
+}
+
+// pop the last value from dynamicLongList
+long popLong(DynamicLongListT *dynamicLongList) {
+    // If its NULL, then do nothing
+    if (!dynamicLongList)
+        return 0;
+    // If the list is empty, then return -1
+    if (dynamicLongList->size == 0)
+        return 0;
+    long lastValue = dynamicLongList->longList[dynamicLongList->size - 1];
+    dynamicLongList->longList = (long *)realloc(dynamicLongList->longList, (dynamicLongList->size - 1) * sizeof(long));
+    dynamicLongList->size = dynamicLongList->size - 1;
+    return lastValue;
+}
+
+// Clone a DynamicLongListT
+void cloneDynamicLongList(DynamicLongListT *originalDynamicLongList, DynamicLongListT *clonedDynamicLongList){
+    // If its NULL, then do nothing
+    if (originalDynamicLongList == NULL || originalDynamicLongList->size == 0 )
+        return NULL;
+
+    // Initialize the clonedDynamicLongList
+    initializeDynamicLongList(clonedDynamicLongList);
+    // Iterate over the originalDynamicLongList and add all the values to the clonedDynamicLongList
+    for (int i = 0; i < originalDynamicLongList->size; i++) {
+        addLong(clonedDynamicLongList,  originalDynamicLongList->longList[i]);
+    }
 }
 
 
@@ -71,6 +148,11 @@ void addUniqueLong(DynamicLongListT *dynamicLongList, long value){
 
 
 void printDynamicLongList(DynamicLongListT *dynamicLongList) {
+    // If its NULL, then print []
+    if (!dynamicLongList) {
+        printf("[]");
+        return;
+    }
     printf("DLL: ");
     for (int i = 0; i < dynamicLongList->size; i++) {
         printf("%lu, ", dynamicLongList->longList[i]);

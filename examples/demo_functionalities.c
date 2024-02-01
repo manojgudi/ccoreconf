@@ -59,7 +59,7 @@ void main() {
     lookupSID(coreconfModel, sidModel);
 
     printf("Print the CORECONF model\n");
-    print_json_object(coreconfModel);
+    //print_json_object(coreconfModel);
     printf("---------\n");
 
     /* Dump the CORECONF model representation into a JSON format
@@ -87,6 +87,40 @@ void main() {
     // print the clookup hashmap
     printf("Chump lookup: \n");
     printCLookupHashmap(clookupHashmap);
+    
+ // Build inputs for key requirements
+    uint64_t requestSID = 1000115;
+    DynamicLongListT *requestKeys = malloc(sizeof(DynamicLongListT));
+    initializeDynamicLongList(requestKeys);
+
+    addLong(requestKeys, 1);
+    addLong(requestKeys, 1000018);
+    addLong(requestKeys, 1);
+    addLong(requestKeys, 1000057);
+    addLong(requestKeys, 3);
+    addLong(requestKeys, 5) ;
+
+    // Find the requirement for the SID
+    PathNodeT* pathNodes = findRequirementForSID(requestSID, clookupHashmap, sidModel->keyMappingHashMap);
+
+    // Print the PathNodeT
+    printf("PathNodeT: \n");
+    printPathNode(pathNodes);
+    printf("---------\n");
+
+
+    // Examine the coreconf model
+    json_t *examinedValue = examineCoreconf(coreconfModel, sidModel->keyMappingHashMap, requestSID, requestKeys, pathNodes);
+    printf("Examined the subtree: \n");
+    print_json_object(examinedValue);
+    printf("---------\n");
+
+
+    // Fix Dynamic Longlist
+    freeDynamicLongList(requestKeys);
+    //freeDynamicLongList(emptyList);
+    freePathNode(pathNodes);
+
 
     /* Find the nodes corresponding to SID 1000096  */
     json_t *traversedJSON = json_object();
@@ -94,7 +128,6 @@ void main() {
     printf("Obtained the subtree: \n");
     //print_json_object(traversedJSON);
     printf("---------\n");
-    
 
     /*Find the nodes corresponding to a String Characteristics and specific keys*/
 

@@ -73,9 +73,17 @@ typedef struct SIDModelStruct {
 DynamicLongListT *createDynamicLongList(void);
 void initializeDynamicLongList(DynamicLongListT *dynamicLongList);
 void addLong(DynamicLongListT *dynamicLongList, long value);
+long popLong(DynamicLongListT *dynamicLongList);
+// Create a method to clone the Dynamiclist
+void cloneDynamicLongList(DynamicLongListT *originalDynamicLongList, DynamicLongListT *clonedDynamicLongList);
+// Create a method to sort the two lists
+void sortDynamicLongList(DynamicLongListT *dynamicLongList, long sortedArray[]);
+bool compareDynamicLongList(DynamicLongListT* dynamicLongList1, DynamicLongListT* dynamicLongList2);
+
 void addUniqueLong(DynamicLongListT *dynamicLongList, long value);
 void freeDynamicLongList(DynamicLongListT *dynamicLongList);
 void printDynamicLongList(DynamicLongListT *dynamicLongList);
+
 
 // TODO This doesn't work
 void initializeKeyMappingHashMap(struct hashmap *keyMappingHashMap);
