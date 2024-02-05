@@ -19,5 +19,8 @@ This is a VSCode project. It depends on three main external libraries: libjansso
 ## Enough talk, show me some code.
 [YES.](https://github.com/manojgudi/ccoreconf/blob/main/examples/demo_functionalities.c)
 
+## How do I use the CCORECONF with RIOT OS?
+Take a look at this [README.](https://github.com/manojgudi/ccoreconf/blob/stub_generation/tools/README.md)
+
 ## Further Reading
 This project uses SID identifiers as specified in [RFC-9254](https://datatracker.ietf.org/doc/rfc9254/). Some other relevant projects are [pycoreconf](https://github.com/alex-fddz/pycoreconf) and [openschc](https://github.com/openschc/openschc)
