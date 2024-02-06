@@ -52,7 +52,7 @@ def findKeyRequirements(sid, ccLookup, keyMap, depth=10):
 
     return traverseParents
 
-def examineCoreconf(cc, keyMap, sid, keys, traverseParents):
+def examineCoreconf(cc, keys, traverseParents):
     """
     Based on chump lookup examine the cc
     """
@@ -183,18 +183,18 @@ def main():
     """
 
     # DONT use the 2022-10-09 version of the sidModel as SIDs conflict
-    sidModel = json.load(open("../samples/sid_examples/ietf-schc@2022-12-19.sid"))
+    sidModel = json.load(open("samples/sid_examples/ietf-schc@2022-12-19.sid"))
     sidItems = sidModel["items"]
 
     sidToIdentifierMap, identifierToSIDMap = buildSIDMaps(sidItems)
 
-    ccModel = json.load(open("../samples/sid_examples/coreconf.json"))
+    ccModel = json.load(open("samples/sid_examples/coreconf.json"))
     keyMap = sidModel["key-mapping"]
 
 
     #Example1
-    sid = 1000095
-    keys = [5, 3]
+    #sid = 1000099
+    #keys = [5, 3]
 
     #Example2
     #sid = 1000113
@@ -209,8 +209,8 @@ def main():
     #keys = [5, 3, 1000057, 1, 1000018]
 
     #Example5
-    #sid = 1000115
-    #keys = [5, 3, 1000057, 1, 1000018, 1]
+    sid = 1000115
+    keys = [5, 3, 1000057, 1, 1000018, 1]
     
     identifier = sidToIdentifierMap[sid]
     parentSIDKeyTuples = findDependencies(sid, keyMap, identifierToSIDMap, sidToIdentifierMap)
@@ -222,9 +222,9 @@ def main():
     print("...........")
     keyRequirements = findKeyRequirements(sid, leafLookup, keyMap, depth=10)
     keyRequirements.insert(0, [sid, keyMap.get(sid, [])])
-    print("For the SID: %s and SIDKeys %s, I found the subtree: \n"%(str(sid), ','.join([str(x) for x in keys])))
-    pprint.pprint(("Subtree ", examineCoreconf(ccModel, keyMap, sid, keys, keyRequirements)))
-
+    print("Key Requirements: " + str(keyRequirements))
+    #print("For the SID: %s and SIDKeys %s, I found the subtree: \n"%(str(sid), ','.join([str(x) for x in keys])))
+    pprint.pprint(("Subtree ", examineCoreconf(ccModel, keys, keyRequirements)))
 
 if __name__ == "__main__":
     main()

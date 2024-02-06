@@ -41,14 +41,14 @@ void initializeDynamicLongList(DynamicLongListT *dynamicLongList) {
 }
 
 // Comparison function for qsort
-long compareLong(const void *a, const void *b) {
+int compareLong(const void *a, const void *b) {
     return (*(int *)a - *(int *)b);
 }
 
 // Function to sort the dynamic long list, it assumes sortedArray is already correctly inititliazed to dynamicLongList->size
 void sortDynamicLongList(DynamicLongListT* dynamicLongList, long sortedArray[]){
     // populate the sortedArray with dynamicLongList values
-    for (int i = 0; i < dynamicLongList->size; i++) {
+    for (size_t i = 0; i < dynamicLongList->size; i++) {
         sortedArray[i] = dynamicLongList->longList[i];
     }
 
@@ -78,7 +78,7 @@ bool compareDynamicLongList(DynamicLongListT* dynamicLongList1, DynamicLongListT
     sortDynamicLongList(dynamicLongList2, array2);
 
     // Compare the two arrays, and return true if array1 is exactly the same as array2
-    for (int i = 0; i < array1Size; i++){
+    for (size_t i = 0; i < array1Size; i++){
         if (array1[i] != array2[i])
             return false;
     }
@@ -125,12 +125,12 @@ long popLong(DynamicLongListT *dynamicLongList) {
 void cloneDynamicLongList(DynamicLongListT *originalDynamicLongList, DynamicLongListT *clonedDynamicLongList){
     // If its NULL, then do nothing
     if (originalDynamicLongList == NULL || originalDynamicLongList->size == 0 )
-        return NULL;
+        return;
 
     // Initialize the clonedDynamicLongList
     initializeDynamicLongList(clonedDynamicLongList);
     // Iterate over the originalDynamicLongList and add all the values to the clonedDynamicLongList
-    for (int i = 0; i < originalDynamicLongList->size; i++) {
+    for (size_t i = 0; i < originalDynamicLongList->size; i++) {
         addLong(clonedDynamicLongList,  originalDynamicLongList->longList[i]);
     }
 }
@@ -138,7 +138,7 @@ void cloneDynamicLongList(DynamicLongListT *originalDynamicLongList, DynamicLong
 
 void addUniqueLong(DynamicLongListT *dynamicLongList, long value){
     // Check if the value already exists in the list
-    for (int i = 0; i < dynamicLongList->size; i++) {
+    for (size_t i = 0; i < dynamicLongList->size; i++) {
         if (dynamicLongList->longList[i] == value) {
             return;
         }
@@ -154,7 +154,7 @@ void printDynamicLongList(DynamicLongListT *dynamicLongList) {
         return;
     }
     printf("DLL: ");
-    for (int i = 0; i < dynamicLongList->size; i++) {
+    for (size_t i = 0; i < dynamicLongList->size; i++) {
         printf("%lu, ", dynamicLongList->longList[i]);
     }
     printf("\n");
@@ -169,6 +169,9 @@ void freeDynamicLongList(DynamicLongListT *dynamicLongList) {
 }
 
 int keyMappingCompare(const void *a, const void *b, void *udata) {
+    // NOTE Keep it unused for compatibility reasons
+    (void)udata;
+
     const KeyMappingT *keyMapping1 = (KeyMappingT *)a;
     const KeyMappingT *keyMapping2 = (KeyMappingT *)b;
     // return strcmp(keyMapping1->key, keyMapping2->key);
@@ -184,6 +187,9 @@ uint64_t keyMappingHash(const void *item, uint64_t seed0, uint64_t seed1) {
 }
 
 int identifierSIDCompare(const void *a, const void *b, void *udata) {
+    // NOTE Keep it unused for compatibility reasons
+    (void)udata;
+
     const IdentifierSIDT *identifierSID1 = (IdentifierSIDT *)a;
     const IdentifierSIDT *identifierSID2 = (IdentifierSIDT *)b;
     return strcmp(identifierSID1->identifier, identifierSID2->identifier);
@@ -195,6 +201,9 @@ uint64_t identifierSIDHash(const void *item, uint64_t seed0, uint64_t seed1) {
 }
 
 int sidIdentifierCompare(const void *a, const void *b, void *udata) {
+    // NOTE Keep it unused for compatibility reasons
+    (void)udata;
+
     const SIDIdentifierT *sidIdentifier1 = (SIDIdentifierT *)a;
     const SIDIdentifierT *sidIdentifier2 = (SIDIdentifierT *)b;
     return (sidIdentifier1->sid != sidIdentifier2->sid);
@@ -206,6 +215,9 @@ uint64_t sidIdentifierHash(const void *item, uint64_t seed0, uint64_t seed1) {
 }
 
 int identifierTypeCompare(const void *a, const void *b, void *udata) {
+    // NOTE Keep it unused for compatibility reasons
+    (void)udata;
+
     const IdentifierTypeT *identifierType1 = (IdentifierTypeT *)a;
     const IdentifierTypeT *identifierType2 = (IdentifierTypeT *)b;
     return strcmp(identifierType1->identifier, identifierType2->identifier);
@@ -214,11 +226,6 @@ int identifierTypeCompare(const void *a, const void *b, void *udata) {
 uint64_t identifierTypeHash(const void *item, uint64_t seed0, uint64_t seed1) {
     const IdentifierTypeT *identifierType = (IdentifierTypeT *)item;
     return hashmap_sip(identifierType->identifier, strlen(identifierType->identifier), seed0, seed1);
-}
-
-// NOTE This doesn't work well, idk why, it has to be initialized from the main
-void initializeKeyMappingHashMap(struct hashmap *keyMappingHashMap) {
-    keyMappingHashMap = hashmap_new(sizeof(KeyMappingT), 0, 0, 0, keyMappingHash, keyMappingCompare, NULL, NULL);
 }
 
 /*
@@ -378,7 +385,7 @@ void printKeyMappingT(const KeyMappingT *keyMapping) {
     printf("\nFor the key %" PRIu64 ": \n", keyMapping->key);
 
     // Iterate over DynamicLongListT
-    for (int i = 0; i < keyMapping->dynamicLongList->size; i++) {
+    for (size_t i = 0; i < keyMapping->dynamicLongList->size; i++) {
         long childSID = *(keyMapping->dynamicLongList->longList + i);
         printf("%lu, ", childSID);
     }
@@ -409,22 +416,27 @@ void printKeyMappingHashMap(struct hashmap *keyMappingHashMap) {
 void printHashMap(struct hashmap *anyHashMap, enum HashMapTypeEnum hashmapType) {
     size_t iter = 0;
     void *item;
+    const KeyMappingT *keyMapping;
+    const IdentifierSIDT *identifierSID;
+    const SIDIdentifierT *sidIdentifier;
+    const IdentifierTypeT *identifierType;
+
     while (hashmap_iter(anyHashMap, &iter, &item)) {
         switch (hashmapType) {
         case KEY_MAPPING:
-            const KeyMappingT *keyMapping = item;
+            keyMapping = item;
             printKeyMappingT(keyMapping);
             break;
         case IDENTIFIER_SID:
-            const IdentifierSIDT *identifierSID = item;
+            identifierSID = item;
             printIdentifierSIDT(identifierSID);
             break;
         case SID_IDENTIFIER:
-            const SIDIdentifierT *sidIdentifier = item;
+            sidIdentifier = item;
             printSIDIdentifierT(sidIdentifier);
             break;
         case IDENTIFIER_TYPE:
-            const IdentifierTypeT *identifierType = item;
+            identifierType = item;
             printIdentifierTypeT(identifierType);
             break;
         default:

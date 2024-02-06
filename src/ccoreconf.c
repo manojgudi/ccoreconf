@@ -16,6 +16,9 @@
  * Functions related to CLookup HashMap
 */
 int clookupCompare(const void *a, const void *b, void *udata) {
+  // NOTE Keep udata unused for compatibility reasons
+  (void) udata;
+
   const CLookupT *clookup1 = a;
   const CLookupT *clookup2 = b;
 
@@ -93,7 +96,7 @@ PathNodeT* findRequirementForSID(uint64_t sid, struct hashmap *clookupHashmap, s
     int64_t currentSID = sid;
     while(currentSID != 0){
       // Check if sid is in clookupHashmap
-      clookup = hashmap_get(clookupHashmap, &(CLookupT){.childSID = currentSID});
+      clookup = (CLookupT *) hashmap_get(clookupHashmap, &(CLookupT){.childSID = currentSID});
       if (!clookup){
           fprintf(stderr, "SID %"PRId64" not found in the clookupHashmap\n", sid);
           return pathNodes;
@@ -105,7 +108,7 @@ PathNodeT* findRequirementForSID(uint64_t sid, struct hashmap *clookupHashmap, s
       // if parentSID is 0 then break
       if (parentSID != 0){
         // get assosciated keys from parentSID from keyMappingHashMap
-        KeyMappingT *keyMapping = hashmap_get(keyMappingHashMap, &(KeyMappingT){.key = parentSID});
+        const KeyMappingT *keyMapping = hashmap_get(keyMappingHashMap, &(KeyMappingT){.key = parentSID});
         // No keyMapping found then add a blank
         if (keyMapping){
           // NOTE Don't forget to create an pathNode and pass that to this function
@@ -129,7 +132,7 @@ PathNodeT* findRequirementForSID(uint64_t sid, struct hashmap *clookupHashmap, s
 /*
 Examine CORECONF by traversing through headNode
 */
-json_t* examineCoreconf(json_t *coreconfModel, struct hashmap *keyMappingHashMap, int64_t sid, DynamicLongListT *requestKeys, PathNodeT *headNode){
+json_t* examineCoreconf(json_t *coreconfModel, DynamicLongListT *requestKeys, PathNodeT *headNode){
   json_t* subTree = coreconfModel;
   int64_t previousSID = 0;
 
@@ -164,7 +167,7 @@ json_t* examineCoreconf(json_t *coreconfModel, struct hashmap *keyMappingHashMap
     
     // Iterate through the subTree using json list methods to iterate
     size_t arrayLength = json_array_size(subTree);
-    for (int i=0; i<arrayLength; i++){
+    for (size_t i=0; i<arrayLength; i++){
       json_t *element = json_array_get(subTree, i);
       // Create a new DynamicLongListT
       DynamicLongListT *requestKeysClone = malloc(sizeof(DynamicLongListT));
@@ -175,7 +178,7 @@ json_t* examineCoreconf(json_t *coreconfModel, struct hashmap *keyMappingHashMap
       initializeDynamicLongList(sidKeyValueMatchDynamicLongList);
 
       // Iterate through sidKeys
-      for (int i = 0; i < sidKeys->size; i++){
+      for (int i = 0; i < (int) sidKeys->size; i++){
         uint64_t sidKey = sidKeys->longList[i];
         uint64_t sidDiff = sidKey - parentSID;
         char sidDiffString[SID_KEY_SIZE];
@@ -240,7 +243,7 @@ void buildCLookupHashmap(json_t *coreconfModel, struct hashmap *clookupHashmap, 
 
       // Get the dynamicLongList for the childSIDValue from clookupHashmap
       // if there is none, make a new dynamicLongList element and add it to clookupHashmap
-      CLookupT *clookup = hashmap_get(clookupHashmap, &(CLookupT){.childSID = childSIDValue});
+      CLookupT *clookup = (CLookupT *) hashmap_get(clookupHashmap, &(CLookupT){.childSID = childSIDValue});
       if (!clookup){
         clookup = malloc(sizeof(CLookupT));
         clookup->childSID = childSIDValue;

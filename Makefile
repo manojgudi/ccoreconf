@@ -4,7 +4,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS = -Wall -Wextra -pedantic -std=c11
+CFLAGS = -Wall -Wextra -pedantic -std=c11 -Werror
 
 # Library name
 LIB_NAME = ccoreconf
@@ -44,7 +44,7 @@ $(LIB_NAME).a: $(OBJ_FILES)
 EXEC_NAME = example
 EXEC_OUTPUT = examples
 # Build rule for exec
-$(EXEC_NAME): $(OBJ_FILES) examples/demo_functionalities_2.c
+$(EXEC_NAME): $(OBJ_FILES) examples/demo_functionalities.c
 	$(CC) $(CFLAGS) $(INCLUDE_DIRS) -o $@ $^ $(LIB_DIRS) $(JANSSON_LIB) $(LIBCBOR_LIB) $(LIBYANG_LIB)
 
 

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 /*Example to read SID file and find a SID and its corresponding value*/
-void main() {
+int main() {
 
     /*
     Supply all the SID files and the model files and read the json files
@@ -30,7 +30,7 @@ void main() {
     json_t *keyMappingJSON = json_object_get(sidFile1JSON, keyMappingString);
     if (!json_is_object(keyMappingJSON)) {
         fprintf(stderr, "Failed %s does not return a JSON map:", keyMappingString);
-        return;
+        return 1;
     }
 
     // Build keyMappingHashMap
@@ -110,7 +110,7 @@ void main() {
 
 
     // Examine the coreconf model
-    json_t *examinedValue = examineCoreconf(coreconfModel, sidModel->keyMappingHashMap, requestSID, requestKeys, pathNodes);
+    json_t *examinedValue = examineCoreconf(coreconfModel, requestKeys, pathNodes);
     printf("Examined the subtree: \n");
     print_json_object(examinedValue);
     printf("---------\n");
@@ -123,8 +123,7 @@ void main() {
 
 
     /* Find the nodes corresponding to SID 1000096  */
-    json_t *traversedJSON = json_object();
-    traversedJSON = traverseCORECONF(coreconfModel, 1000096);
+    //json_t *traversedJSON = traverseCORECONF(coreconfModel, 1000096);
     printf("Obtained the subtree: \n");
     //print_json_object(traversedJSON);
     printf("---------\n");
@@ -160,4 +159,6 @@ void main() {
     // json_decref(traversedJSON);
     json_decref(traversedJSON_);
     free(sidModel);
+
+    return 0;
 }

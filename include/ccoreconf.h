@@ -37,11 +37,6 @@ typedef struct StackStorageStruct {
 
 } StackStorageT;
 
-typedef struct KeyRequirementStruct{
-    
-
-} KeyRequirementT;
-
 
 int clookupCompare(const void *a, const void *b, void *udata);
 uint64_t clookupHash(const void *item, uint64_t seed0, uint64_t seed1);
@@ -54,7 +49,7 @@ PathNodeT *prependPathNode(PathNodeT *endNode, int64_t parentSID, DynamicLongLis
 void printPathNode(PathNodeT *pathNode);
 void freePathNode(PathNodeT *pathNode);
 PathNodeT* findRequirementForSID(uint64_t sid, struct hashmap *clookupHashmap, struct hashmap *keyMappingHashMap);
-json_t* examineCoreconf(json_t *coreconfModel, struct hashmap *keyMappingHashMap, int64_t sid, DynamicLongListT *requestKeys, PathNodeT *headNode);
+json_t* examineCoreconf(json_t *coreconfModel, DynamicLongListT *requestKeys, PathNodeT *headNode);
 
 void unwrapValues(json_t *jsonValue);
 
