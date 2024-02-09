@@ -1,10 +1,14 @@
 #include "../include/ccoreconf.h"
 #include "../include/fileOperations.h"
 #include "../include/hashmap.h"
+#include "../include/serialization.h"
 #include <jansson.h>
 #include <libyang/libyang.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <nanocbor/nanocbor.h>
+
+
 
 /*Example to read SID file and find a SID and its corresponding value*/
 int main() {
@@ -143,6 +147,26 @@ int main() {
     printf("Obtained the subtree: \n");
     //print_json_object(traversedJSON_);
     printf("---------\n");
+
+
+    // Encode the JSON object into CBOR format using NanoCBOR
+    size_t cbor_buffer_size = 5024; // Adjust as needed
+    uint8_t cbor_buffer[cbor_buffer_size];
+
+    // Serialize the traversedJSON_ to a CBOR format
+    nanocbor_encoder_t encoder;
+    nanocbor_encoder_init(&encoder, cbor_buffer, cbor_buffer_size); 
+    json_to_cbor(traversedJSON_, &encoder);
+    nanocbor_fmt_end_indefinite(&encoder);
+
+    // Print the encoded CBOR data
+    printf("Encoded CBOR data:\n");
+    for (size_t i = 0; i < nanocbor_encoded_len(&encoder); i++) {
+        printf("%02x ", cbor_buffer[i]);
+    }
+    printf("\n");
+
+
 
     // Cleanup
     free(sidIdentifier);
