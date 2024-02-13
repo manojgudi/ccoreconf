@@ -1,0 +1,68 @@
+module sensor {
+  
+  yang-version "1.1";
+
+  namespace "http://sensorexample.in/sensor-example";
+
+  prefix "sen1";
+
+  identity manufacturer{
+    description "Manufacturer of the sensor";
+  }
+
+  identity sensor-type{
+    description "type of the sensor";
+ }
+
+ identity battery-indicator-base-type{
+    description "a base identity for battery level indicator";
+  } 
+
+ identity high-level{
+    base battery-indicator-base-type;
+ }
+
+ identity med-level{
+    base battery-indicator-base-type;
+ }
+
+ identity low-level{
+    base battery-indicator-base-type;
+ }
+
+ typedef battery-level{
+    type identityref {
+        base battery-indicator-base-type;
+   }
+ }
+    
+
+ container sensordata{
+    list dataReadings{
+      key "readingIndex";
+      leaf readingIndex{
+        type uint8;
+      }
+
+      leaf dataValue{
+        type uint16;
+      }
+    }
+  }
+
+  container sensorHealth{
+    list healthReadings {
+      key "readingIndex";
+      leaf readingIndex{
+        type uint8;
+      }
+      leaf healthValue{
+        type uint32;
+      }
+
+      leaf battery{
+        type battery-level;
+      }
+    }
+  }
+}

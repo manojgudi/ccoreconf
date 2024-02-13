@@ -1,0 +1,31 @@
+{
+  "sensor": {
+    "sensordata": {
+      "dataReadings": [
+        {
+          "readingIndex": 1,
+          "dataValue": 1024
+        },
+        {
+          "readingIndex": 2,
+          "dataValue": 2048
+        }
+      ]
+    },
+    "sensorHealth": {
+      "healthReadings": [
+        {
+          "readingIndex": 1,
+          "healthValue": 987654,
+          "battery": "sen1:high-level"
+        },
+        {
+          "readingIndex": 2,
+          "healthValue": 876543,
+          "battery": "sen1:low-level"
+        }
+      ]
+    }
+  }
+}
+

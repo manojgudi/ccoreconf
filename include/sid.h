@@ -24,7 +24,7 @@ enum SchemaIdentifierTypeEnum {
 // For printing
 
 // Used Internally for debugging/printing
-enum HashMapTypeEnum { KEY_MAPPING, IDENTIFIER_SID, SID_IDENTIFIER, IDENTIFIER_TYPE };
+enum HashMapTypeEnum { KEY_MAPPING, IDENTIFIER_SID, SID_IDENTIFIER, IDENTIFIER_TYPE, CLOOKUP_TYPE };
 
 typedef struct DynamicLongListStruct {
     long *longList;
@@ -70,13 +70,19 @@ typedef struct SIDModelStruct {
 
 } SIDModelT;
 
-DynamicLongListT *createDynamicLongList();
+DynamicLongListT *createDynamicLongList(void);
 void initializeDynamicLongList(DynamicLongListT *dynamicLongList);
 void addLong(DynamicLongListT *dynamicLongList, long value);
-void freeDynamicLongList(DynamicLongListT *dynamicLongList);
+long popLong(DynamicLongListT *dynamicLongList);
+// Create a method to clone the Dynamiclist
+void cloneDynamicLongList(DynamicLongListT *originalDynamicLongList, DynamicLongListT *clonedDynamicLongList);
+// Create a method to sort the two lists
+void sortDynamicLongList(DynamicLongListT *dynamicLongList, long sortedArray[]);
+bool compareDynamicLongList(DynamicLongListT* dynamicLongList1, DynamicLongListT* dynamicLongList2);
 
-// TODO This doesn't work
-void initializeKeyMappingHashMap(struct hashmap *keyMappingHashMap);
+void addUniqueLong(DynamicLongListT *dynamicLongList, long value);
+void freeDynamicLongList(DynamicLongListT *dynamicLongList);
+void printDynamicLongList(DynamicLongListT *dynamicLongList);
 
 uint64_t keyMappingHash(const void *item, uint64_t seed0, uint64_t seed1);
 int keyMappingCompare(const void *a, const void *b, void *udata);
@@ -91,12 +97,14 @@ int identifierTypeCompare(const void *a, const void *b, void *udata);
 uint64_t identifierTypeHash(const void *item, uint64_t seed0, uint64_t seed1);
 
 // Tools
-void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJSON);
+void buildKeyMappingHashMap2(struct hashmap *keyMappingHashMap, json_t *sidFileJSON, SIDModelT *sidModel);
+void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJSON) ;
 void printKeyMappingT(const KeyMappingT *keyMapping);
 void printKeyMappingHashMap(struct hashmap *keyMappingHashMap);
 
 void printHashMap(struct hashmap *anyHashMap, enum HashMapTypeEnum hashmapType);
 void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON);
+void buildSIDModel2(SIDModelT *sidModel, json_t *sidFileJSON);
 
 // Path format function to remove trailing '\'
 void removeTrailingSlashFromPath(const char *qualifiedPath, char *formattedPath);
