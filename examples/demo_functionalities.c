@@ -1,13 +1,11 @@
-#include "../include/ccoreconf.h"
+#include "../include/coreconfManipulaiton.h"
 #include "../include/fileOperations.h"
 #include "../include/hashmap.h"
 #include "../include/serialization.h"
 #include <jansson.h>
-#include <libyang/libyang.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <nanocbor/nanocbor.h>
-
 
 
 /*Example to read SID file and find a SID and its corresponding value*/
@@ -156,8 +154,8 @@ int main() {
     // Serialize the traversedJSON_ to a CBOR format
     nanocbor_encoder_t encoder;
     nanocbor_encoder_init(&encoder, cbor_buffer, cbor_buffer_size); 
-    json_to_cbor(traversedJSON_, &encoder);
-    nanocbor_fmt_end_indefinite(&encoder);
+    json_to_cbor(examinedValue, &encoder);
+    //nanocbor_fmt_end_indefinite(&encoder);
 
     // Print the encoded CBOR data
     printf("Encoded CBOR data:\n");

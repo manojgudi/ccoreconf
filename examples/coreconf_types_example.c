@@ -4,8 +4,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <nanocbor/nanocbor.h>
-#include "../include/coreconfTypes.h"
-
+#include "../include/serialization.h"
 
 int main() {
     CoreconfValueT* arr_val = createCoreconfArray();

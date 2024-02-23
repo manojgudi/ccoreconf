@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-#include <nanocbor/nanocbor.h>
 
 #define HASHMAP_TABLE_SIZE 100 // TODO Fix this to work with dynamic table size
 #define CORECONF_MAX_DEPTH 20
@@ -68,5 +67,6 @@ void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value);
 void printCoreconfObject(CoreconfObjectT* obj);
 void printCoreconfMap(CoreconfHashMapT* map);
 void printCoreconf(CoreconfValueT* val) ;
-int coreconfToCBOR(CoreconfValueT* coreconfValue, nanocbor_encoder_t *cbor);
-CoreconfValueT* cborToCoreconfValue(nanocbor_value_t *value, unsigned indent);
+
+// Iterate over CoreconfHashMap and apply a function to each CoreconfObject value
+void iterateCoreconfHashMap(CoreconfHashMapT* map, void *udata, void (*f) (CoreconfObjectT *object, void *udata));

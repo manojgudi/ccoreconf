@@ -6,7 +6,8 @@
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/src/**",
                 "/home/valentina/projects/lpwan_examples/build_libyang/install/**",
-                "/home/valentina/projects/lpwan_examples/build_libcbor/install/**",
+                "/home/valentina/projects/lpwan_examples/nanocbor/**",
+                "/home/valentina/projects/lpwan_examples/nanocbor",
                 "/home/valentina/projects/lpwan_examples/build_libjansson/install/**"
             ],
             "defines": [],
