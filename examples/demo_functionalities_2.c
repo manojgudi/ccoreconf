@@ -1,4 +1,4 @@
-#include "../include/ccoreconf.h"
+#include "../include/coreconfManipulaiton.h"
 #include "../include/fileOperations.h"
 #include "../include/hashmap.h"
 #include <jansson.h>
@@ -80,6 +80,30 @@ void main() {
     printf("Chump lookup: \n");
     printCLookupHashmap(clookupHashmap);
 
+
+    // Build inputs for key requirements
+    uint64_t requestSID = 1008;
+    DynamicLongListT *requestKeys = malloc(sizeof(DynamicLongListT));
+    initializeDynamicLongList(requestKeys);
+    addLong(requestKeys, 5) ;
+    addLong(requestKeys, 3);
+
+    // Build the end node and initialize with empty DynamicLongListT
+    DynamicLongListT *emptyList = malloc(sizeof(DynamicLongListT));
+    PathNodeT *firstPathNode = createPathNode(0, emptyList);
+
+    // Find the requirement for the SID
+    findRequirementForSID(requestSID, clookupHashmap, sidModel->keyMappingHashMap);
+
+    // Print the PathNodeT
+    printf("PathNodeT: \n");
+    printPathNode(firstPathNode);
+    printf("---------\n");
+
+
+    // free firstPathNode?
+    freePathNode(firstPathNode);
+
     /* Dump the CORECONF model representation into a JSON format
     // Open a file for writing
     FILE *file = fopen("output.json", "w");
@@ -118,7 +142,7 @@ void main() {
     sidIdentifier->sid = INT64_MIN;
     sidIdentifier->identifier = "/sensor:sensorHealth/healthReadings";
     json_t *traversedJSON_ = traverseCORECONFWithKeys(coreconfModel, sidModel, sidIdentifier, keys, keyLength);
-    
+
 
     // check if traversedJSON_ is a JSON Arry or JSON INT
     printf("Obtained the subtree2: \n");

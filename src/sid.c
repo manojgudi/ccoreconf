@@ -3,7 +3,6 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <jansson.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -180,10 +179,7 @@ int keyMappingCompare(const void *a, const void *b, void *udata) {
 
 uint64_t keyMappingHash(const void *item, uint64_t seed0, uint64_t seed1) {
     const KeyMappingT *keyMapping = (KeyMappingT *)item;
-    // char keyString[SID_LENGTH];
-    // sprintf(keyString, "%lu", keyMapping->key);
-    //  TODO Can you replace log with something else?
-    return hashmap_sip(&keyMapping->key, sizeof(uint64_t), seed0, seed1);
+    return hashmap_murmur(&(keyMapping->key), sizeof(uint64_t), seed0, seed1);
 }
 
 int identifierSIDCompare(const void *a, const void *b, void *udata) {
@@ -211,7 +207,7 @@ int sidIdentifierCompare(const void *a, const void *b, void *udata) {
 
 uint64_t sidIdentifierHash(const void *item, uint64_t seed0, uint64_t seed1) {
     const SIDIdentifierT *sidIdentifier = (SIDIdentifierT *)item;
-    return hashmap_sip(&sidIdentifier->sid, (sidIdentifier->sid) % 10, seed0, seed1);
+    return hashmap_murmur(&(sidIdentifier->sid), sizeof(long), seed0, seed1);
 }
 
 int identifierTypeCompare(const void *a, const void *b, void *udata) {
