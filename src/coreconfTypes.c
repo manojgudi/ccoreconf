@@ -1,11 +1,10 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
-#include <inttypes.h>
 #include "../include/coreconfTypes.h"
 
-
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 CoreconfValueT* createCoreconfString(const char* value) {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
@@ -36,24 +35,37 @@ CoreconfObjectT* createCoreconfObject() {
     return obj;
 }
 
+CoreconfValueT* createCoreconfBoolean(bool value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = value ? CORECONF_TRUE : CORECONF_FALSE;
+    return val;
+}
+
 CoreconfValueT* createCoreconfHashmap() {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
     val->type = CORECONF_HASHMAP;
     val->data.map_value = malloc(sizeof(CoreconfHashMapT));
     val->data.map_value->size = 0;
     val->data.map_value->capacity = HASHMAP_TABLE_SIZE;
-    for (size_t i = 0; i < HASHMAP_TABLE_SIZE; ++i) {
+    for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
         val->data.map_value->table[i] = NULL;
     }
     return val;
-} 
+}
 
+// Create CoreconfValueT* from an existing CoreconfHashMapT
+CoreconfValueT* wrapCoreconfHashmap(CoreconfHashMapT* map) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_HASHMAP;
+    val->data.map_value = map;
+    return val;
+}
 
 // Insert Coreconf Object into CoreconfHashMap
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value) {
     size_t index = hashKey(key);
 
-    CoreconfObjectT* coreconfObject_ = malloc(sizeof(CoreconfObjectT));
+    CoreconfObjectT* coreconfObject_ = createCoreconfObject();
     // Check if malloc failed
     if (coreconfObject_ == NULL) {
         return -1;
@@ -64,15 +76,15 @@ int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* v
     if (map->table[index] != NULL) {
         // Delete the object if it already exists and overwrite it
         CoreconfObjectT* current = map->table[index];
-        
+
         // Overwrite if the key already exists
-        while(current != NULL){
-            if (current->key == key){
+        while (current != NULL) {
+            if (current->key == key) {
                 freeCoreconf(current->value, true);
                 current->value = value;
                 free(coreconfObject_);
                 return 0;
-            } 
+            }
             current = current->next;
         }
         coreconfObject_->next = map->table[index];
@@ -83,10 +95,10 @@ int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* v
     map->size++;
     return 0;
 }
- 
+
 // Get Value from CoreconfHashMap
 CoreconfValueT* getCoreconfHashMap(CoreconfHashMapT* map, uint64_t key) {
-    size_t index = hashKey( (uint32_t) key);
+    size_t index = hashKey((uint32_t)key);
     CoreconfObjectT* current = map->table[index];
     while (current != NULL) {
         if (current->key == key) {
@@ -98,13 +110,12 @@ CoreconfValueT* getCoreconfHashMap(CoreconfHashMapT* map, uint64_t key) {
 }
 
 void freeCoreconfHashMap(CoreconfHashMapT* map) {
-    for (size_t i = 0; i < HASHMAP_TABLE_SIZE; ++i) {
+    for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
         CoreconfObjectT* current = map->table[i];
         while (current != NULL) {
             CoreconfObjectT* next = current->next;
             // Free the value only if its not null
-            if (current->value != NULL)
-                freeCoreconf(current->value, true);
+            if (current->value != NULL) freeCoreconf(current->value, true);
 
             free(current);
             current = next;
@@ -114,7 +125,7 @@ void freeCoreconfHashMap(CoreconfHashMapT* map) {
 }
 
 void printCoreconfMap(CoreconfHashMapT* map) {
-    for (size_t i = 0; i < HASHMAP_TABLE_SIZE; ++i) {
+    for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
         CoreconfObjectT* current = map->table[i];
         if (current != NULL) {
             while (current != NULL) {
@@ -126,31 +137,34 @@ void printCoreconfMap(CoreconfHashMapT* map) {
 }
 
 void printCoreconfObject(CoreconfObjectT* obj) {
-    if (!obj)
-        return;
+    if (!obj) return;
     printf("Key: %" PRIu64 " Value: ", obj->key);
     printCoreconf(obj->value);
     printf("\n");
 }
 
 void printCoreconf(CoreconfValueT* val) {
-    if (!val)
-        return;
+    if (!val) return;
     if (val->type == CORECONF_STRING)
         printf("%s", val->data.string_value);
     else if (val->type == CORECONF_REAL)
         printf("%f", val->data.real_value);
     else if (val->type == CORECONF_INTEGER)
         printf("%" PRIu64, val->data.integer_value);
-     else if (val->type == CORECONF_ARRAY) {
+    else if (val->type == CORECONF_TRUE)
+        printf("true");
+    else if (val->type == CORECONF_FALSE)
+        printf("false");
+    else if (val->type == CORECONF_NULL)
+        printf("null");
+    else if (val->type == CORECONF_ARRAY) {
         printf("[");
-        for (size_t i = 0; i < val->data.array_value->size; ++i) {
+        for (size_t i = 0; i < val->data.array_value->size; i++) {
             printCoreconf(&val->data.array_value->elements[i]);
-            if (i != val->data.array_value->size - 1)
-                printf(", ");
+            if (i != val->data.array_value->size - 1) printf(", ");
         }
         printf("]");
-    } else if (val->type == CORECONF_HASHMAP){
+    } else if (val->type == CORECONF_HASHMAP) {
         printCoreconfMap(val->data.map_value);
     }
 }
@@ -177,12 +191,11 @@ void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value) {
 }
 
 void freeCoreconf(CoreconfValueT* val, bool freeValue) {
-    if (!val)
-        return;
+    if (!val) return;
     if (val->type == CORECONF_STRING)
         free(val->data.string_value);
-     else if (val->type == CORECONF_ARRAY) {
-        for (size_t i = 0; i < val->data.array_value->size ; i++) {
+    else if (val->type == CORECONF_ARRAY) {
+        for (size_t i = 0; i < val->data.array_value->size; i++) {
             freeCoreconf(&val->data.array_value->elements[i], false);
         }
         free(val->data.array_value->elements);
@@ -191,17 +204,16 @@ void freeCoreconf(CoreconfValueT* val, bool freeValue) {
         freeCoreconfHashMap(val->data.map_value);
     }
 
-    // freeValue is true when the value is not part of an array 
-    if (freeValue)
-        free(val);
+    // freeValue is true when the value is not part of an array
+    if (freeValue) free(val);
 
     // Set val as NULL
     val = NULL;
 }
 
 // Iterate over CoreconfHashMap and apply a function to each CoreconfObject value
-void iterateCoreconfHashMap(CoreconfHashMapT* map, void *udata, void (*f) (CoreconfObjectT *object, void *udata)){
-    for (size_t i = 0; i < HASHMAP_TABLE_SIZE; ++i) {
+void iterateCoreconfHashMap(CoreconfHashMapT* map, void* udata, void (*f)(CoreconfObjectT* object, void* udata)) {
+    for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
         CoreconfObjectT* current = map->table[i];
         while (current != NULL) {
             f(current, udata);
@@ -210,34 +222,30 @@ void iterateCoreconfHashMap(CoreconfHashMapT* map, void *udata, void (*f) (Corec
     }
 }
 
-
-
 // Knuth's multiplicative hash for generating hash values for CoreconfHashMap Keys
 // TODO Supports only 32-bit hash values, support for SID 64-bit hash values and negative keys
-size_t  hashKey(uint32_t key) {
-    //return (size_t) key % HASHMAP_TABLE_SIZE;
-    return (size_t) ((key * 2654435769) >> 32) % HASHMAP_TABLE_SIZE;
+size_t hashKey(uint32_t key) {
+    // return (size_t) key % HASHMAP_TABLE_SIZE;
+    return (size_t)((key * 2654435769) >> 32) % HASHMAP_TABLE_SIZE;
 }
 
 size_t murmurHash(uint64_t key) {
-        const uint64_t m = 0xc6a4a7935bd1e995ULL;
-        const int r = 47;
-        
-        uint64_t h = 0 ^ (8 * m);
-        uint64_t k = key;
-        
-        k *= m;
-        k ^= k >> r;
-        k *= m;
-        
-        h ^= k;
-        h *= m;
-        
-        h ^= h >> r;
-        h *= m;
-        h ^= h >> r;
-        
-        return h % HASHMAP_TABLE_SIZE;
+    const uint64_t m = 0xc6a4a7935bd1e995ULL;
+    const int r = 47;
+
+    uint64_t h = 0 ^ (8 * m);
+    uint64_t k = key;
+
+    k *= m;
+    k ^= k >> r;
+    k *= m;
+
+    h ^= k;
+    h *= m;
+
+    h ^= h >> r;
+    h *= m;
+    h ^= h >> r;
+
+    return h % HASHMAP_TABLE_SIZE;
 }
-
-

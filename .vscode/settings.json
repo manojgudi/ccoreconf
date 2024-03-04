@@ -1,6 +1,14 @@
 {
     "files.associations": {
         "fileoperations.h": "c",
-        "jansson.h": "c"
-    }
+        "jansson.h": "c",
+        "coreconfmanipulaiton.h": "c",
+        "hashmap.h": "c",
+        "coreconftypes.h": "c",
+        "coreconfmanipulation.h": "c",
+        "serialization.h": "c",
+        "nanocbor.h": "c",
+        "stdlib.h": "c"
+    },
+    "editor.formatOnSave": true,
 }

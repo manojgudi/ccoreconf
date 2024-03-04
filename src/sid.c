@@ -1,11 +1,13 @@
 #include "../include/sid.h"
-#include "../include/hashmap.h"
+
 #include <errno.h>
 #include <inttypes.h>
 #include <jansson.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "../include/hashmap.h"
 
 #define SID_LENGTH 20
 // Array of string representations for the enum values
@@ -33,19 +35,17 @@ DynamicLongListT *createDynamicLongList() {
 
 void initializeDynamicLongList(DynamicLongListT *dynamicLongList) {
     // If its NULL, do nothing;
-    if (!dynamicLongList)
-        return;
+    if (!dynamicLongList) return;
     dynamicLongList->longList = malloc(sizeof(long));
     dynamicLongList->size = 0;
 }
 
 // Comparison function for qsort
-int compareLong(const void *a, const void *b) {
-    return (*(int *)a - *(int *)b);
-}
+int compareLong(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
 
-// Function to sort the dynamic long list, it assumes sortedArray is already correctly inititliazed to dynamicLongList->size
-void sortDynamicLongList(DynamicLongListT* dynamicLongList, long sortedArray[]){
+// Function to sort the dynamic long list, it assumes sortedArray is already correctly inititliazed to
+// dynamicLongList->size
+void sortDynamicLongList(DynamicLongListT *dynamicLongList, long sortedArray[]) {
     // populate the sortedArray with dynamicLongList values
     for (size_t i = 0; i < dynamicLongList->size; i++) {
         sortedArray[i] = dynamicLongList->longList[i];
@@ -57,16 +57,14 @@ void sortDynamicLongList(DynamicLongListT* dynamicLongList, long sortedArray[]){
 }
 
 // Function to compare two dynamicLongList which converts to a sorted long array and then compares the array
-bool compareDynamicLongList(DynamicLongListT* dynamicLongList1, DynamicLongListT* dynamicLongList2){
+bool compareDynamicLongList(DynamicLongListT *dynamicLongList1, DynamicLongListT *dynamicLongList2) {
     size_t array1Size = dynamicLongList1->size;
     size_t array2Size = dynamicLongList2->size;
 
     // Check if either of the dynamicLongLists have size = 0
-    if ((array1Size == 0) || (array2Size == 0))
-        return false;
+    if ((array1Size == 0) || (array2Size == 0)) return false;
 
-    if (array1Size !=array2Size)
-        return false;
+    if (array1Size != array2Size) return false;
 
     // Created two long arrays for sorting with size of dynamicLongLists
     long array1[array1Size];
@@ -77,14 +75,12 @@ bool compareDynamicLongList(DynamicLongListT* dynamicLongList1, DynamicLongListT
     sortDynamicLongList(dynamicLongList2, array2);
 
     // Compare the two arrays, and return true if array1 is exactly the same as array2
-    for (size_t i = 0; i < array1Size; i++){
-        if (array1[i] != array2[i])
-            return false;
+    for (size_t i = 0; i < array1Size; i++) {
+        if (array1[i] != array2[i]) return false;
     }
 
     return true;
 }
-
 
 void addLong(DynamicLongListT *dynamicLongList, long value) {
     size_t currentListSize;
@@ -109,11 +105,9 @@ void addLong(DynamicLongListT *dynamicLongList, long value) {
 // pop the last value from dynamicLongList
 long popLong(DynamicLongListT *dynamicLongList) {
     // If its NULL, then do nothing
-    if (!dynamicLongList)
-        return 0;
+    if (!dynamicLongList) return 0;
     // If the list is empty, then return -1
-    if (dynamicLongList->size == 0)
-        return 0;
+    if (dynamicLongList->size == 0) return 0;
     long lastValue = dynamicLongList->longList[dynamicLongList->size - 1];
     dynamicLongList->longList = (long *)realloc(dynamicLongList->longList, (dynamicLongList->size - 1) * sizeof(long));
     dynamicLongList->size = dynamicLongList->size - 1;
@@ -121,21 +115,19 @@ long popLong(DynamicLongListT *dynamicLongList) {
 }
 
 // Clone a DynamicLongListT
-void cloneDynamicLongList(DynamicLongListT *originalDynamicLongList, DynamicLongListT *clonedDynamicLongList){
+void cloneDynamicLongList(DynamicLongListT *originalDynamicLongList, DynamicLongListT *clonedDynamicLongList) {
     // If its NULL, then do nothing
-    if (originalDynamicLongList == NULL || originalDynamicLongList->size == 0 )
-        return;
+    if (originalDynamicLongList == NULL || originalDynamicLongList->size == 0) return;
 
     // Initialize the clonedDynamicLongList
     initializeDynamicLongList(clonedDynamicLongList);
     // Iterate over the originalDynamicLongList and add all the values to the clonedDynamicLongList
     for (size_t i = 0; i < originalDynamicLongList->size; i++) {
-        addLong(clonedDynamicLongList,  originalDynamicLongList->longList[i]);
+        addLong(clonedDynamicLongList, originalDynamicLongList->longList[i]);
     }
 }
 
-
-void addUniqueLong(DynamicLongListT *dynamicLongList, long value){
+void addUniqueLong(DynamicLongListT *dynamicLongList, long value) {
     // Check if the value already exists in the list
     for (size_t i = 0; i < dynamicLongList->size; i++) {
         if (dynamicLongList->longList[i] == value) {
@@ -144,7 +136,6 @@ void addUniqueLong(DynamicLongListT *dynamicLongList, long value){
     }
     addLong(dynamicLongList, value);
 }
-
 
 void printDynamicLongList(DynamicLongListT *dynamicLongList) {
     // If its NULL, then print []
@@ -161,8 +152,7 @@ void printDynamicLongList(DynamicLongListT *dynamicLongList) {
 
 void freeDynamicLongList(DynamicLongListT *dynamicLongList) {
     // If its NULL, then do nothing
-    if (!dynamicLongList)
-        return;
+    if (!dynamicLongList) return;
     free(dynamicLongList->longList);
     free(dynamicLongList);
 }
@@ -234,7 +224,6 @@ need sidModel to convert identifierString to lookup sid numbers
 Allot all memory explicitly in the main
 */
 void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJSON) {
-
     const char *keyMappingString = "key-mapping";
     json_t *keyMappingJSON = json_object_get(sidFileJSON, keyMappingString);
 
@@ -248,7 +237,6 @@ void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJS
     const char *key;
     json_t *value;
     json_object_foreach(keyMappingJSON, key, value) {
-
         // Create an initialize an an empty list
         DynamicLongListT *dynamicLongList = malloc(sizeof(DynamicLongListT));
         if (dynamicLongList == NULL) {
@@ -287,8 +275,7 @@ void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJS
     }
 }
 
-void buildKeyMappingHashMap2(struct hashmap *keyMappingHashMap, json_t *sidFileJSON, SIDModelT* sidModel) {
-
+void buildKeyMappingHashMap2(struct hashmap *keyMappingHashMap, json_t *sidFileJSON, SIDModelT *sidModel) {
     const char *keyMappingString = "key-mapping";
     json_t *keyMappingJSON = json_object_get(sidFileJSON, keyMappingString);
 
@@ -302,7 +289,6 @@ void buildKeyMappingHashMap2(struct hashmap *keyMappingHashMap, json_t *sidFileJ
     const char *unformattedIdentifer;
     json_t *value;
     json_object_foreach(keyMappingJSON, unformattedIdentifer, value) {
-
         // Create an initialize an an empty list
         DynamicLongListT *dynamicLongList = malloc(sizeof(DynamicLongListT));
         if (dynamicLongList == NULL) {
@@ -322,11 +308,11 @@ void buildKeyMappingHashMap2(struct hashmap *keyMappingHashMap, json_t *sidFileJ
 
         // lookup the key in the sidModel
         // find SID of the identifier from the map
-        const IdentifierSIDT *identifierSID = hashmap_get(
-            sidModel->identifierSIDHashMap, &(IdentifierSIDT){.identifier = key});
+        const IdentifierSIDT *identifierSID =
+            hashmap_get(sidModel->identifierSIDHashMap, &(IdentifierSIDT){.identifier = key});
         if (!identifierSID) {
             fprintf(stderr, "No SID found for the following identifier %s\n", key);
-            //free(identifierSID);   
+            // free(identifierSID);
         }
 
         int64_t parentSID = identifierSID->sid;
@@ -355,25 +341,21 @@ void buildKeyMappingHashMap2(struct hashmap *keyMappingHashMap, json_t *sidFileJ
                 colon = strchr(colon, ':');
             }
 
-
             // Get the SID value from the sidModel
-            const IdentifierSIDT *identifierSIDChild = hashmap_get(
-                sidModel->identifierSIDHashMap, &(IdentifierSIDT){.identifier = childSIDStringWithSlash});
+            const IdentifierSIDT *identifierSIDChild =
+                hashmap_get(sidModel->identifierSIDHashMap, &(IdentifierSIDT){.identifier = childSIDStringWithSlash});
             if (!identifierSIDChild) {
                 fprintf(stderr, "No SID found for the following identifier %s\n", childSIDStringWithSlash);
-                //free(identifierSIDChild);
+                // free(identifierSIDChild);
             }
             // Get the long value
             long childSIDLong = identifierSIDChild->sid;
             // Add value to the dynamicLongList
             addLong(dynamicLongList, childSIDLong);
-
         }
 
-    
         // Populate the Hashmap
         hashmap_set(keyMappingHashMap, &(KeyMappingT){.key = parentSID, .dynamicLongList = dynamicLongList});
-
     }
 }
 
@@ -419,29 +401,28 @@ void printHashMap(struct hashmap *anyHashMap, enum HashMapTypeEnum hashmapType) 
 
     while (hashmap_iter(anyHashMap, &iter, &item)) {
         switch (hashmapType) {
-        case KEY_MAPPING:
-            keyMapping = item;
-            printKeyMappingT(keyMapping);
-            break;
-        case IDENTIFIER_SID:
-            identifierSID = item;
-            printIdentifierSIDT(identifierSID);
-            break;
-        case SID_IDENTIFIER:
-            sidIdentifier = item;
-            printSIDIdentifierT(sidIdentifier);
-            break;
-        case IDENTIFIER_TYPE:
-            identifierType = item;
-            printIdentifierTypeT(identifierType);
-            break;
-        default:
-            fprintf(stderr, "Unknown Hashmap type");
-            break;
+            case KEY_MAPPING:
+                keyMapping = item;
+                printKeyMappingT(keyMapping);
+                break;
+            case IDENTIFIER_SID:
+                identifierSID = item;
+                printIdentifierSIDT(identifierSID);
+                break;
+            case SID_IDENTIFIER:
+                sidIdentifier = item;
+                printSIDIdentifierT(sidIdentifier);
+                break;
+            case IDENTIFIER_TYPE:
+                identifierType = item;
+                printIdentifierTypeT(identifierType);
+                break;
+            default:
+                fprintf(stderr, "Unknown Hashmap type");
+                break;
         }
     }
 }
-
 
 void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON) {
     const char *itemsString = "items";
@@ -516,6 +497,8 @@ void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON) {
                 }
                 hashmap_set(sidModel->identifierTypeHashMap,
                             &(IdentifierTypeT){.identifier = (char *)identifier, .type = type});
+            } else {
+                // printf("Type not found for the following identifier: %s\n", identifier);
             }
         }
     }
@@ -531,7 +514,8 @@ void buildSIDModel2(SIDModelT *sidModel, json_t *sidFileJSON) {
         return;
     }
 
-    // Get the first item from itemsJSON and extract its identifier, prefix it with "/" and add it to the sidIdentifierHashmap and identifierSIDHashmap
+    // Get the first item from itemsJSON and extract its identifier, prefix it with "/" and add it to the
+    // sidIdentifierHashmap and identifierSIDHashmap
     json_t *firstItemMap = json_array_get(itemsJSON, 0);
     if (json_is_object(firstItemMap)) {
         json_t *identifierJSON = json_object_get(firstItemMap, "identifier");
@@ -551,12 +535,11 @@ void buildSIDModel2(SIDModelT *sidModel, json_t *sidFileJSON) {
         // convert SID JSON to long
         if (!json_is_integer(firstSIDJSON)) {
             fprintf(stderr, "Following item at %s does not have a valid SID", identifierWithSlash);
-            return;    
+            return;
         }
         long firstSID = json_integer_value(firstSIDJSON);
         // clean up if necessary any memory allocated
         json_decref(firstSIDJSON);
-
 
         // Set both the maps
         hashmap_set(sidModel->sidIdentifierHashMap,
@@ -568,13 +551,11 @@ void buildSIDModel2(SIDModelT *sidModel, json_t *sidFileJSON) {
     // Clean up if necessary any memory allocated
     json_decref(firstItemMap);
 
-
     // Iterate through the "items" containing JSON Maps
     size_t itemsSize = json_array_size(itemsJSON);
     for (size_t i = 0; i < itemsSize; i++) {
         json_t *itemMap = json_array_get(itemsJSON, i);
         if (json_is_object(itemMap)) {
-        
             json_t *sidJSON = json_object_get(itemMap, "sid");
             // convert SID JSON to long
             if (!json_is_integer(sidJSON)) {
@@ -593,14 +574,13 @@ void buildSIDModel2(SIDModelT *sidModel, json_t *sidFileJSON) {
 
             // HACK replace all instances of ":" by "/" in identifier
             char *itemIdentifierWithSlash = malloc((strlen(identifier) + 1) * sizeof(char));
-            strcpy(itemIdentifierWithSlash, identifier);    
+            strcpy(itemIdentifierWithSlash, identifier);
             char *colon = strchr(itemIdentifierWithSlash, ':');
             while (colon != NULL) {
                 *colon = '/';
                 colon = strchr(colon, ':');
             }
-            
-            
+
             // Set both the maps
             hashmap_set(sidModel->sidIdentifierHashMap,
                         &(SIDIdentifierT){.sid = sid, .identifier = (char *)itemIdentifierWithSlash});
@@ -697,10 +677,9 @@ void removeTrailingSlashFromPath(const char *qualifiedPath, char *formattedPath)
     size_t len = strlen(qualifiedPath);
 
     if (qualifiedPath[len - 1] == '/') {
-
         // Copy all characters except the last one to the new string.
         strncpy(formattedPath, qualifiedPath, len - 1);
-        formattedPath[len - 1] = '\0'; // Add null-terminator.
+        formattedPath[len - 1] = '\0';  // Add null-terminator.
 
     } else {
         fprintf(stderr, "Wrong usage of formatPath function");
