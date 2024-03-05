@@ -12,8 +12,8 @@
                 "${fileDirname}/${fileBasenameNoExtension}",
                 "-I${NANOCBOR_INCLUDE}",
                 "-L${NANOCBOR_BUILD}",
-                "-I/home/valentina/projects/lpwan_examples/build_libjansson/install/include/",
-                "-L/home/valentina/projects/lpwan_examples/build_libjansson/install/lib/",
+                "-I${LIBJANSSON_INCLUDE}",
+                "-L${LIBJANSSON_BUILD}",
                 "../src/hashmap.c",
                 "../src/sid.c",
                 "../src/fileOperations.c",
@@ -48,8 +48,8 @@
                 "${fileDirname}/${fileBasenameNoExtension}",
                 "-I${NANOCBOR_INCLUDE}",
                 "-L${NANOCBOR_BUILD}",
-                "-I/home/valentina/projects/lpwan_examples/build_libjansson/install/include/",
-                "-L/home/valentina/projects/lpwan_examples/build_libjansson/install/lib/",
+                "-I${LIBJANSSON_INCLUDE}",
+                "-L${LIBJANSSON_BUILD}",
                 "../src/hashmap.c",
                 "../src/sid.c",
                 "../src/fileOperations.c",
@@ -64,7 +64,9 @@
                 "cwd": "${fileDirname}",
                 "env": {
                     "NANOCBOR_INCLUDE": "${env:NANOCBOR_INCLUDE}",
-                    "NANOCBOR_BUILD": "${env:NANOCBOR_BUILD}"
+                    "NANOCBOR_BUILD": "${env:NANOCBOR_BUILD}",
+                    "LIBJANSSON_BUILD": "${env:LIBJANSSON_BUILD}",
+                    "LIBJANSSON_INCLUDE": "${env:LIBJANSSON_INCLUDE}"
                 }
             },
             "problemMatcher": [
