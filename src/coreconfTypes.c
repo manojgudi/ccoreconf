@@ -9,7 +9,7 @@
 CoreconfValueT* createCoreconfString(const char* value) {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
     val->type = CORECONF_STRING;
-    val->data.string_value = strdup(value);
+    val->data.string_value = (char*)strdup(value);
     return val;
 }
 

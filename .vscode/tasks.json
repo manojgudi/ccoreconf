@@ -10,11 +10,8 @@
                 "${file}",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
-                "-I/home/valentina/projects/lpwan_examples/build_libyang/install/include/",
-                "-L/home/valentina/projects/lpwan_examples/build_libyang/install/lib/",
-                "-lyang",
-                "-I/home/valentina/projects/lpwan_examples/nanocbor/include/",
-                "-L/home/valentina/projects/lpwan_examples/nanocbor/build",
+                "-I${NANOCBOR_INCLUDE}",
+                "-L${NANOCBOR_BUILD}",
                 "-I/home/valentina/projects/lpwan_examples/build_libjansson/install/include/",
                 "-L/home/valentina/projects/lpwan_examples/build_libjansson/install/lib/",
                 "../src/hashmap.c",
@@ -49,11 +46,8 @@
                 "${file}",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
-                "-I/home/valentina/projects/lpwan_examples/build_libyang/install/include/",
-                "-L/home/valentina/projects/lpwan_examples/build_libyang/install/lib/",
-                "-lyang",
-                "-I/home/valentina/projects/lpwan_examples/nanocbor/include/",
-                "-L/home/valentina/projects/lpwan_examples/nanocbor/build/",
+                "-I${NANOCBOR_INCLUDE}",
+                "-L${NANOCBOR_BUILD}",
                 "-I/home/valentina/projects/lpwan_examples/build_libjansson/install/include/",
                 "-L/home/valentina/projects/lpwan_examples/build_libjansson/install/lib/",
                 "../src/hashmap.c",
@@ -67,7 +61,11 @@
                 "-lnanocbor"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${fileDirname}",
+                "env": {
+                    "NANOCBOR_INCLUDE": "${env:NANOCBOR_INCLUDE}",
+                    "NANOCBOR_BUILD": "${env:NANOCBOR_BUILD}"
+                }
             },
             "problemMatcher": [
                 "$gcc"

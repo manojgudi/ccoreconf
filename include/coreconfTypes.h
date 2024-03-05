@@ -77,4 +77,6 @@ void printCoreconf(CoreconfValueT* val);
 // Iterate over CoreconfHashMap and apply a function to each CoreconfObject value
 void iterateCoreconfHashMap(CoreconfHashMapT* map, void* udata, void (*f)(CoreconfObjectT* object, void* udata));
 
+// Allow us to use non-standard function
+extern char* strdup(const char*);
 #endif

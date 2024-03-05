@@ -85,8 +85,12 @@ int coreconfToCBOR(CoreconfValueT *coreconfValue, nanocbor_encoder_t *cbor) {
             nanocbor_fmt_bool(cbor, 0);
             break;
         default:
+            // Something wrong happened
+            return -1;
             break;
     }
+
+    return 0;
 }
 
 // Deserialization from CBOR to Coreconf
@@ -177,7 +181,7 @@ int _parse_map(nanocbor_value_t *value, CoreconfValueT *coreconfValue, unsigned 
     // Iterate over the map
     while (!nanocbor_at_end(&map)) {
         uint64_t coreconfKey = 0;
-        uint64_t res = nanocbor_get_uint64(&map, &coreconfKey);
+        int res = nanocbor_get_uint64(&map, &coreconfKey);
         if (res < 0) {
             printf("Error parsing map key\n");
             break;
