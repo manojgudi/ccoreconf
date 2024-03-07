@@ -61,9 +61,9 @@ CoreconfValueT* createCoreconfString(const char* value);
 CoreconfValueT* createCoreconfReal(double value);
 CoreconfValueT* createCoreconfBoolean(bool value);
 CoreconfValueT* createCoreconfInteger(uint64_t integer);
-CoreconfObjectT* createCoreconfObject();
-CoreconfValueT* createCoreconfArray();
-CoreconfValueT* createCoreconfHashmap();
+CoreconfObjectT* createCoreconfObject(void);
+CoreconfValueT* createCoreconfArray(void);
+CoreconfValueT* createCoreconfHashmap(void);
 CoreconfValueT* wrapCoreconfHashmap(CoreconfHashMapT* map);
 
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value);
