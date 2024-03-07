@@ -12,15 +12,11 @@
                 "${fileDirname}/${fileBasenameNoExtension}",
                 "-I${NANOCBOR_INCLUDE}",
                 "-L${NANOCBOR_BUILD}",
-                "-I${LIBJANSSON_INCLUDE}",
-                "-L${LIBJANSSON_BUILD}",
                 "../src/hashmap.c",
                 "../src/sid.c",
-                "../src/fileOperations.c",
                 "../src/coreconfManipulation.c",
                 "../src/serialization.c",
                 "../src/coreconfTypes.c",
-                "-ljansson",
                 "-lm",
                 "-lnanocbor"
             ],
@@ -48,15 +44,11 @@
                 "${fileDirname}/${fileBasenameNoExtension}",
                 "-I${NANOCBOR_INCLUDE}",
                 "-L${NANOCBOR_BUILD}",
-                "-I${LIBJANSSON_INCLUDE}",
-                "-L${LIBJANSSON_BUILD}",
                 "../src/hashmap.c",
                 "../src/sid.c",
-                "../src/fileOperations.c",
                 "../src/coreconfManipulation.c",
                 "../src/serialization.c",
                 "../src/coreconfTypes.c",
-                "-ljansson",
                 "-lm",
                 "-lnanocbor"
             ],
@@ -64,9 +56,7 @@
                 "cwd": "${fileDirname}",
                 "env": {
                     "NANOCBOR_INCLUDE": "${env:NANOCBOR_INCLUDE}",
-                    "NANOCBOR_BUILD": "${env:NANOCBOR_BUILD}",
-                    "LIBJANSSON_BUILD": "${env:LIBJANSSON_BUILD}",
-                    "LIBJANSSON_INCLUDE": "${env:LIBJANSSON_INCLUDE}"
+                    "NANOCBOR_BUILD": "${env:NANOCBOR_BUILD}"
                 }
             },
             "problemMatcher": [
