@@ -27,7 +27,7 @@ CoreconfValueT* createCoreconfInteger(uint64_t value) {
     return val;
 }
 
-CoreconfObjectT* createCoreconfObject() {
+CoreconfObjectT* createCoreconfObject(void) {
     CoreconfObjectT* obj = malloc(sizeof(CoreconfObjectT));
     obj->key = 0;
     obj->value = NULL;
@@ -41,7 +41,7 @@ CoreconfValueT* createCoreconfBoolean(bool value) {
     return val;
 }
 
-CoreconfValueT* createCoreconfHashmap() {
+CoreconfValueT* createCoreconfHashmap(void) {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
     val->type = CORECONF_HASHMAP;
     val->data.map_value = malloc(sizeof(CoreconfHashMapT));
@@ -175,7 +175,7 @@ void printCoreconf(CoreconfValueT* val) {
     }
 }
 
-CoreconfValueT* createCoreconfArray() {
+CoreconfValueT* createCoreconfArray(void) {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
     val->type = CORECONF_ARRAY;
     val->data.array_value = malloc(sizeof(CoreconfArrayT));

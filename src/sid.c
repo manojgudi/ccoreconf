@@ -20,7 +20,7 @@ const char *SchemaIdentifierTypeStrings[] = {"String",
                                              "Boolean",
                                              "Identity Ref"};
 
-DynamicLongListT *createDynamicLongList() {
+DynamicLongListT *createDynamicLongList(void) {
     DynamicLongListT *dynamicLongList = (DynamicLongListT *)malloc(sizeof(DynamicLongListT));
 
     if (dynamicLongList == NULL) {

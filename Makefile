@@ -4,7 +4,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS = -Wall -Wextra -pedantic -std=c11 -Werror -Werror=strict-prototypes -Werror=format
+CFLAGS = -Wall -Wextra -pedantic -std=c11 -Werror -Werror=strict-prototypes -Werror=format -Werror=old-style-definition
 
 # Library name
 LIB_NAME = ccoreconf
