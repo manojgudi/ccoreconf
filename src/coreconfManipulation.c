@@ -263,7 +263,7 @@ void printCLookupHashmap(struct hashmap *clookupHashmap) {
     void *item;
     while (hashmap_iter(clookupHashmap, &iter, &item)) {
         CLookupT *clookupObject = item;
-        printf("(Child SID =%lu) ", clookupObject->childSID);
+        printf("(Child SID =%lu) ", (long)clookupObject->childSID);
         printDynamicLongList(clookupObject->dynamicLongList);
     }
 }

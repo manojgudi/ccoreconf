@@ -8,7 +8,7 @@
 #include "coreconf_model_cbor.h"
 
 /*Example to read cbor from coreconfModelCBORBuffer and load it into Coreconf Model*/
-int main() {
+int main(void) {
     // Read cbor from coreconfModelCBORBuffer
     nanocbor_value_t decoder;
     nanocbor_decoder_init(&decoder, coreconfModelCBORBuffer, MAX_CBOR_BUFFER_SIZE);
