@@ -212,7 +212,7 @@ uint64_t identifierTypeHash(const void *item, uint64_t seed0, uint64_t seed1) {
 }
 
 void printKeyMappingT(const KeyMappingT *keyMapping) {
-    printf("\nFor the key %" PRIu64 ": \n", keyMapping->key);
+    printf("\nFor the key %d: \n", (int)keyMapping->key);
 
     // Iterate over DynamicLongListT
     for (size_t i = 0; i < keyMapping->dynamicLongList->size; i++) {
@@ -300,7 +300,7 @@ int64_t char2int64(char *keyString) {
 }
 
 char *int2str(char *keyString, int64_t keyInt64) {
-    int keyStringLength = snprintf(NULL, 0, "%" PRIu64, keyInt64);
+    int keyStringLength = snprintf(NULL, 0, "%d ", (int)keyInt64);
     if (keyStringLength < 0) {
         fprintf(stderr, "snprintf error");
         return NULL;
@@ -314,7 +314,7 @@ char *int2str(char *keyString, int64_t keyInt64) {
     }
 
     // Convert uint64_t to char*
-    snprintf(keyString, keyStringLength + 1, "%" PRIu64, keyInt64);
+    snprintf(keyString, keyStringLength + 1, "%d ", (int)keyInt64);
     return keyString;
 }
 

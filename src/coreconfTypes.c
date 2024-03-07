@@ -144,9 +144,9 @@ void printCoreconfMap(CoreconfHashMapT* map) {
 
 void printCoreconfObject(CoreconfObjectT* obj) {
     if (!obj) return;
-    printf("Key: %" PRIu64 " Value: ", obj->key);
+    printf("Key: %d Value: ", (int) obj->key);
     printCoreconf(obj->value);
-    printf("\n");
+    //printf("\n");
 }
 
 void printCoreconf(CoreconfValueT* val) {
@@ -156,7 +156,7 @@ void printCoreconf(CoreconfValueT* val) {
     else if (val->type == CORECONF_REAL)
         printf("%f", val->data.real_value);
     else if (val->type == CORECONF_INTEGER)
-        printf("%" PRIu64, val->data.integer_value);
+        printf("%d" ,(int) val->data.integer_value);
     else if (val->type == CORECONF_TRUE)
         printf("true");
     else if (val->type == CORECONF_FALSE)

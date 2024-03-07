@@ -34,6 +34,7 @@ int main(void) {
     printf("Chump lookup Correct: \n");
     printCLookupHashmap(clookupHashmap);
 
+
     // Build inputs for key requirements
     uint64_t requestSID = 1000115;
     DynamicLongListT *requestKeys = malloc(sizeof(DynamicLongListT));
@@ -59,7 +60,6 @@ int main(void) {
     printf("Examined the Coreconf Value subtree: \n");
     printCoreconf(examinedValue_);
     printf("---------\n");
-
     // Free the memory
     freeCoreconf(coreconfModel, true);
     freeCoreconf(examinedValue_, true);
