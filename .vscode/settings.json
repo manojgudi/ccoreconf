@@ -8,7 +8,9 @@
         "coreconfmanipulation.h": "c",
         "serialization.h": "c",
         "nanocbor.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "coreconf_model_cbor.h": "c",
+        "sid.h": "c"
     },
     "editor.formatOnSave": true,
 }

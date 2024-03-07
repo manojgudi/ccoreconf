@@ -931,9 +931,9 @@ CoreconfValueT *buildCoreconfModelFromJson(json_t *jsonValue, SIDModelT *sidMode
             case DECIMAL64:
                 return createCoreconfReal(json_real_value(jsonValue));
             case BOOLEAN:
-                // return createCoreconfBoolean(json_boolean_value(jsonValue));
+                return createCoreconfBoolean(json_boolean_value(jsonValue));
                 // TODO Remove this and revert to line above
-                return createCoreconfString(json_string_value(jsonValue));
+                // return createCoreconfString(json_string_value(jsonValue));
             default:
                 fprintf(stderr, "Unhandled Identifier Type");
                 return NULL;

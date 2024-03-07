@@ -8,6 +8,8 @@
 #include "../include/hashmap.h"
 #include "../include/serialization.h"
 
+#define MAX_CBOR_BUFFER_SIZE 8096
+
 /*Example to read SID file and find a SID and its corresponding value*/
 int main() {
     /*
@@ -36,6 +38,24 @@ int main() {
     sidModel->keyMappingHashMap =
         hashmap_new(sizeof(KeyMappingT), 0, 0, 0, keyMappingHash, keyMappingCompare, NULL, NULL);
     buildKeyMappingHashMap(sidModel->keyMappingHashMap, sidFile1JSON);
+
+    // Convert it to keyMappingHashMap to a CBOR Map
+    uint8_t keyMappingHashCBOR[MAX_CBOR_BUFFER_SIZE];
+    nanocbor_encoder_t keyMappingEncoder;
+    nanocbor_encoder_init(&keyMappingEncoder, keyMappingHashCBOR, MAX_CBOR_BUFFER_SIZE);
+    keyMappingHashMapToCBOR(sidModel->keyMappingHashMap, &keyMappingEncoder);
+    printf("Key Mapping CBOR:\n");
+    for (size_t i = 0; i < nanocbor_encoded_len(&keyMappingEncoder); i++) {
+        printf("%02x ", keyMappingHashCBOR[i]);
+    }
+    printf("\n");
+
+    // Rebuild the keyMappingHashMap from the CBOR
+    nanocbor_value_t keyMappingDecoder;
+    nanocbor_decoder_init(&keyMappingDecoder, keyMappingHashCBOR, MAX_CBOR_BUFFER_SIZE);
+    struct hashmap *keyMappingHashMapDeserialized = cborToKeyMappingHashMap(&keyMappingDecoder);
+    printf("Deserialized Key Mapping: \n");
+    printKeyMappingHashMap(keyMappingHashMapDeserialized);
 
     // Build identifierSIDHashMap & sidIdentifierHashMap
     sidModel->identifierSIDHashMap =
@@ -66,13 +86,14 @@ int main() {
     printCoreconf(coreconfValue_);
 
     // Encode the JSON object into CBOR format using NanoCBOR
-    size_t ccborBufferSize = 10024;  // Adjust as needed
-    uint8_t ccborBuffer1[ccborBufferSize];
-    uint8_t ccborBuffer2[ccborBufferSize];
+    // Adjust as needed
+    uint8_t ccborBuffer1[MAX_CBOR_BUFFER_SIZE];
+    uint8_t ccborBuffer2[MAX_CBOR_BUFFER_SIZE];
+    uint8_t ccborBufferDeserialized[MAX_CBOR_BUFFER_SIZE];
 
     // Serialize the traversedJSON_ to a CBOR format
-    nanocbor_encoder_t cEncoder1, cEncoder2;
-    nanocbor_encoder_init(&cEncoder1, ccborBuffer1, ccborBufferSize);
+    nanocbor_encoder_t cEncoder1, cEncoder2, cEncoderDeserialized;
+    nanocbor_encoder_init(&cEncoder1, ccborBuffer1, MAX_CBOR_BUFFER_SIZE);
     coreconfToCBOR(coreconfValue_, &cEncoder1);
     //  nanocbor_fmt_end_indefinite(&encoder);
 
@@ -83,6 +104,22 @@ int main() {
     }
     printf("\n");
     printf("=========================\n");
+
+    // Build back coreconfModel from the buffer
+    nanocbor_value_t decoder;
+    nanocbor_decoder_init(&decoder, ccborBuffer1, MAX_CBOR_BUFFER_SIZE);
+    CoreconfValueT *coreconfValueDeserialized = cborToCoreconfValue(&decoder, 0);
+    printf("\nDeserialized Coreconf: \n");
+    printCoreconf(coreconfValueDeserialized);
+    printf("\n");
+
+    // Reserialize the deserialized coreconfValue
+    nanocbor_encoder_init(&cEncoderDeserialized, ccborBufferDeserialized, MAX_CBOR_BUFFER_SIZE);
+    coreconfToCBOR(coreconfValueDeserialized, &cEncoderDeserialized);
+    printf("Reserialized CORECONF data:\n");
+    for (size_t i = 0; i < nanocbor_encoded_len(&cEncoderDeserialized); i++) {
+        printf("%02x ", ccborBufferDeserialized[i]);
+    }
 
     /* Dump the CORECONF model representation into a JSON format
     // Open a file for writing
@@ -141,7 +178,7 @@ int main() {
     printf("---------\n");
 
     // Convert it into CBOR
-    nanocbor_encoder_init(&cEncoder2, ccborBuffer2, ccborBufferSize);
+    nanocbor_encoder_init(&cEncoder2, ccborBuffer2, MAX_CBOR_BUFFER_SIZE);
     coreconfToCBOR(examinedValue_, &cEncoder2);
     //  nanocbor_fmt_end_indefinite(&encoder);
 

@@ -63,6 +63,7 @@ CoreconfValueT* wrapCoreconfHashmap(CoreconfHashMapT* map) {
 
 // Insert Coreconf Object into CoreconfHashMap
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value) {
+    int loopCount = 0;
     size_t index = hashKey(key);
 
     CoreconfObjectT* coreconfObject_ = createCoreconfObject();
@@ -79,6 +80,10 @@ int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* v
 
         // Overwrite if the key already exists
         while (current != NULL) {
+            if (loopCount > CORECONF_MAX_LOOP) {
+                printf("Loop count exceeded CORECONF_MAX_LOOP\n");
+                return -1;
+            }
             if (current->key == key) {
                 freeCoreconf(current->value, true);
                 current->value = value;
@@ -86,6 +91,7 @@ int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* v
                 return 0;
             }
             current = current->next;
+            loopCount++;
         }
         coreconfObject_->next = map->table[index];
         map->table[index] = coreconfObject_;

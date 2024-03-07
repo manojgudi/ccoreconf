@@ -89,7 +89,6 @@ void addLong(DynamicLongListT *dynamicLongList, long value) {
     } else {
         currentListSize = dynamicLongList->size;
     }
-    printDynamicLongList(dynamicLongList);
 
     dynamicLongList->longList = (long *)realloc(dynamicLongList->longList, (currentListSize + 1) * sizeof(long));
     // Check if realloc happened properly, if no, then realloc failed and longList will be NULL
@@ -99,7 +98,6 @@ void addLong(DynamicLongListT *dynamicLongList, long value) {
     }
     dynamicLongList->size = currentListSize + 1;
     dynamicLongList->longList[currentListSize] = value;
-    printDynamicLongList(dynamicLongList);
 }
 
 // pop the last value from dynamicLongList

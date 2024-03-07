@@ -10,7 +10,7 @@
 
 #define HASHMAP_TABLE_SIZE 100  // TODO Fix this to work with dynamic table size
 #define CORECONF_MAX_DEPTH 20
-
+#define CORECONF_MAX_LOOP 50
 typedef enum {
     CORECONF_ARRAY,
     CORECONF_STRING,
