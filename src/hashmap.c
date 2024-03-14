@@ -65,8 +65,10 @@ static struct bucket *bucket_at0(void *buckets, size_t bucketsz, size_t i) {
     // Use memcpy instead of casting to avoid alignment warnings
     struct bucket *bucket = (struct bucket *)malloc(sizeof(struct bucket));
     memcpy(bucket, (((char *)buckets) + (bucketsz * i)), sizeof(struct bucket));
-#endif
+    return bucket;
+#else
     return (struct bucket *)(((char *)buckets) + (bucketsz * i));
+#endif
 }
 
 static struct bucket *bucket_at(struct hashmap *map, size_t index) {
@@ -564,9 +566,9 @@ static uint64_t MM86128(const void *key, const int len, uint32_t seed) {
     // Use memcpy instead of casting to avoid alignment warnings
     uint32_t *blocks = (uint32_t *)malloc(nblocks * 16);
     memcpy(blocks, (data + nblocks * 16), nblocks * 16);
-#endif
+#else
     const uint32_t *blocks = (const uint32_t *)(data + nblocks * 16);
-
+#endif
     for (int i = -nblocks; i; i++) {
         uint32_t k1 = blocks[i * 4 + 0];
         uint32_t k2 = blocks[i * 4 + 1];
