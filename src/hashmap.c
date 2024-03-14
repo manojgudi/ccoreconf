@@ -64,7 +64,7 @@ static struct bucket *bucket_at0(void *buckets, size_t bucketsz, size_t i) {
 #ifdef BOARD_IM880B
     // Use memcpy instead of casting to avoid alignment warnings
     struct bucket *bucket = (struct bucket *)malloc(sizeof(struct bucket));
-    memcpy(bucket, (struct bucket *)(((char *)buckets) + (bucketsz * i)), sizeof(struct bucket));
+    memcpy(bucket, (((char *)buckets) + (bucketsz * i)), sizeof(struct bucket));
 #endif
     return (struct bucket *)(((char *)buckets) + (bucketsz * i));
 }
@@ -563,7 +563,7 @@ static uint64_t MM86128(const void *key, const int len, uint32_t seed) {
 #ifdef BOARD_IM880B
     // Use memcpy instead of casting to avoid alignment warnings
     uint32_t *blocks = (uint32_t *)malloc(nblocks * 16);
-    memcpy(blocks, (const uint32_t *)(data + nblocks * 16), nblocks * 16);
+    memcpy(blocks, (data + nblocks * 16), nblocks * 16);
 #endif
     const uint32_t *blocks = (const uint32_t *)(data + nblocks * 16);
 
