@@ -15,7 +15,17 @@ typedef enum {
     CORECONF_ARRAY,
     CORECONF_STRING,
     CORECONF_REAL,
-    CORECONF_INTEGER,
+
+    CORECONF_INT_8,
+    CORECONF_INT_16,
+    CORECONF_INT_32,
+    CORECONF_INT_64,
+
+    CORECONF_UINT_8,
+    CORECONF_UINT_16,
+    CORECONF_UINT_32,
+    CORECONF_UINT_64,
+
     CORECONF_TRUE,
     CORECONF_FALSE,
     CORECONF_NULL,
@@ -60,7 +70,17 @@ void freeCoreconf(CoreconfValueT* val, bool freeValue);
 CoreconfValueT* createCoreconfString(const char* value);
 CoreconfValueT* createCoreconfReal(double value);
 CoreconfValueT* createCoreconfBoolean(bool value);
-CoreconfValueT* createCoreconfInteger(uint64_t integer);
+
+CoreconfValueT* createCoreconfInt8(int8_t value);
+CoreconfValueT* createCoreconfInt16(int16_t value);
+CoreconfValueT* createCoreconfInt32(int32_t value);
+CoreconfValueT* createCoreconfInt64(int64_t value);
+
+CoreconfValueT* createCoreconfUint8(uint8_t value);
+CoreconfValueT* createCoreconfUint16(uint16_t value);
+CoreconfValueT* createCoreconfUint32(uint32_t value);
+CoreconfValueT* createCoreconfUint64(uint64_t value);
+
 CoreconfObjectT* createCoreconfObject(void);
 CoreconfValueT* createCoreconfArray(void);
 CoreconfValueT* createCoreconfHashmap(void);

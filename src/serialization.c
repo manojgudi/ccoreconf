@@ -39,7 +39,29 @@ int coreconfToCBOR(CoreconfValueT *coreconfValue, nanocbor_encoder_t *cbor) {
         case CORECONF_REAL:
             nanocbor_fmt_double(cbor, coreconfValue->data.real_value);
             break;
-        case CORECONF_INTEGER:
+        case CORECONF_INT_8:
+            nanocbor_fmt_int(cbor, coreconfValue->data.integer_value);
+            break;
+        case CORECONF_INT_16:
+            nanocbor_fmt_int(cbor, coreconfValue->data.integer_value);
+            break;
+        case CORECONF_INT_32:
+            nanocbor_fmt_int(cbor, coreconfValue->data.integer_value);
+            break;
+        case CORECONF_INT_64:
+            nanocbor_fmt_int(cbor, coreconfValue->data.integer_value);
+            break;
+
+        case CORECONF_UINT_8:
+            nanocbor_fmt_uint(cbor, coreconfValue->data.integer_value);
+            break;
+        case CORECONF_UINT_16:
+            nanocbor_fmt_uint(cbor, coreconfValue->data.integer_value);
+            break;
+        case CORECONF_UINT_32:
+            nanocbor_fmt_uint(cbor, coreconfValue->data.integer_value);
+            break;
+        case CORECONF_UINT_64:
             nanocbor_fmt_uint(cbor, coreconfValue->data.integer_value);
             break;
         case CORECONF_STRING:
@@ -73,14 +95,15 @@ CoreconfValueT *cborToCoreconfValue(nanocbor_value_t *value, unsigned indent) {
             uint64_t unsignedInteger = 0;
             res = nanocbor_get_uint64(value, &unsignedInteger);
             if (res >= 0) {
-                coreconfValue = createCoreconfInteger(unsignedInteger);
+                coreconfValue = createCoreconfUint64(unsignedInteger);
             }
         } break;
+
         case NANOCBOR_TYPE_NINT: {
             int64_t nint = 0;
             res = nanocbor_get_int64(value, &nint);
             if (res >= 0) {
-                coreconfValue = createCoreconfInteger(nint);
+                coreconfValue = createCoreconfInt64(nint);
             }
         } break;
         case NANOCBOR_TYPE_BSTR: {
@@ -115,10 +138,11 @@ CoreconfValueT *cborToCoreconfValue(nanocbor_value_t *value, unsigned indent) {
             coreconfValue = createCoreconfHashmap();
             res = _parse_map(value, coreconfValue, indent);
         } break;
+        // NOTE: There is no NANOCBOR_TYPE_DOUBLE mask, which is weird?!
         case NANOCBOR_TYPE_FLOAT: {
-            float floatValue = 0;
-            res = nanocbor_get_float(value, &floatValue);
-            coreconfValue = createCoreconfReal(floatValue);
+            double doubleValue = 0;
+            res = nanocbor_get_double(value, &doubleValue);
+            coreconfValue = createCoreconfReal(doubleValue);
         } break;
         // TODO Future Custom TAGS for Coreconf
         default:

@@ -20,9 +20,58 @@ CoreconfValueT* createCoreconfReal(double value) {
     return val;
 }
 
-CoreconfValueT* createCoreconfInteger(uint64_t value) {
+CoreconfValueT* createCoreconfInt8(int8_t value) {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
-    val->type = CORECONF_INTEGER;
+    val->type = CORECONF_INT_8;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfInt16(int16_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_INT_16;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfInt32(int32_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_INT_32;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfInt64(int64_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_INT_64;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfUint8(uint8_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_UINT_8;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfUint16(uint16_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_UINT_16;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfUint32(uint32_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_UINT_32;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfUint64(uint64_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_UINT_64;
     val->data.integer_value = value;
     return val;
 }
@@ -144,9 +193,10 @@ void printCoreconfMap(CoreconfHashMapT* map) {
 
 void printCoreconfObject(CoreconfObjectT* obj) {
     if (!obj) return;
-    printf("Key: %d Value: ", (int) obj->key);
+    printf("Key: %d Value: ", (int)obj->key);
     printCoreconf(obj->value);
-    //printf("\n");
+    printf(", ");
+    // printf("\n");
 }
 
 void printCoreconf(CoreconfValueT* val) {
@@ -155,8 +205,23 @@ void printCoreconf(CoreconfValueT* val) {
         printf("%s", val->data.string_value);
     else if (val->type == CORECONF_REAL)
         printf("%f", val->data.real_value);
-    else if (val->type == CORECONF_INTEGER)
-        printf("%d" ,(int) val->data.integer_value);
+    else if (val->type == CORECONF_INT_8)
+        printf("%d", (int)val->data.integer_value);
+    else if (val->type == CORECONF_INT_16)
+        printf("%d", (int)val->data.integer_value);
+    else if (val->type == CORECONF_INT_32)
+        printf("%d", (int)val->data.integer_value);
+    else if (val->type == CORECONF_INT_64)
+        printf("%" PRId64, val->data.integer_value);
+    else if (val->type == CORECONF_UINT_8)
+        printf("%u", (uint8_t)val->data.integer_value);
+    else if (val->type == CORECONF_UINT_16)
+        printf("%u", (uint16_t)val->data.integer_value);
+    else if (val->type == CORECONF_UINT_32)
+        printf("%u", (uint32_t)val->data.integer_value);
+    else if (val->type == CORECONF_UINT_64)
+        printf("%" PRIu64, val->data.integer_value);
+
     else if (val->type == CORECONF_TRUE)
         printf("true");
     else if (val->type == CORECONF_FALSE)

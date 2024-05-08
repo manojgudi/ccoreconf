@@ -15,19 +15,20 @@ int main() {
     insertCoreconfHashMap(internalMap, (uint64_t)1, createCoreconfString("Internal Map"));
 
     // Example to create, add and delete coreconfMap
+    // NOTE coreconfMap will ONLY contain an unsigned 64-bit integer as key
     CoreconfValueT* mapValue = createCoreconfHashmap();
     CoreconfHashMapT* map = mapValue->data.map_value;
 
     insertCoreconfHashMap(map, (uint64_t)1, createCoreconfString("John Doe"));
-    insertCoreconfHashMap(map, (uint64_t)2, createCoreconfReal(30.1231));
+    insertCoreconfHashMap(map, (uint64_t)2, createCoreconfReal(301.12));
     insertCoreconfHashMap(map, (uint64_t)3, createCoreconfString("Jane Doe"));
     insertCoreconfHashMap(map, (uint64_t)103, createCoreconfString("Jane Doe"));
-    insertCoreconfHashMap(map, (uint64_t)1, createCoreconfReal(25.25));
+    insertCoreconfHashMap(map, (uint64_t)1, createCoreconfReal(-25.25));
     insertCoreconfHashMap(map, (uint64_t)1292, internalMapValue);
 
-    addToCoreconfArray(arr_val, createCoreconfInteger(1));
-    addToCoreconfArray(arr_val, createCoreconfInteger(2));
-    addToCoreconfArray(arr_val, createCoreconfInteger(3));
+    addToCoreconfArray(arr_val, createCoreconfInt8(1));
+    addToCoreconfArray(arr_val, createCoreconfInt64(-22));
+    addToCoreconfArray(arr_val, createCoreconfUint64(3));
     printf("Array value: ");
     printCoreconf(arr_val);
     printf("\n");
@@ -42,7 +43,7 @@ int main() {
     insertCoreconfHashMap(map, (uint64_t)4, arr_val);
     insertCoreconfHashMap(map, (uint64_t)104, arr_val);
     insertCoreconfHashMap(map, (uint64_t)204, arr_val2);
-    addToCoreconfArray(arr_val, createCoreconfInteger(4));
+    addToCoreconfArray(arr_val, createCoreconfInt8(4));
     printf("Map value: \n");
     // Create new CORECONF value
 
