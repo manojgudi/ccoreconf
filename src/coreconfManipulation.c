@@ -58,6 +58,11 @@ PathNodeT *prependPathNode(PathNodeT *endNode, int64_t parentSID, DynamicLongLis
  * Print the PathNode linked list
  */
 void printPathNode(PathNodeT *pathNode) {
+    // NULL check
+    if (pathNode == NULL) {
+        printf("PathNode is NULL\n");
+        return;
+    }
     int count = 0;
     PathNodeT *currentPathNode = pathNode;
     while (currentPathNode->parentSID != 0) {
@@ -108,7 +113,7 @@ PathNodeT *findRequirementForSID(uint64_t sid, struct hashmap *clookupHashmap, s
         clookup = (CLookupT *)hashmap_get(clookupHashmap, &(CLookupT){.childSID = currentSID});
         if (!clookup) {
             fprintf(stderr, "SID %" PRId64 " not found in the clookupHashmap\n", sid);
-            return pathNodes;
+            return NULL;
         }
 
         // get the parent SID from clookup->dynamicLongList
@@ -139,6 +144,17 @@ PathNodeT *findRequirementForSID(uint64_t sid, struct hashmap *clookupHashmap, s
 // Examine CORECONF by traversing through headNode
 CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongListT *requestKeys,
                                      PathNodeT *headNode) {
+    // NULL Checks
+    if (coreconfModel == NULL) {
+        fprintf(stderr, "coreconfModel is NULL\n");
+        return NULL;
+    }
+
+    if (headNode == NULL) {
+        fprintf(stderr, "headNode is NULL\n");
+        return NULL;
+    }
+
     CoreconfValueT *subTree = coreconfModel;
     int64_t previousSID = 0;
 
