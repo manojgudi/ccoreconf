@@ -53,4 +53,5 @@
 *.idb
 *.pdb
 
-
+# vscode
+.vscode/

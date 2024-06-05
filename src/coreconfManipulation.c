@@ -92,7 +92,15 @@ void freePathNode(PathNodeT *headNode) {
 PathNodeT *findRequirementForSID(uint64_t sid, struct hashmap *clookupHashmap, struct hashmap *keyMappingHashMap) {
     CLookupT *clookup = NULL;
     PathNodeT *pathNodes = createPathNode(0, NULL);
-    pathNodes = prependPathNode(pathNodes, sid, NULL);
+
+    // Check if a keyMapping object exists for the given SID
+    const KeyMappingT *keyMappingForGivenSID = hashmap_get(keyMappingHashMap, &(KeyMappingT){.key = sid});
+    if (keyMappingForGivenSID) {
+        // Create a new PathNode with the given SID and the keyMappingForGivenSID->dynamicLongList
+        pathNodes = prependPathNode(pathNodes, sid, keyMappingForGivenSID->dynamicLongList);
+    } else {
+        pathNodes = prependPathNode(pathNodes, sid, NULL);
+    }
 
     int64_t currentSID = sid;
     while (currentSID != 0) {
@@ -182,7 +190,7 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
                 // Get value from element using sidDiff
                 CoreconfValueT *elementValueCheck = getCoreconfHashMap(element->data.map_value, sidDiff);
                 // Get the uint64_t value from elementValueCheck
-                uint64_t elementValueCheckInteger = elementValueCheck->data.integer_value;
+                uint64_t elementValueCheckInteger = getCoreconfValueAsUint64(elementValueCheck);
 
                 // pop the value from requestKeysClone
                 uint64_t keyValueCheck = (uint64_t)popLong(requestKeysClone);
@@ -201,7 +209,7 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
             }
 
             // Cleanup requestKeysClone
-            freeDynamicLongList(requestKeysClone);
+            // freeDynamicLongList(requestKeysClone);
         }
     }
 

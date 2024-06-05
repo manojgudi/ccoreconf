@@ -97,6 +97,9 @@ void printCoreconf(CoreconfValueT* val);
 // Iterate over CoreconfHashMap and apply a function to each CoreconfObject value
 void iterateCoreconfHashMap(CoreconfHashMapT* map, void* udata, void (*f)(CoreconfObjectT* object, void* udata));
 
+// get uint64_t  from any CoreconfValueT of REAL or UINT or INT type
+uint64_t getCoreconfValueAsUint64(CoreconfValueT* val);
+
 // Allow us to use non-standard function
 extern char* strdup(const char*);
 #endif
