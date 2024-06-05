@@ -1,7 +1,6 @@
 # A tool which generates CBOR dumps of the given input file passed as a command line argument, the dump is later saved as uint8_t array in a .h file 
 # Usage: python3 generateCBORDumps.py data_instance.json sid_file.sid cborDumpHeader.h
-# Example python3 generateCBORDumps.py ../samples/simple_yang/sensor_instance.json ../samples/simple_yang/sensor@unknown_numerical.sid output.h
-# The output file will be saved as input.h
+# Example python3 generateCBORDumps.py ../samples/simple_yang/sensor_instance.json ../samples/simple_yang/sensor@unknown_numerical.sid cborDumpsHeader.h
 
 import cbor2
 import sys
