@@ -1,6 +1,5 @@
 #include "../include/serialization.h"
 
-#include <jansson.h>
 #include <nanocbor/nanocbor.h>
 #include <stdio.h>
 
@@ -17,41 +16,6 @@ void serializeCoreconfObject(CoreconfObjectT *object, void *cbor_) {
     nanocbor_encoder_t *cbor = (nanocbor_encoder_t *)cbor_;
     nanocbor_fmt_uint(cbor, object->key);
     coreconfToCBOR(object->value, cbor);
-}
-
-// Convert a generic json object to cbor
-int json_to_cbor(json_t *json, nanocbor_encoder_t *cbor) {
-    if (json_is_object(json)) {
-        nanocbor_fmt_map(cbor, json_object_size(json));
-        const char *key;
-        json_t *value;
-        json_object_foreach(json, key, value) {
-            nanocbor_fmt_int(cbor, atoi(key));
-            json_to_cbor(value, cbor);
-        }
-        nanocbor_fmt_end_indefinite(cbor);
-    } else if (json_is_array(json)) {
-        nanocbor_fmt_array(cbor, json_array_size(json));
-        for (size_t i = 0; i < json_array_size(json); i++) {
-            json_to_cbor(json_array_get(json, i), cbor);
-        }
-        nanocbor_fmt_end_indefinite(cbor);
-    } else if (json_is_string(json)) {
-        nanocbor_put_bstr(cbor, (const uint8_t *)json_string_value(json), strlen(json_string_value(json)));
-    } else if (json_is_integer(json)) {
-        nanocbor_fmt_int(cbor, json_integer_value(json));
-    } else if (json_is_real(json)) {
-        nanocbor_fmt_float(cbor, json_real_value(json));
-    } else if (json_is_true(json)) {
-        nanocbor_fmt_bool(cbor, 1);
-    } else if (json_is_false(json)) {
-        nanocbor_fmt_bool(cbor, 0);
-    } else if (json_is_null(json)) {
-        nanocbor_fmt_null(cbor);
-    } else {
-        return -1;
-    }
-    return 0;
 }
 
 // Serialization and Deserialization into CBOR
@@ -75,7 +39,29 @@ int coreconfToCBOR(CoreconfValueT *coreconfValue, nanocbor_encoder_t *cbor) {
         case CORECONF_REAL:
             nanocbor_fmt_double(cbor, coreconfValue->data.real_value);
             break;
-        case CORECONF_INTEGER:
+        case CORECONF_INT_8:
+            nanocbor_fmt_int(cbor, coreconfValue->data.integer_value);
+            break;
+        case CORECONF_INT_16:
+            nanocbor_fmt_int(cbor, coreconfValue->data.integer_value);
+            break;
+        case CORECONF_INT_32:
+            nanocbor_fmt_int(cbor, coreconfValue->data.integer_value);
+            break;
+        case CORECONF_INT_64:
+            nanocbor_fmt_int(cbor, coreconfValue->data.integer_value);
+            break;
+
+        case CORECONF_UINT_8:
+            nanocbor_fmt_uint(cbor, coreconfValue->data.integer_value);
+            break;
+        case CORECONF_UINT_16:
+            nanocbor_fmt_uint(cbor, coreconfValue->data.integer_value);
+            break;
+        case CORECONF_UINT_32:
+            nanocbor_fmt_uint(cbor, coreconfValue->data.integer_value);
+            break;
+        case CORECONF_UINT_64:
             nanocbor_fmt_uint(cbor, coreconfValue->data.integer_value);
             break;
         case CORECONF_STRING:
@@ -109,14 +95,15 @@ CoreconfValueT *cborToCoreconfValue(nanocbor_value_t *value, unsigned indent) {
             uint64_t unsignedInteger = 0;
             res = nanocbor_get_uint64(value, &unsignedInteger);
             if (res >= 0) {
-                coreconfValue = createCoreconfInteger(unsignedInteger);
+                coreconfValue = createCoreconfUint64(unsignedInteger);
             }
         } break;
+
         case NANOCBOR_TYPE_NINT: {
             int64_t nint = 0;
             res = nanocbor_get_int64(value, &nint);
             if (res >= 0) {
-                coreconfValue = createCoreconfInteger(nint);
+                coreconfValue = createCoreconfInt64(nint);
             }
         } break;
         case NANOCBOR_TYPE_BSTR: {
@@ -151,10 +138,11 @@ CoreconfValueT *cborToCoreconfValue(nanocbor_value_t *value, unsigned indent) {
             coreconfValue = createCoreconfHashmap();
             res = _parse_map(value, coreconfValue, indent);
         } break;
+        // NOTE: There is no NANOCBOR_TYPE_DOUBLE mask, which is weird?!
         case NANOCBOR_TYPE_FLOAT: {
-            float floatValue = 0;
-            res = nanocbor_get_float(value, &floatValue);
-            coreconfValue = createCoreconfReal(floatValue);
+            double doubleValue = 0;
+            res = nanocbor_get_double(value, &doubleValue);
+            coreconfValue = createCoreconfReal(doubleValue);
         } break;
         // TODO Future Custom TAGS for Coreconf
         default:
@@ -214,26 +202,6 @@ int _parse_float(nanocbor_value_t *value) {
         printf("%f", f);
     }
     return res;
-}
-
-// Map a primitive JSON value to a CORECONF Value
-CoreconfValueT *mapJSONToCoreconfValue(json_t *jsonValue) {
-    // Find type of json Object
-    if (json_is_string(jsonValue)) {
-        return createCoreconfString(json_string_value(jsonValue));
-    } else if (json_is_integer(jsonValue)) {
-        return createCoreconfInteger(json_integer_value(jsonValue));
-    } else if (json_is_real(jsonValue)) {
-        return createCoreconfReal(json_real_value(jsonValue));
-    } else if (json_is_true(jsonValue)) {
-        return createCoreconfBoolean(true);
-    } else if (json_is_false(jsonValue)) {
-        return createCoreconfBoolean(false);
-    } else {
-        // JSON dump the jsonValue and return a CoreconfString value
-        char *jsonString = json_dumps(jsonValue, JSON_ENCODE_ANY);
-        return createCoreconfString(jsonString);
-    }
 }
 
 int keyMappingHashMapToCBOR(struct hashmap *keyMappingHashMap, nanocbor_encoder_t *cbor) {

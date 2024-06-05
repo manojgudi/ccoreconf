@@ -8,7 +8,7 @@
 #include "coreconf_model_cbor.h"
 
 /*Example to read cbor from coreconfModelCBORBuffer and load it into Coreconf Model*/
-int main() {
+int main(void) {
     // Read cbor from coreconfModelCBORBuffer
     nanocbor_value_t decoder;
     nanocbor_decoder_init(&decoder, coreconfModelCBORBuffer, MAX_CBOR_BUFFER_SIZE);
@@ -33,6 +33,7 @@ int main() {
     buildCLookupHashmapFromCoreconf(coreconfModel, clookupHashmap, 0, 0);
     printf("Chump lookup Correct: \n");
     printCLookupHashmap(clookupHashmap);
+
 
     // Build inputs for key requirements
     uint64_t requestSID = 1000115;
@@ -59,7 +60,6 @@ int main() {
     printf("Examined the Coreconf Value subtree: \n");
     printCoreconf(examinedValue_);
     printf("---------\n");
-
     // Free the memory
     freeCoreconf(coreconfModel, true);
     freeCoreconf(examinedValue_, true);

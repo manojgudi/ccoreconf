@@ -4,7 +4,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS = -Wall -Wextra -pedantic -std=c11 -Werror
+CFLAGS = -Wall -Wextra -pedantic -std=c11 -Werror -Werror=strict-prototypes -Werror=format -Werror=old-style-definition -Werror=cast-align
 
 # Library name
 LIB_NAME = ccoreconf
@@ -43,7 +43,7 @@ $(LIB_NAME).a: $(OBJ_FILES)
 EXEC_NAME = example
 EXEC_OUTPUT = examples
 # Build rule for exec
-$(EXEC_NAME): $(OBJ_FILES) examples/demo_functionalities.c
+$(EXEC_NAME): $(OBJ_FILES) examples/demo_functionalities_coreconf.c
 	$(CC) $(CFLAGS) $(INCLUDE_DIRS) -o $@ $^ $(LIB_DIRS) $(JANSSON_LIB) $(LIBNANOCBOR_LIB) 
 
 

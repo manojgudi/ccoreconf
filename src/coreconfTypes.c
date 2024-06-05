@@ -20,14 +20,63 @@ CoreconfValueT* createCoreconfReal(double value) {
     return val;
 }
 
-CoreconfValueT* createCoreconfInteger(uint64_t value) {
+CoreconfValueT* createCoreconfInt8(int8_t value) {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
-    val->type = CORECONF_INTEGER;
+    val->type = CORECONF_INT_8;
     val->data.integer_value = value;
     return val;
 }
 
-CoreconfObjectT* createCoreconfObject() {
+CoreconfValueT* createCoreconfInt16(int16_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_INT_16;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfInt32(int32_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_INT_32;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfInt64(int64_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_INT_64;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfUint8(uint8_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_UINT_8;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfUint16(uint16_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_UINT_16;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfUint32(uint32_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_UINT_32;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfUint64(uint64_t value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    val->type = CORECONF_UINT_64;
+    val->data.integer_value = value;
+    return val;
+}
+
+CoreconfObjectT* createCoreconfObject(void) {
     CoreconfObjectT* obj = malloc(sizeof(CoreconfObjectT));
     obj->key = 0;
     obj->value = NULL;
@@ -41,7 +90,7 @@ CoreconfValueT* createCoreconfBoolean(bool value) {
     return val;
 }
 
-CoreconfValueT* createCoreconfHashmap() {
+CoreconfValueT* createCoreconfHashmap(void) {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
     val->type = CORECONF_HASHMAP;
     val->data.map_value = malloc(sizeof(CoreconfHashMapT));
@@ -64,7 +113,7 @@ CoreconfValueT* wrapCoreconfHashmap(CoreconfHashMapT* map) {
 // Insert Coreconf Object into CoreconfHashMap
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value) {
     int loopCount = 0;
-    size_t index = hashKey(key);
+    size_t index = hashKey((uint32_t)key);
 
     CoreconfObjectT* coreconfObject_ = createCoreconfObject();
     // Check if malloc failed
@@ -119,12 +168,16 @@ void freeCoreconfHashMap(CoreconfHashMapT* map) {
     for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
         CoreconfObjectT* current = map->table[i];
         while (current != NULL) {
-            CoreconfObjectT* next = current->next;
-            // Free the value only if its not null
-            if (current->value != NULL) freeCoreconf(current->value, true);
-
-            free(current);
-            current = next;
+            if (current->next != NULL) {
+                CoreconfObjectT* next = current->next;
+                // Free the value only if its not null
+                if (current->value != NULL) freeCoreconf(current->value, false);
+                free(current);
+                current = next;
+            } else {
+                free(current);
+                current = NULL;
+            }
         }
     }
     free(map);
@@ -144,9 +197,34 @@ void printCoreconfMap(CoreconfHashMapT* map) {
 
 void printCoreconfObject(CoreconfObjectT* obj) {
     if (!obj) return;
-    printf("Key: %" PRIu64 " Value: ", obj->key);
+    printf("Key: %d Value: ", (int)obj->key);
     printCoreconf(obj->value);
-    printf("\n");
+    printf(", ");
+    // printf("\n");
+}
+
+// Method used in examineCoreconf to match the sidKey value
+uint64_t getCoreconfValueAsUint64(CoreconfValueT* val) {
+    if (val->type == CORECONF_INT_64)
+        return val->data.integer_value;
+    else if (val->type == CORECONF_REAL || val->data.real_value >= 0)
+        return (uint64_t)val->data.real_value;
+    else if (val->type == CORECONF_INT_16)
+        return (uint64_t)val->data.integer_value;
+    else if (val->type == CORECONF_INT_32)
+        return (uint64_t)val->data.integer_value;
+    else if (val->type == CORECONF_INT_8)
+        return (uint64_t)val->data.integer_value;
+    else if (val->type == CORECONF_UINT_64)
+        return val->data.integer_value;
+    else if (val->type == CORECONF_UINT_16)
+        return val->data.integer_value;
+    else if (val->type == CORECONF_UINT_32)
+        return val->data.integer_value;
+    else if (val->type == CORECONF_UINT_8)
+        return val->data.integer_value;
+    else
+        return 0;
 }
 
 void printCoreconf(CoreconfValueT* val) {
@@ -155,8 +233,23 @@ void printCoreconf(CoreconfValueT* val) {
         printf("%s", val->data.string_value);
     else if (val->type == CORECONF_REAL)
         printf("%f", val->data.real_value);
-    else if (val->type == CORECONF_INTEGER)
+    else if (val->type == CORECONF_INT_8)
+        printf("%d", (int)val->data.integer_value);
+    else if (val->type == CORECONF_INT_16)
+        printf("%d", (int)val->data.integer_value);
+    else if (val->type == CORECONF_INT_32)
+        printf("%d", (int)val->data.integer_value);
+    else if (val->type == CORECONF_INT_64)
+        printf("%" PRId64, val->data.integer_value);
+    else if (val->type == CORECONF_UINT_8)
+        printf("%u", (uint8_t)val->data.integer_value);
+    else if (val->type == CORECONF_UINT_16)
+        printf("%u", (uint16_t)val->data.integer_value);
+    else if (val->type == CORECONF_UINT_32)
+        printf("%u", (uint32_t)val->data.integer_value);
+    else if (val->type == CORECONF_UINT_64)
         printf("%" PRIu64, val->data.integer_value);
+
     else if (val->type == CORECONF_TRUE)
         printf("true");
     else if (val->type == CORECONF_FALSE)
@@ -175,7 +268,7 @@ void printCoreconf(CoreconfValueT* val) {
     }
 }
 
-CoreconfValueT* createCoreconfArray() {
+CoreconfValueT* createCoreconfArray(void) {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
     val->type = CORECONF_ARRAY;
     val->data.array_value = malloc(sizeof(CoreconfArrayT));

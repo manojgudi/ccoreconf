@@ -15,7 +15,17 @@ typedef enum {
     CORECONF_ARRAY,
     CORECONF_STRING,
     CORECONF_REAL,
-    CORECONF_INTEGER,
+
+    CORECONF_INT_8,
+    CORECONF_INT_16,
+    CORECONF_INT_32,
+    CORECONF_INT_64,
+
+    CORECONF_UINT_8,
+    CORECONF_UINT_16,
+    CORECONF_UINT_32,
+    CORECONF_UINT_64,
+
     CORECONF_TRUE,
     CORECONF_FALSE,
     CORECONF_NULL,
@@ -60,10 +70,20 @@ void freeCoreconf(CoreconfValueT* val, bool freeValue);
 CoreconfValueT* createCoreconfString(const char* value);
 CoreconfValueT* createCoreconfReal(double value);
 CoreconfValueT* createCoreconfBoolean(bool value);
-CoreconfValueT* createCoreconfInteger(uint64_t integer);
-CoreconfObjectT* createCoreconfObject();
-CoreconfValueT* createCoreconfArray();
-CoreconfValueT* createCoreconfHashmap();
+
+CoreconfValueT* createCoreconfInt8(int8_t value);
+CoreconfValueT* createCoreconfInt16(int16_t value);
+CoreconfValueT* createCoreconfInt32(int32_t value);
+CoreconfValueT* createCoreconfInt64(int64_t value);
+
+CoreconfValueT* createCoreconfUint8(uint8_t value);
+CoreconfValueT* createCoreconfUint16(uint16_t value);
+CoreconfValueT* createCoreconfUint32(uint32_t value);
+CoreconfValueT* createCoreconfUint64(uint64_t value);
+
+CoreconfObjectT* createCoreconfObject(void);
+CoreconfValueT* createCoreconfArray(void);
+CoreconfValueT* createCoreconfHashmap(void);
 CoreconfValueT* wrapCoreconfHashmap(CoreconfHashMapT* map);
 
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value);
@@ -76,6 +96,9 @@ void printCoreconf(CoreconfValueT* val);
 
 // Iterate over CoreconfHashMap and apply a function to each CoreconfObject value
 void iterateCoreconfHashMap(CoreconfHashMapT* map, void* udata, void (*f)(CoreconfObjectT* object, void* udata));
+
+// get uint64_t  from any CoreconfValueT of REAL or UINT or INT type
+uint64_t getCoreconfValueAsUint64(CoreconfValueT* val);
 
 // Allow us to use non-standard function
 extern char* strdup(const char*);

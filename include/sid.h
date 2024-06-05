@@ -1,8 +1,8 @@
-#include "hashmap.h"
-#include <jansson.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "hashmap.h"
 /*
  * Ideally SID file should be defined formally
  * Right now we just have strict definition for *key-mapping* in KeyMapping Struct
@@ -78,7 +78,7 @@ long popLong(DynamicLongListT *dynamicLongList);
 void cloneDynamicLongList(DynamicLongListT *originalDynamicLongList, DynamicLongListT *clonedDynamicLongList);
 // Create a method to sort the two lists
 void sortDynamicLongList(DynamicLongListT *dynamicLongList, long sortedArray[]);
-bool compareDynamicLongList(DynamicLongListT* dynamicLongList1, DynamicLongListT* dynamicLongList2);
+bool compareDynamicLongList(DynamicLongListT *dynamicLongList1, DynamicLongListT *dynamicLongList2);
 
 void addUniqueLong(DynamicLongListT *dynamicLongList, long value);
 void freeDynamicLongList(DynamicLongListT *dynamicLongList);
@@ -96,15 +96,10 @@ uint64_t sidIdentifierHash(const void *item, uint64_t seed0, uint64_t seed1);
 int identifierTypeCompare(const void *a, const void *b, void *udata);
 uint64_t identifierTypeHash(const void *item, uint64_t seed0, uint64_t seed1);
 
-// Tools
-void buildKeyMappingHashMap2(struct hashmap *keyMappingHashMap, json_t *sidFileJSON, SIDModelT *sidModel);
-void buildKeyMappingHashMap(struct hashmap *keyMappingHashMap, json_t *sidFileJSON) ;
 void printKeyMappingT(const KeyMappingT *keyMapping);
 void printKeyMappingHashMap(struct hashmap *keyMappingHashMap);
 
 void printHashMap(struct hashmap *anyHashMap, enum HashMapTypeEnum hashmapType);
-void buildSIDModel(SIDModelT *sidModel, json_t *sidFileJSON);
-void buildSIDModel2(SIDModelT *sidModel, json_t *sidFileJSON);
 
 // Path format function to remove trailing '\'
 void removeTrailingSlashFromPath(const char *qualifiedPath, char *formattedPath);
