@@ -35,7 +35,6 @@ module sensor {
         base battery-indicator-base-type;
    }
  }
-    
 
  container sensordata{
     list dataReadings{
