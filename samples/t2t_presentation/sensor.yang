@@ -1,0 +1,51 @@
+  module sensor {
+     yang-version 1.1;
+     namespace "http://sensorexample.in/sensor-example";
+     prefix sen1;
+
+     identity battery-indicator-base-type {
+       description
+         "a base identity for battery level indicator";
+     }
+
+     identity high-level {
+       base battery-indicator-base-type;
+     }
+
+     identity med-level {
+       base battery-indicator-base-type;
+     }
+
+     identity low-level {
+       base battery-indicator-base-type;
+     }
+
+     typedef battery-level {
+       type identityref {
+         base battery-indicator-base-type;
+       }
+     }
+
+     container sensorObject {
+       leaf statusLED {
+         type enumeration {
+           enum green  {value 0;}
+           enum yellow {value 1;}
+           enum red {value 2;}
+         }
+       }
+       leaf battery {
+           type battery-level;
+       }
+       list sensorReadings {
+         key "index";
+         leaf index {
+           type uint8;
+         }
+         leaf sensorValue {
+           type uint32;
+         }
+
+       }
+     }
+   }

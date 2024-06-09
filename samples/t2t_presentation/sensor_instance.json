@@ -1,0 +1,16 @@
+{
+     "sensor:sensorObject": {
+       "statusLED": "green",
+       "battery": "sensor:med-level",
+       "sensorReadings": [
+         {
+           "index": 0,
+           "sensorValue": 42
+         },
+         {
+           "index": 1,
+           "sensorValue": 22
+         }
+       ]
+     }
+}
