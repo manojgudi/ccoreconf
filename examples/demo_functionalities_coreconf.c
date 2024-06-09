@@ -34,18 +34,12 @@ int main(void) {
     printf("Chump lookup Correct: \n");
     printCLookupHashmap(clookupHashmap);
 
-
     // Build inputs for key requirements
-    uint64_t requestSID = 1000115;
+    uint64_t requestSID = 1008;
     DynamicLongListT *requestKeys = malloc(sizeof(DynamicLongListT));
     initializeDynamicLongList(requestKeys);
 
-    addLong(requestKeys, 1);
-    addLong(requestKeys, 1000018);
-    addLong(requestKeys, 1);
-    addLong(requestKeys, 1000057);
-    addLong(requestKeys, 3);
-    addLong(requestKeys, 5);
+    addLong(requestKeys, 2);
 
     // Find the requirement for the SID
     PathNodeT *pathNodes = findRequirementForSID(requestSID, clookupHashmap, keyMappingHashMap);

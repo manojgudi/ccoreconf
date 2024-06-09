@@ -17,14 +17,13 @@ HEADER_DIR = include
 OBJ_DIR = obj
 
 # External libraries
-JANSSON_LIB = -ljansson
 LIBNANOCBOR_LIB = -lnanocbor
 
 # Include directories for external libraries
-INCLUDE_DIRS =  -I$(NANOCBOR_INCLUDE) -I$(LIBJANSSON_INCLUDE)
+INCLUDE_DIRS =  -I$(NANOCBOR_INCLUDE)
 
 # Library directories for external libraries
-LIB_DIRS =  -L$(NANOCBOR_BUILD) -L$(LIBJANSSON_BUILD)
+LIB_DIRS =  -L$(NANOCBOR_BUILD) 
 
 
 # Source files

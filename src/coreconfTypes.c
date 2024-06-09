@@ -207,7 +207,7 @@ void printCoreconfObject(CoreconfObjectT* obj) {
 uint64_t getCoreconfValueAsUint64(CoreconfValueT* val) {
     if (val->type == CORECONF_INT_64)
         return val->data.integer_value;
-    else if (val->type == CORECONF_REAL || val->data.real_value >= 0)
+    else if (val->type == CORECONF_REAL && val->data.real_value >= 0)
         return (uint64_t)val->data.real_value;
     else if (val->type == CORECONF_INT_16)
         return (uint64_t)val->data.integer_value;
