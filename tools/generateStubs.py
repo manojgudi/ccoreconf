@@ -381,8 +381,11 @@ def main():
 
     # Read "key-mapping" from sidJSON
     keyMapping = sidJSON["key-mapping"]
-    # Read "items" from sidJSON
-    items = sidJSON["items"]
+
+    # Read "item" from sidJSON, add compatibility check as well 
+    items = sidJSON.get("item")
+    if not items:
+        items = sidJSON["items"]
 
     identifierSIDKeyMapping, sidKeyIdentifierMapping = generateMapping(items)
     # keySet is a set of all the keys which have been used in keyMapping
