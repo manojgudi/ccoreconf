@@ -39,7 +39,14 @@ typedef struct CoreconfValue {
     union {
         char* string_value;
         double real_value;
-        uint64_t integer_value;
+        int8_t i8;
+        uint8_t u8;
+        int16_t i16;
+        uint16_t u16;
+        int32_t i32;
+        uint32_t u32;
+        int64_t i64;
+        uint64_t u64;
         struct CoreconfObject* object_value;
         struct CoreconfHashMap* map_value;
         struct CoreconfArray* array_value;

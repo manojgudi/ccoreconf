@@ -40,29 +40,29 @@ int coreconfToCBOR(CoreconfValueT *coreconfValue, nanocbor_encoder_t *cbor) {
             nanocbor_fmt_double(cbor, coreconfValue->data.real_value);
             break;
         case CORECONF_INT_8:
-            nanocbor_fmt_int(cbor, coreconfValue->data.integer_value);
+            nanocbor_fmt_int(cbor, coreconfValue->data.i8);
             break;
         case CORECONF_INT_16:
-            nanocbor_fmt_int(cbor, coreconfValue->data.integer_value);
+            nanocbor_fmt_int(cbor, coreconfValue->data.i16);
             break;
         case CORECONF_INT_32:
-            nanocbor_fmt_int(cbor, coreconfValue->data.integer_value);
+            nanocbor_fmt_int(cbor, coreconfValue->data.i32);
             break;
         case CORECONF_INT_64:
-            nanocbor_fmt_int(cbor, coreconfValue->data.integer_value);
+            nanocbor_fmt_int(cbor, coreconfValue->data.i64);
             break;
 
         case CORECONF_UINT_8:
-            nanocbor_fmt_uint(cbor, coreconfValue->data.integer_value);
+            nanocbor_fmt_uint(cbor, coreconfValue->data.u8);
             break;
         case CORECONF_UINT_16:
-            nanocbor_fmt_uint(cbor, coreconfValue->data.integer_value);
+            nanocbor_fmt_uint(cbor, coreconfValue->data.u16);
             break;
         case CORECONF_UINT_32:
-            nanocbor_fmt_uint(cbor, coreconfValue->data.integer_value);
+            nanocbor_fmt_uint(cbor, coreconfValue->data.u32);
             break;
         case CORECONF_UINT_64:
-            nanocbor_fmt_uint(cbor, coreconfValue->data.integer_value);
+            nanocbor_fmt_uint(cbor, coreconfValue->data.u64);
             break;
         case CORECONF_STRING:
             // Null terminate string value and then put it
