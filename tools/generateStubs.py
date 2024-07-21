@@ -84,11 +84,11 @@ def generateCBORMapping(keyMapping, identifierSIDKeyMapping):
     sidKeyMapping = {}
     for identifierKey, keyList in keyMapping.items():
         # Find SID for identifierKey
-        sidKey = identifierSIDKeyMapping[identifierKey]
+        sidKey = identifierKey # identifierSIDKeyMapping[identifierKey]
         sidKeyMapping[sidKey] = []
 
         for key in keyList:
-            sidKeyMapping[sidKey].append(identifierSIDKeyMapping[key])
+            sidKeyMapping[sidKey].append(key)
     
     # Dump the sidKeyMapping into CBOR mapping
     cborMapping = cbor2.dumps(sidKeyMapping)
@@ -175,7 +175,9 @@ class SIDItem:
         if type(self.type) != dict:
             # Check if self.type in cborType 
             if (self.type not in cborTypeToCMapping):
-                raise Exception("Invalid type: " + self.type)
+                print("Invalid type: " + self.type)
+                # NOTE treat Invalid types as string
+                self.type = "string"
         
     def addSidKey(self, sidKeyItem):
         self.sidKeyItems.append(sidKeyItem)
@@ -326,11 +328,14 @@ def getSetOfKeysOfKeyMapping(keyMapping, identifierSIDKeyMapping):
     keySet = set()
     for identifierKey, keyList in keyMapping.items():
         # Find SID for identifierKey
+        print(identifierSIDKeyMapping)
         sidKey = identifierSIDKeyMapping[identifierKey]
 
         for key in keyList:
             keySet.add( identifierSIDKeyMapping[key])
 
+    # print keySet
+    print(keySet)
     return keySet
 
 def findKeysForLeaves(itemIdentifier, keyMapping, identifierSIDKeyMapping):
@@ -389,7 +394,8 @@ def main():
 
     identifierSIDKeyMapping, sidKeyIdentifierMapping = generateMapping(items)
     # keySet is a set of all the keys which have been used in keyMapping
-    sidKeySet = getSetOfKeysOfKeyMapping(keyMapping, identifierSIDKeyMapping)
+    sidKeySet = keyMapping.keys()
+    #sidKeySet = getSetOfKeysOfKeyMapping(keyMapping, identifierSIDKeyMapping)
 
 
     # Iterate through items and find items with namespace "data"
