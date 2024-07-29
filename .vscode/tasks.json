@@ -12,10 +12,16 @@
                 "${fileDirname}/${fileBasenameNoExtension}",
                 "-I${NANOCBOR_INCLUDE}",
                 "-L${NANOCBOR_BUILD}",
+                "-I${ZCBOR_INCLUDE}",
+                "${ZCBOR_SOURCE}/zcbor_common.c",
+                "${ZCBOR_SOURCE}/zcbor_decode.c",
+                "${ZCBOR_SOURCE}/zcbor_encode.c",
+                "${ZCBOR_SOURCE}/zcbor_print.c",
                 "../src/hashmap.c",
                 "../src/sid.c",
                 "../src/coreconfManipulation.c",
                 "../src/serialization.c",
+                "../src/zcborSerialization.c",
                 "../src/coreconfTypes.c",
                 "-lm",
                 "-lnanocbor"
@@ -25,6 +31,8 @@
                 "env": {
                     "NANOCBOR_INCLUDE": "${env:NANOCBOR_INCLUDE}",
                     "NANOCBOR_BUILD": "${env:NANOCBOR_BUILD}",
+                    "ZCBOR_INCLUDE": "${env:ZCBOR_INCLUDE}",
+                    "ZCBOR_SOURCE": "${env:ZCBOR_SOURCE}",
                     "PATH": "${env:PATH}"
                 }
             },

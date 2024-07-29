@@ -38,6 +38,7 @@ typedef struct CoreconfValue {
     coreconf_type type;
     union {
         char* string_value;
+        int string_length;
         double real_value;
         int8_t i8;
         uint8_t u8;
