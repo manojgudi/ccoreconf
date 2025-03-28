@@ -278,7 +278,6 @@ class SIDItem:
                 functionArgs += cborTypeToCMapping[sidKeyItem.type] + " " +  formatIdentifier(sidKeyItem.identifier) + ", "
 
         # generate C function return type from the self.type
-        #functionReturnType = cborTypeToCMapping[self.type]
         functionReturnType = cborTypeToCMapping[self.type]
         functionPrototype = functionReturnType + " " + functionNameWithEnumTypes.get(functionName, "") + " " + readString + functionName + "(" + functionArgs + ")"
         functionString = docString + functionPrototype + functionBody + "\n"
@@ -328,14 +327,11 @@ def getSetOfKeysOfKeyMapping(keyMapping, identifierSIDKeyMapping):
     keySet = set()
     for identifierKey, keyList in keyMapping.items():
         # Find SID for identifierKey
-        print(identifierSIDKeyMapping)
         sidKey = identifierSIDKeyMapping[identifierKey]
 
         for key in keyList:
             keySet.add( identifierSIDKeyMapping[key])
 
-    # print keySet
-    print(keySet)
     return keySet
 
 def findKeysForLeaves(itemIdentifier, keyMapping, identifierSIDKeyMapping):
@@ -363,6 +359,42 @@ def findKeysForLeaves(itemIdentifier, keyMapping, identifierSIDKeyMapping):
                 requiredSIDKeys.append( identifierSIDKeyMapping[sidKey] )
 
     return requiredSIDKeys
+
+def findKeysForLeavesBySID(itemSID, keyMapping, sidKeyIdentifierMapping, identifierSIDKeyMapping):
+    """
+    Returns a list of keys for a leafSID
+    """
+    
+    itemIdentifier = sidKeyIdentifierMapping[itemSID]
+    requiredSIDKeys = []
+
+    print("DEETS", itemSID, itemIdentifier)
+
+    # If itemIdentifier is itself in keyMapping, then add its keys to requiredSIDKeySet
+    if itemSID in keyMapping:
+        sidKeys = keyMapping[itemSID]
+        for sidKey in sidKeys:
+            requiredSIDKeys.append(sidKey)
+
+    # Check if its parents are in keyMapping and add their keys to requiredSIDKeySet
+    identifier = itemIdentifier
+    while (identifier):
+        identifier = identifier.rsplit("/", 1)[0]
+
+        if not identifier:
+            # Block entered when its parent
+            continue
+
+        currentItemSID = identifierSIDKeyMapping[identifier]
+        currentItemSIDStr = str(currentItemSID)
+
+        if currentItemSIDStr in keyMapping:
+            sidKeys = keyMapping[currentItemSIDStr]
+            for sidKey in sidKeys:
+                requiredSIDKeys.append(sidKey)
+
+    return requiredSIDKeys
+
 
 def main():
     # write a command line parser to accept .sid file as input
@@ -438,7 +470,8 @@ def main():
         # Find out the keys for this item
 
         # Generate C code for this item
-        sidKeys = findKeysForLeaves(itemIdentifier, keyMapping, identifierSIDKeyMapping)
+        #sidKeys = findKeysForLeaves(itemIdentifier, keyMapping, identifierSIDKeyMapping)
+        sidKeys = findKeysForLeavesBySID(itemSID, keyMapping, sidKeyIdentifierMapping, identifierSIDKeyMapping)
        
         # Find item block for corresponding sidKeys
         for sidKey in sidKeys:
