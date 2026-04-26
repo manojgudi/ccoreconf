@@ -31,3 +31,5 @@ void printPathNode(PathNodeT *pathNode);
 void freePathNode(PathNodeT *pathNode);
 PathNodeT *findRequirementForSID(uint64_t sid, struct hashmap *clookupHashmap, struct hashmap *keyMappingHashMap);
 CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfValue, DynamicLongListT *requestKeys, PathNodeT *headNode);
+
+void freeCLookupHashmap(struct hashmap *map);

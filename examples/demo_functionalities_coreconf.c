@@ -57,8 +57,10 @@ int main(void) {
     // Free the memory
     freeCoreconf(coreconfModel, true);
     freeCoreconf(examinedValue_, true);
+    freeCLookupHashmap(clookupHashmap);
     freeDynamicLongList(requestKeys);
     freePathNode(pathNodes);
+    freeKeyMappingHashMap(keyMappingHashMap);
     hashmap_free(clookupHashmap);
     hashmap_free(keyMappingHashMap);
 

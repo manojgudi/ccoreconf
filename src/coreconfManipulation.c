@@ -38,7 +38,15 @@ uint64_t clookupHash(const void *item, uint64_t seed0, uint64_t seed1) {
 PathNodeT *createPathNode(int64_t parentSID, DynamicLongListT *sidKeys) {
     PathNodeT *pathNode = malloc(sizeof(PathNodeT));
     pathNode->parentSID = parentSID;
-    pathNode->sidKeys = sidKeys;
+    // Make a deep copy to decouple PathNodeT from keyMappingHashMap ownership.
+    // This prevents use-after-free when either structure is destroyed.
+    if (sidKeys) {
+        DynamicLongListT *sidKeysCopy = malloc(sizeof(DynamicLongListT));
+        cloneDynamicLongList(sidKeys, sidKeysCopy);
+        pathNode->sidKeys = sidKeysCopy;
+    } else {
+        pathNode->sidKeys = NULL;
+    }
     pathNode->nextPathNode = NULL;
     return pathNode;
 }
@@ -85,7 +93,9 @@ void freePathNode(PathNodeT *headNode) {
     PathNodeT *nextPathNode = NULL;
     while (currentPathNode != NULL) {
         nextPathNode = currentPathNode->nextPathNode;
-        // freeDynamicLongList(currentPathNode->sidKeys);
+        if (currentPathNode->sidKeys != NULL) {
+            freeDynamicLongList(currentPathNode->sidKeys);
+        }
         free(currentPathNode);
         currentPathNode = nextPathNode;
     }
@@ -218,14 +228,14 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
             // element
             if (compareDynamicLongList(sidKeys, sidKeyValueMatchDynamicLongList)) {
                 subTree = element;
-                // NOTE Why are we not freeing requestKeys?
-                // freeDynamicLongList(requestKeys);
                 cloneDynamicLongList(requestKeysClone, requestKeys);
+                freeDynamicLongList(requestKeysClone);
+                freeDynamicLongList(sidKeyValueMatchDynamicLongList);
                 break;
             }
 
-            // Cleanup requestKeysClone
-            // freeDynamicLongList(requestKeysClone);
+            freeDynamicLongList(requestKeysClone);
+            freeDynamicLongList(sidKeyValueMatchDynamicLongList);
         }
     }
 
@@ -294,3 +304,14 @@ void printCLookupHashmap(struct hashmap *clookupHashmap) {
 
 // Assume long value is 64bit long,
 void long2str(char *stringValue, long longValue) { sprintf(stringValue, "%ld", longValue); }
+
+void freeCLookupHashmap(struct hashmap *map) {
+    size_t iter = 0;
+    void *item;
+    while (hashmap_iter(map, &iter, &item)) {
+        CLookupT *clookup = (CLookupT *)item;
+        if (clookup->dynamicLongList) {
+            freeDynamicLongList(clookup->dynamicLongList);
+        }
+    }
+}

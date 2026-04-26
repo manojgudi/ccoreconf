@@ -275,3 +275,14 @@ struct hashmap *cborToKeyMappingHashMap(nanocbor_value_t *value) {
     nanocbor_leave_container(value, &map);
     return keyMappingHashMap;
 }
+
+void freeKeyMappingHashMap(struct hashmap *map) {
+    size_t iter = 0;
+    void *item;
+    while (hashmap_iter(map, &iter, &item)) {
+        KeyMappingT *keyMapping = (KeyMappingT *)item;
+        if (keyMapping->dynamicLongList) {
+            freeDynamicLongList(keyMapping->dynamicLongList);
+        }
+    }
+}
