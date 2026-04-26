@@ -71,8 +71,7 @@ typedef struct CoreconfArray {
     size_t size;
 } CoreconfArrayT;
 
-size_t hashKey(uint32_t v);
-size_t murmurHash(uint64_t key);
+size_t hashKey(uint64_t key);
 void freeCoreconf(CoreconfValueT* val, bool freeValue);
 
 CoreconfValueT* createCoreconfString(const char* value);

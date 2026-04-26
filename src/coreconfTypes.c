@@ -113,7 +113,7 @@ CoreconfValueT* wrapCoreconfHashmap(CoreconfHashMapT* map) {
 // Insert Coreconf Object into CoreconfHashMap
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value) {
     int loopCount = 0;
-    size_t index = hashKey((uint32_t)key);
+    size_t index = hashKey(key);
 
     CoreconfObjectT* coreconfObject_ = createCoreconfObject();
     // Check if malloc failed
@@ -153,7 +153,7 @@ int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* v
 
 // Get Value from CoreconfHashMap
 CoreconfValueT* getCoreconfHashMap(CoreconfHashMapT* map, uint64_t key) {
-    size_t index = hashKey((uint32_t)key);
+    size_t index = hashKey(key);
     CoreconfObjectT* current = map->table[index];
     while (current != NULL) {
         if (current->key == key) {
@@ -321,11 +321,11 @@ void iterateCoreconfHashMap(CoreconfHashMapT* map, void* udata, void (*f)(Coreco
     }
 }
 
-// Knuth's multiplicative hash for generating hash values for CoreconfHashMap Keys
-// TODO Supports only 32-bit hash values, support for SID 64-bit hash values and negative keys
-size_t hashKey(uint32_t key) {
-    // return (size_t) key % HASHMAP_TABLE_SIZE;
-    return (size_t)((key * 2654435769) >> 32) % HASHMAP_TABLE_SIZE;
+// 64-bit MurmurHash3-inspired hash for CoreconfHashMap Keys
+static size_t murmurHash(uint64_t key);
+
+size_t hashKey(uint64_t key) {
+    return murmurHash(key);
 }
 
 size_t murmurHash(uint64_t key) {
