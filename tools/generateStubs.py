@@ -5,6 +5,7 @@
 import argparse
 import json
 import cbor2
+import pycoreconf
 
 cborTypeToCMapping = {
     "uint8": "uint8_t",
@@ -19,13 +20,13 @@ cborTypeToCMapping = {
     "float64": "double",
     "decimal64": "double",
     "boolean": "bool",
-    "binary" : "bool",
+    "binary": "bool",
     "string": "char *",
     "bytes": "uint8_t *",
     "array": "uint8_t *",
-    "enum" : "enum",
-    "identityref" : "char *",   # Map identityref to a char* since we dont have identityMap
-    "void" : "void"
+    "enum": "enum",
+    "identityref": "char *",  # Map identityref to a char* since we dont have identityMap
+    "void": "void",
 }
 
 
@@ -43,17 +44,19 @@ defaultTypeValue = {
     "float64": "0",
     "decimal64": "0",
     "boolean": "false",
-    "binary" : "false",
+    "binary": "false",
     "string": "NULL",
     "bytes": "NULL",
     "array": "NULL",
-    "enum" : "enum",
-    "identityref" : "NULL",
-    "void" : "NULL"
+    "enum": "enum",
+    "identityref": "NULL",
+    "void": "NULL",
 }
 
+# TODO: Perhaps refactor to not use globals in the future?
 enumTypes = {}
 functionNameWithEnumTypes = {}
+
 
 def formatIdentifier(identifier):
     """
@@ -62,44 +65,25 @@ def formatIdentifier(identifier):
     # Capitalize the letter next to "-"
     while "-" in identifier:
         index = identifier.index("-")
-        identifier = identifier[:index] + identifier[index+1].upper() + identifier[index+2:]
+        identifier = (
+            identifier[:index] + identifier[index + 1].upper() + identifier[index + 2 :]
+        )
 
     identifier = identifier.replace("/", "_").replace(":", "_")
     # Remove the leading "_"
     if identifier[0] == "_":
         identifier = identifier[1:]
 
-    # Shorten it, take the last word after "_" and use it as the identifier
-    identifier = identifier.split("_")[-1]
+    # Shorten it, take the last two words and use that.
+    # The hope is that for most cases this is unique enough
+    id_name = "_".join([item for item in identifier.split("_")[-2:]])
 
-    return identifier
+    return id_name
 
-# Function to generate CBOR mapping of key-mapping
-def generateCBORMapping(keyMapping, identifierSIDKeyMapping):
+
+def generateSIDPreprocessors(model):
     """
-    Replace the string identifiers in keyMapping into SIDs
-    and dump it into CBOR mapping
-    """
-    # Replace identifiers in key, values of keyMapping with SIDs
-    sidKeyMapping = {}
-    for identifierKey, keyList in keyMapping.items():
-        # Find SID for identifierKey
-        sidKey = identifierKey # identifierSIDKeyMapping[identifierKey]
-        sidKeyMapping[sidKey] = []
-
-        for key in keyList:
-            sidKeyMapping[sidKey].append(key)
-    
-    # Dump the sidKeyMapping into CBOR mapping
-    cborMapping = cbor2.dumps(sidKeyMapping)
-    # Format the string to store as bytestrings in C
-    cborMapping = str(cborMapping).replace("b'","").replace("'","")
-    return cborMapping
-
-
-def generateSIDPreprocessors(items):
-    """
-    Take items as input and generate C headers for all the items
+    Take pycoreconf generated model as input and generate C headers for all the sids
     For each item which has a valid type, add a line
         # define LEAF LEAF_SID_NUMBER
     """
@@ -107,48 +91,63 @@ def generateSIDPreprocessors(items):
     leafIdentifierCount = {}
     cHeaders = ""
 
-    for item in items:
-        itemType = item.get("type")
-        formattedItemIdentifier =  formatIdentifier(item["identifier"])
-            
+    for identifier, sid in model.sids.items():
+        if identifier not in model.types:
+            continue
+
+        itemType = model.types[identifier]
+        formattedItemIdentifier = formatIdentifier(identifier)
+
         # Resolve Enumeration type
-        if type(itemType) == dict:
+        if isinstance(itemType, dict):
             functionName = formattedItemIdentifier
-            enumDefinition = ", ".join(f'{value} = {key}' for key, value in itemType.items()) 
+            enumDefinition = ", ".join(
+                f"{value} = {key}" for key, value in itemType.items()
+            )
             # Signal the code generator that this is an enum type
-            item["type"] = "enum"
             # Populate the enumTypes
             enumTypeName = functionName.title() + "Enum"
             enumTypes[enumTypeName] = enumDefinition
             functionNameWithEnumTypes[functionName] = enumTypeName
 
             # Add an alias in the header
-            cHeaders += "#define  SID_" + formattedItemIdentifier.upper() + " " * calculateSpaces + str(item["sid"]) + "\n"
+            cHeaders += (
+                "#define  SID_"
+                + formattedItemIdentifier.upper()
+                + " "
+                + str(sid)
+                + "\n"
+            )
 
             # Continue the next section
             continue
+        elif itemType in cborTypeToCMapping:
+            cHeaders += (
+                "#define  SID_"
+                + formattedItemIdentifier.upper()
+                + " "
+                + str(sid)
+                + "\n"
+            )
 
-        if itemType in cborTypeToCMapping:
-            # Check if formattedItemIdentifier is already in leafIdentifierCount
-            if formattedItemIdentifier in leafIdentifierCount:
-                leafIdentifierCount[formattedItemIdentifier] += 1
-                formattedItemIdentifier += str(leafIdentifierCount[formattedItemIdentifier])
-            else:
-                leafIdentifierCount[formattedItemIdentifier] = 0
-
-            # Take absolute value of the difference between 20 and len(identifier)
-            calculateSpaces = abs( 19 - len( formattedItemIdentifier) ) + 1 # +1 in case the difference is 0
-            cHeaders += "#define  SID_" + formattedItemIdentifier.upper() + " " * calculateSpaces + str(item["sid"]) + "\n"
     return cHeaders
 
-def generateFunctionPreprocessors(functionPrefix, item):
+
+def generateFunctionPreprocessors(functionPrefix, sid, identifier):
     """
     Construct function name and its SID and put them as synonyms in the preprocessor
     """
-    functionName = formatIdentifier(item["identifier"])
-    functionSID = item["sid"]
-    calculateSpaces = abs( 19 - len(functionName) ) + 1 # +1 in case the difference is 0
-    return "#define " + functionPrefix + functionName + " "*calculateSpaces + functionPrefix + str(functionSID) + "\n"
+    functionName = formatIdentifier(identifier)
+    return (
+        "#define "
+        + functionPrefix
+        + functionName
+        + " "
+        + functionPrefix
+        + str(sid)
+        + "\n"
+    )
+
 
 class SIDItem:
     def __init__(self, namespace, identifier, sid, type_=None, stable=False):
@@ -161,7 +160,7 @@ class SIDItem:
 
         if type_:
             # NOTE fix this later
-            if type(type_) == list:
+            if isinstance(type_, list):
                 self.type = "void"
             else:
                 self.type = type_
@@ -172,26 +171,26 @@ class SIDItem:
     def checkType(self):
         # Ideally this should come from libcbor?
         # Check if self.type is an ENUM
-        if type(self.type) != dict:
-            # Check if self.type in cborType 
-            if (self.type not in cborTypeToCMapping):
+        if not isinstance(self.type, dict):
+            # Check if self.type in cborType
+            if self.type not in cborTypeToCMapping:
                 print("Invalid type: " + self.type)
                 # NOTE treat Invalid types as string
                 self.type = "string"
-        
+
     def addSidKey(self, sidKeyItem):
         self.sidKeyItems.append(sidKeyItem)
-    
+
     def addFunctionPrototype(self, functionPrototype):
         self.functionPrototype = functionPrototype
-    
+
     def generateDocStrings(self):
         """
         Generate C documentation String for the sidKey of the form:
             /*
-            This is an autogenerated function associated to 
+            This is an autogenerated function associated to
             SID:
-            Module: 
+            Module:
             Identifier:
             function params: (ruleIdValue, ruleIdLength)
             Stable:
@@ -199,15 +198,21 @@ class SIDItem:
         """
         docStringTemplate = """
 /*
-    This is an autogenerated function associated to 
+    This is an autogenerated function associated to
     SID: %s
-    Module: %s 
+    Module: %s
     Identifier: %s
-    function params: %s
+    function params:%s
     Stable: %s
 */\n"""
 
-        docString = docStringTemplate % (self.sid, self.namespace, self.identifier, ", ".join([x.identifier for x in self.sidKeyItems]), str(self.stable))
+        docString = docStringTemplate % (
+            self.sid,
+            self.namespace,
+            self.identifier,
+            " , ".join([x.identifier for x in self.sidKeyItems]),
+            str(self.stable),
+        )
         return docString
 
     def generateFunctionBody(self):
@@ -221,14 +226,28 @@ class SIDItem:
 
         # If the type is enum, then initialize it differently
         if self.type == "enum":
-            leafInitialization = cborTypeToCMapping[self.type] + " " + functionNameWithEnumTypes.get(functionName, "") + " " + instanceName + ";\n\t"; 
-            leafReturn = "// Return the leaf \n"+ "    return " + instanceName + ";"
+            leafInitialization = (
+                cborTypeToCMapping[self.type]
+                + " "
+                + functionNameWithEnumTypes.get(functionName, "")
+                + " "
+                + instanceName
+                + ";\n\t"
+            )
+            leafReturn = "// Return the leaf \n" + "    return " + instanceName + ";"
 
         # If the type is void, then don't initialize the leaf, else initialize with default value
         elif self.type != "void":
-            leafInitialization = cborTypeToCMapping[self.type] + " " +  instanceName + "  = " + defaultTypeValue[self.type] + ";\n\t"
-            leafReturn = "// Return the leaf \n"+ "    return " + instanceName + ";"
-        
+            leafInitialization = (
+                cborTypeToCMapping[self.type]
+                + " "
+                + instanceName
+                + "  = "
+                + defaultTypeValue[self.type]
+                + ";\n\t"
+            )
+            leafReturn = "// Return the leaf \n" + "    return " + instanceName + ";"
+
         functionBodyTemplate = """{
     // Initialize the leaf if it has a return type with a default value;
     %s
@@ -237,7 +256,7 @@ class SIDItem:
 }
         """
 
-        functionBody = functionBodyTemplate % (leafInitialization, leafReturn);
+        functionBody = functionBodyTemplate % (leafInitialization, leafReturn)
         return functionBody
 
     def generateCGetMethods(self):
@@ -248,7 +267,7 @@ class SIDItem:
         # Don't do anything if the namespace is not "data"
         if self.namespace != "data":
             return ""
-        
+
         # generate docstrings
         docString = self.generateDocStrings()
 
@@ -261,11 +280,19 @@ class SIDItem:
 
         # If no sidKeyItems are found directly return the function string
         if not self.sidKeyItems:
-            functionPrototype = cborTypeToCMapping[self.type] + " " + functionNameWithEnumTypes.get(functionName, "")  + " " + readString + functionName + "(void)"
+            functionPrototype = (
+                cborTypeToCMapping[self.type]
+                + " "
+                + functionNameWithEnumTypes.get(functionName, "")
+                + " "
+                + readString
+                + functionName
+                + "(void)"
+            )
             functionString = docString + functionPrototype + functionBody + "\n"
-            
+
             # Add the function prototype to the list of function prototypes
-            self.addFunctionPrototype("%s;"%(functionPrototype))
+            self.addFunctionPrototype("%s;" % (functionPrototype))
             return functionString
 
         lastSidKeyItem = self.sidKeyItems[-1]
@@ -273,123 +300,69 @@ class SIDItem:
             # check if sidKeyItem is the last item in the list
             if sidKeyItem == lastSidKeyItem:
                 # if yes, then don't add the comma
-                functionArgs += cborTypeToCMapping[sidKeyItem.type] + " " +  formatIdentifier(sidKeyItem.identifier)   
+                functionArgs += (
+                    cborTypeToCMapping[sidKeyItem.type]
+                    + " "
+                    + formatIdentifier(sidKeyItem.identifier)
+                )
             else:
-                functionArgs += cborTypeToCMapping[sidKeyItem.type] + " " +  formatIdentifier(sidKeyItem.identifier) + ", "
+                functionArgs += (
+                    cborTypeToCMapping[sidKeyItem.type]
+                    + " "
+                    + formatIdentifier(sidKeyItem.identifier)
+                    + ", "
+                )
 
         # generate C function return type from the self.type
         functionReturnType = cborTypeToCMapping[self.type]
-        functionPrototype = functionReturnType + " " + functionNameWithEnumTypes.get(functionName, "") + " " + readString + functionName + "(" + functionArgs + ")"
+        functionPrototype = (
+            functionReturnType
+            + " "
+            + functionNameWithEnumTypes.get(functionName, "")
+            + " "
+            + readString
+            + functionName
+            + "("
+            + functionArgs
+            + ")"
+        )
         functionString = docString + functionPrototype + functionBody + "\n"
-        
+
         # Add the function prototype to the list of function prototypes
-        self.addFunctionPrototype("%s;"%(functionPrototype))
+        self.addFunctionPrototype("%s;" % (functionPrototype))
         return functionString
 
-def findIdentifierBlockBySID(sid, items):
-    """
-    Iterate through items and return the dictionary which matches the sid number
-    """
-    for item in items:
-        if item["sid"] == sid:
-            return item
-    return {}
 
-def findIdentifierBlockByIdentifier(identifier, items):
-    """
-    Iterate through items and return the dictionary which matches the identifier
-    """
-    for item in items:
-        if item["identifier"] == identifier:
-            return item
-    return {}
-
-def generateMapping(items):
-    """
-    NOTE items is not just dataItems, it is all the items in the sid file
-    Generate a dictionary of the form:
-    {
-        "identifier1": sid1,
-        "identifier2": sid2
-    }
-    """
-    identifierSIDKeyMapping = {}
-    sidKeyIdentifierMapping = {}
-    for item in items:
-        identifierSIDKeyMapping[item["identifier"]] = item["sid"]
-        sidKeyIdentifierMapping[item["sid"]] = item["identifier"]
-    return identifierSIDKeyMapping, sidKeyIdentifierMapping
-
-def getSetOfKeysOfKeyMapping(keyMapping, identifierSIDKeyMapping):
-    """
-    Returns a set of all the keys in keyMapping
-    """
-    keySet = set()
-    for identifierKey, keyList in keyMapping.items():
-        # Find SID for identifierKey
-        sidKey = identifierSIDKeyMapping[identifierKey]
-
-        for key in keyList:
-            keySet.add( identifierSIDKeyMapping[key])
-
-    return keySet
-
-def findKeysForLeaves(itemIdentifier, keyMapping, identifierSIDKeyMapping):
-    """
-    Returns a list of keys for a leafIdentifier
-    """
-    itemSID = identifierSIDKeyMapping[itemIdentifier]
-    requiredSIDKeys = []
-
-    # If itemIdentifier is itself in keyMapping, then add its keys to requiredSIDKeySet
-    if itemIdentifier in keyMapping:
-        sidKeys = keyMapping[itemIdentifier]
-        for sidKey in sidKeys:
-            requiredSIDKeys.append(identifierSIDKeyMapping[sidKey])
-
-    # Check if its parents are in keyMapping and add their keys to requiredSIDKeySet
-    identifier = itemIdentifier
-    while (identifier):
-        identifier = identifier.rsplit("/", 1)[0]
-        if identifier in keyMapping:
-            # Should you keep the sidKey : keyList or just the keyList in this set?
-            # Add the sidKey to requiredSIDKeys
-            sidKeys = keyMapping[identifier]
-            for sidKey in sidKeys:
-                requiredSIDKeys.append( identifierSIDKeyMapping[sidKey] )
-
-    return requiredSIDKeys
-
-def findKeysForLeavesBySID(itemSID, keyMapping, sidKeyIdentifierMapping, identifierSIDKeyMapping):
+def findKeysForLeavesBySID(itemSID, model):
     """
     Returns a list of keys for a leafSID
     """
-    
-    itemIdentifier = sidKeyIdentifierMapping[itemSID]
+
+    itemIdentifier = model.ids[itemSID]
     requiredSIDKeys = []
 
     print("DEETS", itemSID, itemIdentifier)
 
-    # If itemIdentifier is itself in keyMapping, then add its keys to requiredSIDKeySet
-    if itemSID in keyMapping:
-        sidKeys = keyMapping[itemSID]
+    # If itemIdentifier is itself in keyMapping, then add its keys to requiredSIDKeys
+    if str(itemSID) in model.key_mapping:
+        sidKeys = model.key_mapping[itemIdentifier]
         for sidKey in sidKeys:
             requiredSIDKeys.append(sidKey)
 
-    # Check if its parents are in keyMapping and add their keys to requiredSIDKeySet
+    # Check if its parents are in key_mapping and add their keys to requiredSIDKeys
     identifier = itemIdentifier
-    while (identifier):
+    while identifier:
         identifier = identifier.rsplit("/", 1)[0]
 
         if not identifier:
-            # Block entered when its parent
+            continue
+        if identifier not in model.sids:
             continue
 
-        currentItemSID = identifierSIDKeyMapping[identifier]
-        currentItemSIDStr = str(currentItemSID)
+        currentItemSID = model.sids[identifier]
 
-        if currentItemSIDStr in keyMapping:
-            sidKeys = keyMapping[currentItemSIDStr]
+        if currentItemSID in model.key_mapping:
+            sidKeys = model.key_mapping[identifier]
             for sidKey in sidKeys:
                 requiredSIDKeys.append(sidKey)
 
@@ -398,100 +371,104 @@ def findKeysForLeavesBySID(itemSID, keyMapping, sidKeyIdentifierMapping, identif
 
 def main():
     # write a command line parser to accept .sid file as input
-    parser = argparse.ArgumentParser(description='Generate a C header file with stubs for all the SID functions')
-    parser.add_argument('input', metavar='input', type=str, help='The input .sid file')
-    parser.add_argument('proto', metavar='proto', type=str, help='Two files will be generated, one with the function stubs and the other with the headers')
+    parser = argparse.ArgumentParser(
+        description="Generate a C header file with stubs for all the SID functions"
+    )
+    parser.add_argument(
+        "-f",
+        "--file",
+        metavar="input",
+        nargs="+",
+        required=False,
+        type=str,
+        help="List of input .sid files",
+    )
+    parser.add_argument(
+        "proto",
+        metavar="proto",
+        type=str,
+        help="Two files will be generated, one with the function stubs and the other with the headers",
+    )
     args = parser.parse_args()
 
-    headersFile = "./%s" %args.proto + ".h"
-    stubsFile = "./%s" %args.proto + ".c"
+    headersFile = "./%s" % args.proto + ".h"
+    stubsFile = "./%s" % args.proto + ".c"
 
     # This will be put in the header file
     functionPrototypes = []
 
-    cIncludeString = "#include <stdlib.h>\n#include <stdint.h>\n#include <stdbool.h>\n#include <string.h>\n#include \"%s\"\n"%(args.proto + ".h")
+    cIncludeString = (
+        '#include <stdlib.h>\n#include <stdint.h>\n#include <stdbool.h>\n#include <string.h>\n#include "%s"\n'
+        % (args.proto + ".h")
+    )
     hIncludeString = "#include <stdlib.h>\n#include <stdint.h>\n#include <stdbool.h>\n#include <string.h>\n#include <cbor.h>\n\n"
 
-    # read the .sid file and parse it as JSON
-    with open(args.input, 'r') as f:
-        sidJSON = json.load(f)
+    file_list = args.file
+    if not isinstance(file_list, list):
+        file_list = [file_list]
 
-    # Read "key-mapping" from sidJSON
-    keyMapping = sidJSON["key-mapping"]
-
-    # Read "item" from sidJSON, add compatibility check as well 
-    items = sidJSON.get("item")
-    if not items:
-        items = sidJSON["items"]
-
-    identifierSIDKeyMapping, sidKeyIdentifierMapping = generateMapping(items)
-    # keySet is a set of all the keys which have been used in keyMapping
-    sidKeySet = keyMapping.keys()
-    #sidKeySet = getSetOfKeysOfKeyMapping(keyMapping, identifierSIDKeyMapping)
-
-
-    # Iterate through items and find items with namespace "data"
-    dataItems = []
-    for item in items:
-        if item["namespace"] == "data":
-            # check if item is in keyMapping
-            itemSID = item["sid"]
-            itemIdentifier = item["identifier"]
-            # NOTE Remember key-mapping now has identifiers in instead of SIDs
-            if itemIdentifier in keyMapping:
-                # Find out the keys for this item
-                sidKeys = keyMapping[itemIdentifier]
-
-            dataItems.append(item)
+    ccm = pycoreconf.CORECONFModel(file_list)
+    keyMappingKeysList = [
+        key for sublist in ccm.key_mapping.values() for key in sublist
+    ]
 
     # Contain all the contents of the H & C file
     hCode = ""
     cCode = ""
 
     # Iterate through dataItems and generate preprocessor directives for each item
-    preprocessorDirectives = generateSIDPreprocessors(dataItems)
+    preprocessorDirectives = generateSIDPreprocessors(ccm)
     hCode += preprocessorDirectives + "\n\n"
 
     # Iterate through dataItems and generate C code for each item
     hFunctionPrototypes = ""
-    for item in dataItems:
-        itemIdentifier = item["identifier"]
-        itemSID = item["sid"]
-        itemType = item.get("type")
-        # Ignore items which are keys
-        if itemSID in sidKeySet:
+    for identifier, sid in ccm.sids.items():
+        if identifier not in ccm.types:
             continue
 
-        
-        hCode += generateFunctionPreprocessors("read_", item)
+        itemType = ccm.types[identifier]
+        # Ignore items which are keys
+        if sid in keyMappingKeysList:
+            continue
+
+        hCode += generateFunctionPreprocessors("read_", sid, identifier)
 
         # Generate C code for this item
-        sidItem = SIDItem(item["namespace"], itemIdentifier, itemSID, itemType, item.get("stable", "false"))
-        # Find out the keys for this item
+        # TODO: Do we need to add back in support for stable/unstable?
+        sidItem = SIDItem(ccm.namespace[identifier], identifier, sid, itemType, False)
 
         # Generate C code for this item
-        #sidKeys = findKeysForLeaves(itemIdentifier, keyMapping, identifierSIDKeyMapping)
-        sidKeys = findKeysForLeavesBySID(itemSID, keyMapping, sidKeyIdentifierMapping, identifierSIDKeyMapping)
-       
+        # Find all additional keys that this sid requires based on key-mapping
+        sidKeys = findKeysForLeavesBySID(sid, ccm)
+
         # Find item block for corresponding sidKeys
         for sidKey in sidKeys:
-            # Find the sidKeyItem from items
-            sidKeyItemMap = findIdentifierBlockBySID(sidKey, items)
-            if not sidKeyItemMap:
-                raise Exception("No item found for sid key: " + str(sidKey["sid"]))
-            sidKeyItem = SIDItem(sidKeyItemMap["namespace"], sidKeyItemMap["identifier"], sidKeyItemMap["sid"], sidKeyItemMap.get("type"), item.get("stable"))
+            if sidKey not in ccm.ids:
+                raise Exception("No item found for sid key: " + sidKey)
+
+            # TODO: Do we need to handle stable/unstable?
+            sidKeyItem = SIDItem(
+                ccm.namespace[ccm.ids[sidKey]],
+                ccm.ids[sidKey],
+                sidKey,
+                ccm.types[ccm.ids[sidKey]],
+                False,
+            )
             sidItem.addSidKey(sidKeyItem)
 
         cCode += sidItem.generateCGetMethods() + "\n"
         hFunctionPrototypes += sidItem.functionPrototype + "\n"
 
     # Add CBOR mapping to the header file
-    cborMapping = generateCBORMapping(keyMapping, identifierSIDKeyMapping)
-    hCode += "\nchar* keyMapping = \"%s\";\n"%(cborMapping)
+    # Dump the key_mapping into CBOR mapping
+    cborMapping = cbor2.dumps(ccm.key_mapping)
+    # Format the string to store as bytestrings in C
+    cborMapping = str(cborMapping).replace("b'", "").replace("'", "")
+    hCode += '\nchar* keyMapping = "%s";\n' % (cborMapping)
 
     # Add enum type
     for enumTypeName, enumDefinition in enumTypes.items():
-        hCode += "enum %s {%s};\n"%(enumTypeName, enumDefinition)
+        hCode += "enum %s {%s};\n" % (enumTypeName, enumDefinition)
 
     # Add the function prototypes to the header file
     hCode += "\n\n" + hFunctionPrototypes
@@ -501,7 +478,7 @@ def main():
     print(hIncludeString)
     print(hCode)
     # Write the H code to headersFile
-    with open(headersFile, 'w') as f:
+    with open(headersFile, "w") as f:
         f.write(hIncludeString)
         f.write(hCode)
 
@@ -511,10 +488,9 @@ def main():
     print(cCode)
 
     # Write the C code to stubsFile
-    with open(stubsFile, 'w') as f:
+    with open(stubsFile, "w") as f:
         f.write(cIncludeString)
         f.write(cCode)
-    
 
 
 if __name__ == "__main__":
