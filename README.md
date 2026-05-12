@@ -15,6 +15,19 @@ This library intends to provide tools for IoT projects to implement this protoco
 3. To manipulate CORECONF model: Once you can query the node, you should be able to modify/update the node using the functional interfaces.
 
 ## How to set it up?
+This project can be built using either CMake or VSCode/Make.
+
+### Building with CMake
+```bash
+mkdir build && cd build
+cmake -DNANOCBOR_INCLUDE=/path/to/nanocbor/include \
+      -DNANOCBOR_BUILD=/path/to/nanocbor/lib ..
+cmake --build .
+```
+
+See [CMAKE_BUILD.md](CMAKE_BUILD.md) for detailed CMake build instructions.
+
+### Building with VSCode
 This is a VSCode project. It depends on libraries such as: [nanocbor](https://github.com/bergzand/NanoCBOR). Once these library/libraries have been setup, update the tasks.json and c_cpp_properties.json files in .vscode/ to be able to build any examples.
 
 ## Enough talk, show me some code.

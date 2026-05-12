@@ -7,7 +7,7 @@
 
 #include "../include/serialization.h"
 
-int main() {
+int main(void) {
     CoreconfValueT* arr_val = createCoreconfArray();
     CoreconfValueT* arr_val2 = createCoreconfArray();
     CoreconfValueT* internalMapValue = createCoreconfHashmap();
