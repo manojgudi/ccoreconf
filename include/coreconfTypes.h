@@ -96,6 +96,7 @@ CoreconfValueT* wrapCoreconfHashmap(CoreconfHashMapT* map);
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value);
 CoreconfValueT* getCoreconfHashMap(CoreconfHashMapT* map, uint64_t key);
 void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value);
+void freeCoreconfHashMap(CoreconfHashMapT* map);
 
 void printCoreconfObject(CoreconfObjectT* obj);
 void printCoreconfMap(CoreconfHashMapT* map);

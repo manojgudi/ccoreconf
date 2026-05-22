@@ -205,6 +205,10 @@ void printCoreconfObject(CoreconfObjectT* obj) {
 
 // Method used in examineCoreconf to match the sidKey value
 uint64_t getCoreconfValueAsUint64(CoreconfValueT* val) {
+    // NULL check to prevent dereference when getCoreconfHashMap returns NULL
+    if (val == NULL) {
+        return 0;
+    }
     if (val->type == CORECONF_INT_64)
         return val->data.i64;
     else if (val->type == CORECONF_REAL && val->data.real_value >= 0)
@@ -324,9 +328,7 @@ void iterateCoreconfHashMap(CoreconfHashMapT* map, void* udata, void (*f)(Coreco
 // 64-bit MurmurHash3-inspired hash for CoreconfHashMap Keys
 static size_t murmurHash(uint64_t key);
 
-size_t hashKey(uint64_t key) {
-    return murmurHash(key);
-}
+size_t hashKey(uint64_t key) { return murmurHash(key); }
 
 size_t murmurHash(uint64_t key) {
     const uint64_t m = 0xc6a4a7935bd1e995ULL;
