@@ -117,7 +117,7 @@ PathNodeT *findRequirementForSID(uint64_t sid, struct hashmap *clookupHashmap, s
         }
 
         // get the parent SID from clookup->dynamicLongList
-        int64_t parentSID = popLong(clookup->dynamicLongList);
+        int64_t parentSID = peekLong(clookup->dynamicLongList);
 
         // if parentSID is 0 then break
         if (parentSID != 0) {
