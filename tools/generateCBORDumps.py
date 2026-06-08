@@ -1,32 +1,9 @@
-# A tool which generates CBOR dumps of the given input file passed as a command line argument, the dump is later saved as uint8_t array in a .h file 
-# Usage: python3 generateCBORDumps.py data_instance.json sid_file.sid cborDumpHeader.h
-# Example python3 generateCBORDumps.py ../samples/simple_yang/sensor_instance.json ../samples/simple_yang/sensor@unknown_numerical.sid cborDumpsHeader.h
-
 import cbor2
-import sys
-import json
 import pycoreconf
+import argparse
 
-def recursivelyConvertJSONToPy(jsonData):
-    coreconf = {}
-    for key in jsonData:
-        if isinstance(jsonData[key], dict):
-            coreconf[int(key)] = recursivelyConvertJSONToPy(jsonData[key])
-        elif isinstance(jsonData[key], list):
-            coreconf[int(key)] = []
-            for i in range(len(jsonData[key])):
-                if isinstance(jsonData[key][i], dict):
-                    coreconf[int(key)].append(recursivelyConvertJSONToPy(jsonData[key][i]))
-                else:
-                    coreconf[int(key)].append(jsonData[key][i])
-        else:
-            coreconf[int(key)] = jsonData[key]
-    return coreconf
-
-def main():
-
-    # Header preprocessor string"
-    preprocessorString = """
+# Header preprocessor string"
+preprocessorString = """
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -40,22 +17,65 @@ def main():
 \n\n\n
 """
 
-    # Takes 3 arguments, first is the data json file, and the second is the .SID file, third is the output header file name
-    if len(sys.argv) != 4:
-        print("Usage: python3 generateCBORDumps.py sensor_data_instance.json sensor.sid expectedHeaderFileName.h")
-        sys.exit(1)
-    
-    sensorJsonData = sys.argv[1]
-    sensorSID = sys.argv[2]
-    outputFileName = sys.argv[3]
+
+def recursivelyConvertJSONToPy(jsonData):
+    coreconf = {}
+    for key in jsonData:
+        if isinstance(jsonData[key], dict):
+            coreconf[int(key)] = recursivelyConvertJSONToPy(jsonData[key])
+        elif isinstance(jsonData[key], list):
+            coreconf[int(key)] = []
+            for i in range(len(jsonData[key])):
+                if isinstance(jsonData[key][i], dict):
+                    coreconf[int(key)].append(
+                        recursivelyConvertJSONToPy(jsonData[key][i])
+                    )
+                else:
+                    coreconf[int(key)].append(jsonData[key][i])
+        else:
+            coreconf[int(key)] = jsonData[key]
+    return coreconf
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="""A tool which generates CBOR dumps of the given input
+        file passed as a command line argument, the dump is later saved as
+        uint8_t array in a .h file"""
+    )
+    parser.add_argument(
+        "-i",
+        "--input",
+        required=True,
+        type=str,
+        help="Instance data in json format",
+    )
+    parser.add_argument(
+        "-s",
+        "--sid",
+        nargs="+",
+        required=False,
+        type=str,
+        help="List of input .sid files",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        required=True,
+        type=str,
+        help="Output header file name",
+    )
+    args = parser.parse_args()
+
+    sensorJsonData = args.input
+    sensorSIDs = args.sid
+    outputFileName = args.output
 
     # Make CORECONF representation of the JSON
-    coreconfModel = pycoreconf.CORECONFModel(sensorSID)
-    cborData = coreconfModel.toCORECONF(sensorJsonData)
-
-
-    # Convert into python data structure
-    coreconfModelPy = cbor2.loads(cborData)
+    if not isinstance(sensorSIDs, list):
+        sensorSIDs = [sensorSIDs]
+    coreconfModel = pycoreconf.CORECONFModel(sensorSIDs)
+    cborData = coreconfModel.encode_json(sensorJsonData)
 
     print("CORECONF Model")
     print(cborData)
@@ -66,7 +86,7 @@ def main():
 
     # Save the data into a file
     # Fix the output file name, its saved as .h file?
-    with open(outputFileName, 'w') as file:
+    with open(outputFileName, "w") as file:
         print("Data saved to " + outputFileName)
         file.write(preprocessorString)
         file.write("const uint8_t coreconfModelCBORBuffer" + "[] = {")
@@ -83,14 +103,9 @@ def main():
 
         file.write("};\n\n\n")
 
-
     # Extract the key mapping table from the SID file
-    keyMap = {}
-    sidModel = json.load(open(sensorSID))
-    keyMap = sidModel["key-mapping"]
-    if not keyMap:
-        return
-    
+    keyMap = coreconfModel.key_mapping
+
     # Key mapping table found
     print("Key Mapping Table found in the SID file:")
     print(keyMap)
@@ -105,9 +120,9 @@ def main():
     print(keyMappingCborData.hex())
 
     # Save the data into a the output file
-    with open(outputFileName, 'a') as file:
+    with open(outputFileName, "a") as file:
         print("Key mapping saved to " + outputFileName)
-     
+
         file.write("const uint8_t keyMappingCBORBuffer" + "[] = {")
         # Write the data into the file, if the last element, don't add a comma
         for i in range(len(keyMappingCborData)):
