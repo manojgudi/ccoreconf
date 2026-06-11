@@ -1,0 +1,12 @@
+{{ docstring }}
+{{ return_type }} {{ function_name }}({% if keys %}{% for key in keys %}{{ key.c_type }} {{ key.name }}{{ ", " if not loop.last else "" }}{% endfor %}{% else %}void{% endif %}) {
+{% if is_list %}
+    // TODO: Implement read logic for list item
+    // For now, return NULL
+    return NULL;
+{% else %}
+    // TODO: replace with proper return value for the leaf "{{ identifier }}"
+    {{ return_type }} mockValue = 0;
+    return mockValue;
+{% endif %}
+}

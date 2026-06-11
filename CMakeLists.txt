@@ -41,6 +41,7 @@ set(CCORECONF_SOURCES
     src/hashmap.c
     src/serialization.c
     src/sid.c
+    src/sid_handlers.c
 )
 
 # Library header files
@@ -50,6 +51,7 @@ set(CCORECONF_HEADERS
     include/hashmap.h
     include/serialization.h
     include/sid.h
+    include/sid_handlers.h
 )
 
 # Create static library

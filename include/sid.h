@@ -1,3 +1,6 @@
+#ifndef SID_H
+#define SID_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -109,3 +112,5 @@ void removeTrailingSlashFromPath(const char *qualifiedPath, char *formattedPath)
 int64_t char2int64(char *keyString);
 char *int2str(char *keyString, int64_t keyInt64);
 char *getSubstringAfterLastColon(const char *input);
+
+#endif // SID_H

@@ -6,15 +6,26 @@ import argparse
 import json
 import cbor2
 import pycoreconf
+import os
+from jinja2 import Environment, FileSystemLoader
+
+# Set up Jinja2 environment
+def get_jinja_env():
+    template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+    return Environment(
+        loader=FileSystemLoader(template_dir),
+        trim_blocks=True,
+        lstrip_blocks=True
+    )
 
 cborTypeToCMapping = {
-    "uint8": "uint8_t",
-    "uint16": "uint16_t",
-    "uint32": "uint32_t",
+    "uint8": "uint64_t",   # Always use 64-bit to avoid union member access issues
+    "uint16": "uint64_t",  # Always use 64-bit to avoid union member access issues
+    "uint32": "uint64_t",  # Always use 64-bit to avoid union member access issues
     "uint64": "uint64_t",
-    "int8": "int8_t",
-    "int16": "int16_t",
-    "int32": "int32_t",
+    "int8": "int64_t",     # Always use 64-bit to avoid union member access issues
+    "int16": "int64_t",    # Always use 64-bit to avoid union member access issues
+    "int32": "int64_t",    # Always use 64-bit to avoid union member access issues
     "int64": "int64_t",
     "float32": "float",
     "float64": "double",
@@ -53,6 +64,57 @@ defaultTypeValue = {
     "void": "NULL",
 }
 
+# Map cbor types to CoreconfValueT constructor functions
+coreconfTypeConstructors = {
+    "uint8": "createCoreconfUint8",
+    "uint16": "createCoreconfUint16",
+    "uint32": "createCoreconfUint32",
+    "uint64": "createCoreconfUint64",
+    "int8": "createCoreconfInt8",
+    "int16": "createCoreconfInt16",
+    "int32": "createCoreconfInt32",
+    "int64": "createCoreconfInt64",
+    "boolean": "createCoreconfBoolean",
+    "string": "createCoreconfString",
+    "float32": "createCoreconfReal",
+    "float64": "createCoreconfReal",
+    "decimal64": "createCoreconfReal",
+}
+
+# Map cbor types to CORECONF_* enum values
+coreconfTypeEnums = {
+    "uint8": "CORECONF_UINT_8",
+    "uint16": "CORECONF_UINT_16",
+    "uint32": "CORECONF_UINT_32",
+    "uint64": "CORECONF_UINT_64",
+    "int8": "CORECONF_INT_8",
+    "int16": "CORECONF_INT_16",
+    "int32": "CORECONF_INT_32",
+    "int64": "CORECONF_INT_64",
+    "boolean": "CORECONF_TRUE",  # Will check value at runtime
+    "string": "CORECONF_STRING",
+    "float32": "CORECONF_REAL",
+    "float64": "CORECONF_REAL",
+    "decimal64": "CORECONF_REAL",
+}
+
+# Map cbor types to CoreconfValueT data union field names
+coreconfTypeDataFields = {
+    "uint8": "u8",
+    "uint16": "u16",
+    "uint32": "u32",
+    "uint64": "u64",
+    "int8": "i8",
+    "int16": "i16",
+    "int32": "i32",
+    "int64": "i64",
+    "boolean": "u8",  # Boolean is stored as u8
+    "string": "string_value",
+    "float32": "real_value",
+    "float64": "real_value",
+    "decimal64": "real_value",
+}
+
 # TODO: Perhaps refactor to not use globals in the future?
 enumTypes = {}
 functionNameWithEnumTypes = {}
@@ -83,13 +145,9 @@ def formatIdentifier(identifier):
 
 def generateSIDPreprocessors(model):
     """
-    Take pycoreconf generated model as input and generate C headers for all the sids
-    For each item which has a valid type, add a line
-        # define LEAF LEAF_SID_NUMBER
+    Take pycoreconf generated model as input and generate C headers for all the sids using Jinja2
     """
-    # Map of leafIdentifier to number of times it has been referred
-    leafIdentifierCount = {}
-    cHeaders = ""
+    sid_defines = []
 
     for identifier, sid in model.sids.items():
         if identifier not in model.types:
@@ -105,58 +163,49 @@ def generateSIDPreprocessors(model):
                 f"{value} = {key}" for key, value in itemType.items()
             )
             # Signal the code generator that this is an enum type
-            # Populate the enumTypes
             enumTypeName = functionName.title() + "Enum"
             enumTypes[enumTypeName] = enumDefinition
             functionNameWithEnumTypes[functionName] = enumTypeName
 
-            # Add an alias in the header
-            cHeaders += (
-                "#define  SID_"
-                + formattedItemIdentifier.upper()
-                + " "
-                + str(sid)
-                + "\n"
-            )
-
-            # Continue the next section
-            continue
+            sid_defines.append({
+                'name': formattedItemIdentifier.upper(),
+                'sid': sid
+            })
         elif itemType in cborTypeToCMapping:
-            cHeaders += (
-                "#define  SID_"
-                + formattedItemIdentifier.upper()
-                + " "
-                + str(sid)
-                + "\n"
-            )
+            sid_defines.append({
+                'name': formattedItemIdentifier.upper(),
+                'sid': sid
+            })
 
-    return cHeaders
+    # Render template
+    env = get_jinja_env()
+    template = env.get_template('sid_defines.h.jinja')
+    return template.render(sid_defines=sid_defines)
 
 
 def generateFunctionPreprocessors(functionPrefix, sid, identifier):
     """
-    Construct function name and its SID and put them as synonyms in the preprocessor
+    Construct function name and its SID and put them as synonyms in the preprocessor using Jinja2
     """
     functionName = formatIdentifier(identifier)
-    return (
-        "#define "
-        + functionPrefix
-        + functionName
-        + " "
-        + functionPrefix
-        + str(sid)
-        + "\n"
+
+    env = get_jinja_env()
+    template = env.get_template('function_alias.h.jinja')
+    return template.render(
+        function_name=functionPrefix + functionName,
+        function_sid=functionPrefix + str(sid)
     )
 
 
 class SIDItem:
-    def __init__(self, namespace, identifier, sid, type_=None, stable=False):
+    def __init__(self, namespace, identifier, sid, type_=None, stable=False, isList=False):
         self.namespace = namespace
         self.identifier = identifier
         self.sid = sid
         self.stable = stable
         self.sidKeyItems = []
         self.functionPrototype = ""
+        self.isList = isList
 
         if type_:
             # NOTE fix this later
@@ -261,76 +310,210 @@ class SIDItem:
 
     def generateCGetMethods(self):
         """
-        Generate C code for this item, the sidKeys will be passed as parameters to the function
+        Generate C read stub function using Jinja2 template
         """
-        readString = "read_"
         # Don't do anything if the namespace is not "data"
         if self.namespace != "data":
             return ""
 
-        # generate docstrings
-        docString = self.generateDocStrings()
-
-        # generate function name from the self.identifier by replacing "/" with "_"
         functionName = formatIdentifier(self.identifier)
-        # generate C function argument string from the sidKeyItems
-        ### MODIFY FROM HERE, function args should contain any keys if its required
-        functionArgs = ""
-        functionBody = self.generateFunctionBody()
 
-        # If no sidKeyItems are found directly return the function string
-        if not self.sidKeyItems:
-            functionPrototype = (
-                cborTypeToCMapping[self.type]
-                + " "
-                + functionNameWithEnumTypes.get(functionName, "")
-                + " "
-                + readString
-                + functionName
-                + "(void)"
-            )
-            functionString = docString + functionPrototype + functionBody + "\n"
+        # Prepare keys context
+        keys = []
+        if self.sidKeyItems:
+            keys = [
+                {
+                    'name': formatIdentifier(k.identifier),
+                    'c_type': cborTypeToCMapping[k.type]
+                }
+                for k in self.sidKeyItems
+            ]
 
-            # Add the function prototype to the list of function prototypes
-            self.addFunctionPrototype("%s;" % (functionPrototype))
-            return functionString
+        # Determine return type
+        returnType = "CoreconfValueT*" if self.isList else cborTypeToCMapping[self.type]
+        enumType = functionNameWithEnumTypes.get(functionName, "")
 
-        lastSidKeyItem = self.sidKeyItems[-1]
-        for sidKeyItem in self.sidKeyItems:
-            # check if sidKeyItem is the last item in the list
-            if sidKeyItem == lastSidKeyItem:
-                # if yes, then don't add the comma
-                functionArgs += (
-                    cborTypeToCMapping[sidKeyItem.type]
-                    + " "
-                    + formatIdentifier(sidKeyItem.identifier)
-                )
-            else:
-                functionArgs += (
-                    cborTypeToCMapping[sidKeyItem.type]
-                    + " "
-                    + formatIdentifier(sidKeyItem.identifier)
-                    + ", "
-                )
+        # Prepare context
+        context = {
+            'docstring': self.generateDocStrings(),
+            'return_type': returnType,
+            'function_name': "read_" + functionName,
+            'identifier': self.identifier,
+            'keys': keys,
+            'is_list': self.isList
+        }
 
-        # generate C function return type from the self.type
-        functionReturnType = cborTypeToCMapping[self.type]
-        functionPrototype = (
-            functionReturnType
-            + " "
-            + functionNameWithEnumTypes.get(functionName, "")
-            + " "
-            + readString
-            + functionName
-            + "("
-            + functionArgs
-            + ")"
-        )
-        functionString = docString + functionPrototype + functionBody + "\n"
+        # Render template
+        env = get_jinja_env()
+        template = env.get_template('read_stub.c.jinja')
+        functionString = template.render(context)
 
-        # Add the function prototype to the list of function prototypes
-        self.addFunctionPrototype("%s;" % (functionPrototype))
+        # Build function prototype for header
+        keyArgs = ", ".join([f"{k['c_type']} {k['name']}" for k in keys])
+        if keys:
+            functionPrototype = f"{returnType} {enumType + ' ' if enumType and not self.isList else ''}read_{functionName}({keyArgs});"
+        else:
+            functionPrototype = f"{returnType} {enumType + ' ' if enumType and not self.isList else ''}read_{functionName}(void);"
+
+        self.addFunctionPrototype(functionPrototype)
         return functionString
+
+    def generateCSetMethods(self):
+        """
+        Generate C write stub function using Jinja2 template
+        """
+        # Don't do anything if the namespace is not "data"
+        if self.namespace != "data":
+            return ""
+
+        # Skip void types (unless it's a list)
+        if self.type == "void" and not self.isList:
+            return ""
+
+        functionName = formatIdentifier(self.identifier)
+
+        # Prepare keys context
+        keys = []
+        if self.sidKeyItems:
+            keys = [
+                {
+                    'name': formatIdentifier(k.identifier),
+                    'c_type': cborTypeToCMapping[k.type]
+                }
+                for k in self.sidKeyItems
+            ]
+
+        # Determine value type
+        enumType = functionNameWithEnumTypes.get(functionName, "")
+        valueType = "CoreconfValueT*" if self.isList else (cborTypeToCMapping[self.type] + (" " + enumType if enumType else ""))
+
+        # Prepare context
+        context = {
+            'docstring': self.generateDocStrings(),
+            'function_name': "write_" + functionName,
+            'keys': keys,
+            'value_type': valueType,
+            'is_list': self.isList
+        }
+
+        # Render template
+        env = get_jinja_env()
+        template = env.get_template('write_stub.c.jinja')
+        functionString = template.render(context)
+
+        # Build function prototype for header
+        keyArgs = ", ".join([f"{k['c_type']} {k['name']}" for k in keys])
+        if keys:
+            functionPrototype = f"int write_{functionName}({keyArgs}, {valueType} value);"
+        else:
+            functionPrototype = f"int write_{functionName}({valueType} value);"
+
+        self.addFunctionPrototype(functionPrototype)
+        return functionString
+
+    def generateReadHandlerWrapper(self):
+        """
+        Generate handler wrapper function for reads using Jinja2 template
+        Signature: CoreconfValueT* handler_read_<sid>(SidHandlerContext *ctx)
+        """
+        # Don't do anything if the namespace is not "data"
+        if self.namespace != "data":
+            return ""
+
+        # Skip if type not supported in handlers yet (unless it's a list)
+        if not self.isList and self.type not in coreconfTypeConstructors:
+            return ""
+
+        functionName = formatIdentifier(self.identifier)
+        userFunctionName = f"read_{functionName}"
+
+        # Prepare template context
+        context = {
+            'sid': self.sid,
+            'user_function': userFunctionName,
+            'is_list': self.isList,
+            'return_type': "CoreconfValueT*" if self.isList else cborTypeToCMapping.get(self.type, "void"),
+            'constructor_function': coreconfTypeConstructors.get(self.type, ""),
+            'keys': []
+        }
+
+        # Add keys if present
+        if self.sidKeyItems:
+            context['keys'] = [
+                {
+                    'name': formatIdentifier(k.identifier),
+                    'c_type': cborTypeToCMapping[k.type]
+                }
+                for k in self.sidKeyItems
+            ]
+
+        # Render template
+        env = get_jinja_env()
+        template = env.get_template('read_handler.c.jinja')
+        return template.render(context) + "\n"
+
+    def generateWriteHandlerWrapper(self):
+        """
+        Generate handler wrapper function for writes using Jinja2 template
+        Signature: int handler_write_<sid>(SidHandlerContext *ctx, CoreconfValueT *value)
+        """
+        # Don't do anything if the namespace is not "data"
+        if self.namespace != "data":
+            return ""
+
+        # Skip void types (unless it's a list)
+        if self.type == "void" and not self.isList:
+            return ""
+
+        functionName = formatIdentifier(self.identifier)
+        userFunctionName = f"write_{functionName}"
+
+        # Prepare keys context
+        keys = []
+        if self.sidKeyItems:
+            keys = [
+                {
+                    'name': formatIdentifier(k.identifier),
+                    'c_type': cborTypeToCMapping[k.type],
+                    'sid': k.sid
+                }
+                for k in self.sidKeyItems
+            ]
+
+        env = get_jinja_env()
+
+        # For lists, use the list-specific template
+        if self.isList:
+            context = {
+                'sid': self.sid,
+                'user_function': userFunctionName,
+                'keys': keys
+            }
+            # Add first key info for updateCoreconfArrayByKey call
+            if self.sidKeyItems:
+                context['first_key_name'] = keys[0]['name']
+                context['first_key_sid'] = keys[0]['sid']
+
+            template = env.get_template('write_handler_list.c.jinja')
+            return template.render(context) + "\n"
+
+        # Skip if type not supported in handlers yet
+        if self.type not in coreconfTypeEnums or self.type not in coreconfTypeDataFields:
+            return ""
+
+        # For regular (non-list) nodes, use the standard write template
+        context = {
+            'sid': self.sid,
+            'user_function': userFunctionName,
+            'type': self.type,
+            'type_enum': coreconfTypeEnums[self.type],
+            'c_type': cborTypeToCMapping[self.type],
+            'data_field': coreconfTypeDataFields[self.type],
+            'keys': keys
+        }
+
+        template = env.get_template('write_handler.c.jinja')
+        return template.render(context) + "\n"
 
 
 def findKeysForLeavesBySID(itemSID, model):
@@ -343,9 +526,9 @@ def findKeysForLeavesBySID(itemSID, model):
 
     print("DEETS", itemSID, itemIdentifier)
 
-    # If itemIdentifier is itself in keyMapping, then add its keys to requiredSIDKeys
+    # If itemSID is itself in keyMapping, then add its keys to requiredSIDKeys
     if str(itemSID) in model.key_mapping:
-        sidKeys = model.key_mapping[itemIdentifier]
+        sidKeys = model.key_mapping[str(itemSID)]
         for sidKey in sidKeys:
             requiredSIDKeys.append(sidKey)
 
@@ -362,7 +545,7 @@ def findKeysForLeavesBySID(itemSID, model):
         currentItemSID = model.sids[identifier]
 
         if currentItemSID in model.key_mapping:
-            sidKeys = model.key_mapping[identifier]
+            sidKeys = model.key_mapping[str(currentItemSID)]
             for sidKey in sidKeys:
                 requiredSIDKeys.append(sidKey)
 
@@ -391,17 +574,29 @@ def main():
     )
     args = parser.parse_args()
 
-    headersFile = "./%s" % args.proto + ".h"
-    stubsFile = "./%s" % args.proto + ".c"
+    # User implementation files (stubs that user modifies)
+    implHeaderFile = "./%s-impl-template.h" % args.proto
+    implSourceFile = "./%s-impl-template.c" % args.proto
 
-    # This will be put in the header file
-    functionPrototypes = []
+    # Handler wrapper files (auto-generated, don't modify)
+    handlerHeaderFile = "./%s-handlers.h" % args.proto
+    handlerSourceFile = "./%s-handlers.c" % args.proto
 
-    cIncludeString = (
-        '#include <stdlib.h>\n#include <stdint.h>\n#include <stdbool.h>\n#include <string.h>\n#include "%s"\n'
-        % (args.proto + ".h")
-    )
-    hIncludeString = "#include <stdlib.h>\n#include <stdint.h>\n#include <stdbool.h>\n#include <string.h>\n#include <cbor.h>\n\n"
+    # Generate include strings using templates
+    env = get_jinja_env()
+    guard_name = args.proto.upper().replace('-', '_')
+
+    impl_header_template = env.get_template('impl_header.h.jinja')
+    implHIncludeString = impl_header_template.render(guard_name=guard_name)
+
+    impl_includes_template = env.get_template('impl_includes.c.jinja')
+    implCIncludeString = impl_includes_template.render(proto=args.proto)
+
+    handler_header_template = env.get_template('handler_header.h.jinja')
+    handlerHIncludeString = handler_header_template.render(guard_name=guard_name)
+
+    handler_includes_template = env.get_template('handler_includes.c.jinja')
+    handlerCIncludeString = handler_includes_template.render(proto=args.proto)
 
     file_list = args.file
     if not isinstance(file_list, list):
@@ -412,6 +607,12 @@ def main():
         key for sublist in ccm.key_mapping.values() for key in sublist
     ]
 
+    # Get list of list SIDs (keys in keyMapping)
+    listSIDs = set()
+    for listSid, sidKeys in ccm.key_mapping.items():
+        if int(listSid) in ccm.ids:
+            listSIDs.add(int(listSid))
+
     # Contain all the contents of the H & C file
     hCode = ""
     cCode = ""
@@ -421,21 +622,48 @@ def main():
     hCode += preprocessorDirectives + "\n\n"
 
     # Iterate through dataItems and generate C code for each item
-    hFunctionPrototypes = ""
+    implHCode = ""  # User implementation prototypes
+    implCCode = ""  # User implementation stubs
+
+    # Add CBOR mapping to the implementation source file
+    # Dump the key_mapping into CBOR mapping
+    cborMapping = cbor2.dumps(ccm.key_mapping)
+    # Format the string to store as bytestrings in C
+    cborMapping = str(cborMapping).replace("b'", "").replace("'", "")
+    implCCode += '\nchar* keyMapping = "%s";\n' % (cborMapping)
+
+    handlerHCode = ""  # Handler wrapper prototypes
+    handlerCCode = ""  # Handler wrapper implementations
+
+    registrationCalls = []
+    processedSIDs = set()
+
     for identifier, sid in ccm.sids.items():
-        if identifier not in ccm.types:
+        # Skip if already processed
+        if sid in processedSIDs:
             continue
 
-        itemType = ccm.types[identifier]
-        # Ignore items which are keys
-        if sid in keyMappingKeysList:
-            continue
+        # Check if this is a list SID (appears as key in keyMapping)
+        isListSID = sid in listSIDs
 
-        hCode += generateFunctionPreprocessors("read_", sid, identifier)
+        # For list SIDs, we always want to generate handlers even without a simple type
+        if not isListSID:
+            # For non-list items, skip if no type
+            if identifier not in ccm.types:
+                continue
+            # Ignore items which are keys
+            if sid in keyMappingKeysList:
+                continue
+
+        itemType = ccm.types.get(identifier, "void")
+
+        implHCode += generateFunctionPreprocessors("read_", sid, identifier) + "\n"
+        implHCode += generateFunctionPreprocessors("write_", sid, identifier) + "\n"
 
         # Generate C code for this item
         # TODO: Do we need to add back in support for stable/unstable?
-        sidItem = SIDItem(ccm.namespace[identifier], identifier, sid, itemType, False)
+        sidItem = SIDItem(ccm.namespace[identifier], identifier, sid, itemType, False, isList=isListSID)
+        processedSIDs.add(sid)
 
         # Generate C code for this item
         # Find all additional keys that this sid requires based on key-mapping
@@ -456,41 +684,97 @@ def main():
             )
             sidItem.addSidKey(sidKeyItem)
 
-        cCode += sidItem.generateCGetMethods() + "\n"
-        hFunctionPrototypes += sidItem.functionPrototype + "\n"
+        # Generate user implementation stubs (read/write functions)
+        implCCode += sidItem.generateCGetMethods() + "\n"
+        implHCode += sidItem.functionPrototype + "\n"
 
-    # Add CBOR mapping to the header file
-    # Dump the key_mapping into CBOR mapping
-    cborMapping = cbor2.dumps(ccm.key_mapping)
-    # Format the string to store as bytestrings in C
-    cborMapping = str(cborMapping).replace("b'", "").replace("'", "")
-    hCode += '\nchar* keyMapping = "%s";\n' % (cborMapping)
+        writeStub = sidItem.generateCSetMethods()
+        if writeStub:
+            implCCode += writeStub + "\n"
+
+        # Generate handler wrappers (handler_read_*/handler_write_*)
+        readWrapper = sidItem.generateReadHandlerWrapper()
+        writeWrapper = sidItem.generateWriteHandlerWrapper()
+
+        if readWrapper:
+            handlerCCode += readWrapper + "\n"
+            handlerHCode += f"CoreconfValueT* handler_read_{sid}(SidHandlerContext *ctx);\n"
+
+        if writeWrapper:
+            handlerCCode += writeWrapper + "\n"
+            handlerHCode += f"int handler_write_{sid}(SidHandlerContext *ctx, CoreconfValueT *value);\n"
+
+        # Build registration call if we have either handler
+        if readWrapper or writeWrapper:
+            readHandler = f"handler_read_{sid}" if readWrapper else "NULL"
+            writeHandler = f"handler_write_{sid}" if writeWrapper else "NULL"
+            registrationCalls.append(
+                f'    registerSidHandler({sid}, {readHandler}, {writeHandler}, "{identifier}", "{itemType}");'
+            )
 
     # Add enum type
     for enumTypeName, enumDefinition in enumTypes.items():
-        hCode += "enum %s {%s};\n" % (enumTypeName, enumDefinition)
+        implHCode += "enum %s {%s};\n" % (enumTypeName, enumDefinition)
 
-    # Add the function prototypes to the header file
-    hCode += "\n\n" + hFunctionPrototypes
+    # Finalize implementation header
+    implHCode += "\n\n// User-facing read/write function prototypes\n"
+    implHCode += "// Implement these functions in your code\n\n"
+    implHCode += '#endif\n'
 
-    # print the H code to stdout
-    print("//Headers\n//-----------\n")
-    print(hIncludeString)
-    print(hCode)
-    # Write the H code to headersFile
-    with open(headersFile, "w") as f:
-        f.write(hIncludeString)
-        f.write(hCode)
+    # Finalize handler header
+    handlerHCode += "\n// Handler registration function\n"
+    handlerHCode += "void registerGeneratedHandlers(void);\n"
+    handlerHCode += '#endif\n'
 
-    # print the C code to stdout
-    print("//Code File\n//-----------\n")
-    print(cIncludeString)
-    print(cCode)
+    # Generate the registration function using template
+    handlers = []
+    if readWrapper or writeWrapper:
+        # Build handler list from registration calls
+        for call in registrationCalls:
+            # Parse the registration call to extract handler info
+            # Format: registerSidHandler(sid, read_handler, write_handler, "identifier", "type");
+            import re
+            match = re.search(r'registerSidHandler\((\d+), (.+?), (.+?), "(.+?)", "(.+?)"\)', call)
+            if match:
+                handlers.append({
+                    'sid': match.group(1),
+                    'read_handler': match.group(2),
+                    'write_handler': match.group(3),
+                    'identifier': match.group(4),
+                    'type': match.group(5)
+                })
 
-    # Write the C code to stubsFile
-    with open(stubsFile, "w") as f:
-        f.write(cIncludeString)
-        f.write(cCode)
+    env = get_jinja_env()
+    template = env.get_template('registration.c.jinja')
+    registrationFunction = template.render(handlers=handlers)
+
+    handlerCCode += registrationFunction
+
+    # Write implementation files
+    print("//Implementation Header\n//-----------\n")
+    print(implHIncludeString + implHCode)
+    with open(implHeaderFile, "w") as f:
+        f.write(implHIncludeString)
+        f.write(implHCode)
+
+    print("\n//Implementation Source\n//-----------\n")
+    print(implCIncludeString + implCCode)
+    with open(implSourceFile, "w") as f:
+        f.write(implCIncludeString)
+        f.write(implCCode)
+
+    # Write handler wrapper files
+    print("\n//Handler Header\n//-----------\n")
+    print(handlerHIncludeString + handlerHCode)
+    with open(handlerHeaderFile, "w") as f:
+        f.write(handlerHIncludeString)
+        f.write(handlerHCode)
+
+    print("\n//Handler Source\n//-----------\n")
+    print(handlerCIncludeString + handlerCCode)
+    with open(handlerSourceFile, "w") as f:
+        f.write(handlerCIncludeString)
+        f.write(handlerCCode)
 
 
 if __name__ == "__main__":

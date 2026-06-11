@@ -1,0 +1,24 @@
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+
+// Default definitions of buffer sizes used by RIOT application, safe to ignore
+#define MAX_CORECONF_BUFFER_SIZE 4096
+#define MAX_KEY_MAPPING_SIZE 128
+#define MAX_CBOR_REQUEST_PAYLOAD_SIZE 32
+#define MAX_CBOR_RESPONSE_PAYLOAD_SIZE 128
+#define MAX_PERMISSIBLE_TRAVERSAL_REQUESTS 5
+
+
+const uint8_t coreconfModelCBORBuffer[] = {
+{%- for byte in coreconf_bytes %}
+    0x{{ "%02x" | format(byte) }}{{ ", " if not loop.last else "" }}
+{%- endfor %}
+};
+
+
+const uint8_t keyMappingCBORBuffer[] = {
+{%- for byte in key_mapping_bytes %}
+    0x{{ "%02x" | format(byte) }}{{ ", " if not loop.last else "" }}
+{%- endfor %}
+};

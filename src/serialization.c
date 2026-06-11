@@ -92,19 +92,61 @@ CoreconfValueT* cborToCoreconfValue(nanocbor_value_t* value, unsigned indent) {
     int res = 0;
     switch (type) {
         case NANOCBOR_TYPE_UINT: {
-            uint64_t unsignedInteger = 0;
-            res = nanocbor_get_uint64(value, &unsignedInteger);
+            // Use the overflow flag in nanocbor to get integers of the correct length
+            uint8_t unsignedInteger8 = 0;
+            res = nanocbor_get_uint8(value, &unsignedInteger8);
             if (res >= 0) {
-                coreconfValue = createCoreconfUint64(unsignedInteger);
+                coreconfValue = createCoreconfUint8(unsignedInteger8);
+            } else if (res == NANOCBOR_ERR_OVERFLOW) {
+                uint16_t unsignedInteger16 = 0;
+                res = nanocbor_get_uint16(value, &unsignedInteger16);
+                if (res >= 0) {
+                    coreconfValue = createCoreconfUint16(unsignedInteger16);
+                } else if (res == NANOCBOR_ERR_OVERFLOW) {
+                    uint32_t unsignedInteger32 = 0;
+                    res = nanocbor_get_uint32(value, &unsignedInteger32);
+                    if (res >= 0) {
+                        coreconfValue = createCoreconfUint32(unsignedInteger32);
+                    } else if (res == NANOCBOR_ERR_OVERFLOW) {
+                        // we have a uint64
+                        uint64_t unsignedInteger64 = 0;
+                        res = nanocbor_get_uint64(value, &unsignedInteger64);
+                        if (res >= 0) {
+                            coreconfValue = createCoreconfUint64(unsignedInteger64);
+                        }
+                    }
+                }
             }
+
         } break;
 
         case NANOCBOR_TYPE_NINT: {
-            int64_t nint = 0;
-            res = nanocbor_get_int64(value, &nint);
+            // Use the overflow flag in nanocbor to get integers of the correct length
+            int8_t signedInteger8 = 0;
+            res = nanocbor_get_int8(value, &signedInteger8);
             if (res >= 0) {
-                coreconfValue = createCoreconfInt64(nint);
+                coreconfValue = createCoreconfInt8(signedInteger8);
+            } else if (res == NANOCBOR_ERR_OVERFLOW) {
+                int16_t signedInteger16 = 0;
+                res = nanocbor_get_int16(value, &signedInteger16);
+                if (res >= 0) {
+                    coreconfValue = createCoreconfInt16(signedInteger16);
+                } else if (res == NANOCBOR_ERR_OVERFLOW) {
+                    int32_t signedInteger32 = 0;
+                    res = nanocbor_get_int32(value, &signedInteger32);
+                    if (res >= 0) {
+                        coreconfValue = createCoreconfInt32(signedInteger32);
+                    } else if (res == NANOCBOR_ERR_OVERFLOW) {
+                        // we have a int64
+                        int64_t signedInteger64 = 0;
+                        res = nanocbor_get_int64(value, &signedInteger64);
+                        if (res >= 0) {
+                            coreconfValue = createCoreconfInt64(signedInteger64);
+                        }
+                    }
+                }
             }
+
         } break;
         case NANOCBOR_TYPE_BSTR: {
             const uint8_t* buf = NULL;
@@ -262,10 +304,18 @@ struct hashmap* cborToKeyMappingHashMap(nanocbor_value_t* value) {
         initializeDynamicLongList(keyMapping->dynamicLongList);
 
         nanocbor_value_t array;
-        if (nanocbor_enter_array(&map, &array) < NANOCBOR_OK) return NULL;
+        if (nanocbor_enter_array(&map, &array) < NANOCBOR_OK) {
+            freeDynamicLongList(keyMapping->dynamicLongList);
+            free(keyMapping);
+            return NULL;
+        }
         while (!nanocbor_at_end(&array)) {
             // Safety mechanism to avoid infinite loops
-            if (loopCounter > CORECONF_MAX_LOOP) return NULL;
+            if (loopCounter > CORECONF_MAX_LOOP) {
+                freeDynamicLongList(keyMapping->dynamicLongList);
+                free(keyMapping);
+                return NULL;
+            }
 
             uint64_t sidKey = 0;
             int res = nanocbor_get_uint64(&array, &sidKey);

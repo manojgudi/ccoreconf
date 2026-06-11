@@ -1,0 +1,6 @@
+{{ docstring }}
+int {{ function_name }}({% if keys %}{% for key in keys %}{{ key.c_type }} {{ key.name }}, {% endfor %}{% endif %}{% if is_list %}CoreconfValueT* value{% else %}{{ value_type }} value{% endif %}) {
+    // TODO: Implement write logic for this SID
+    // For now, just return success
+    return 0;
+}

@@ -134,6 +134,25 @@ int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* v
                 return -1;
             }
             if (current->key == key) {
+                // If both existing and new values are hashmaps, recursively merge
+                if (current->value->type == CORECONF_HASHMAP && value->type == CORECONF_HASHMAP) {
+                    // Iterate through all entries in the update hashmap
+                    for (size_t j = 0; j < HASHMAP_TABLE_SIZE; j++) {
+                        CoreconfObjectT* updateEntry = value->data.map_value->table[j];
+                        while (updateEntry != NULL) {
+                            int result = insertCoreconfHashMap(current->value->data.map_value, updateEntry->key,
+                                                               updateEntry->value);
+                            if (result != 0) {
+                                free(coreconfObject_);
+                                return result;
+                            }
+                            updateEntry = updateEntry->next;
+                        }
+                    }
+                    free(coreconfObject_);
+                    return 0;
+                }
+                // Otherwise, replace the value
                 freeCoreconf(current->value, true);
                 current->value = value;
                 free(coreconfObject_);
@@ -203,72 +222,137 @@ void printCoreconfObject(CoreconfObjectT* obj) {
     // printf("\n");
 }
 
-// Method used in examineCoreconf to match the sidKey value
+bool isTypeUint(uint64_t type) {
+    return (type == CORECONF_UINT_8 || type == CORECONF_UINT_16 || type == CORECONF_UINT_32 ||
+            type == CORECONF_UINT_64);
+}
+
+bool isTypeInt(uint64_t type) {
+    return (type == CORECONF_INT_8 || type == CORECONF_INT_16 || type == CORECONF_INT_32 || type == CORECONF_INT_64);
+}
+
+// Method used in examineCoreconf to match the sidKey value,
+// and to keep all integers stored in 64 bit values, since CBOR does not have a distinction
 uint64_t getCoreconfValueAsUint64(CoreconfValueT* val) {
     // NULL check to prevent dereference when getCoreconfHashMap returns NULL
     if (val == NULL) {
         return 0;
     }
-    if (val->type == CORECONF_INT_64)
-        return val->data.i64;
-    else if (val->type == CORECONF_REAL && val->data.real_value >= 0)
-        return (uint64_t)val->data.real_value;
-    else if (val->type == CORECONF_INT_16)
-        return (uint64_t)val->data.i16;
-    else if (val->type == CORECONF_INT_32)
-        return (uint64_t)val->data.i32;
-    else if (val->type == CORECONF_INT_8)
-        return (uint64_t)val->data.i8;
-    else if (val->type == CORECONF_UINT_64)
-        return val->data.u64;
-    else if (val->type == CORECONF_UINT_16)
-        return val->data.u16;
-    else if (val->type == CORECONF_UINT_32)
-        return val->data.u32;
-    else if (val->type == CORECONF_UINT_8)
-        return val->data.u8;
-    else
+    switch (val->type) {
+        case CORECONF_INT_64:
+            return val->data.i64;
+        case CORECONF_REAL:
+            if (val->data.real_value >= 0) {
+                return (uint64_t)val->data.real_value;
+            } else {
+                return 0;
+            }
+        case CORECONF_INT_16:
+            return (uint64_t)val->data.i16;
+        case CORECONF_INT_32:
+            return (uint64_t)val->data.i32;
+        case CORECONF_INT_8:
+            return (uint64_t)val->data.i8;
+        case CORECONF_UINT_64:
+            return val->data.u64;
+        case CORECONF_UINT_16:
+            return val->data.u16;
+        case CORECONF_UINT_32:
+            return val->data.u32;
+        case CORECONF_UINT_8:
+            return val->data.u8;
+        default:
+            return 0;
+    }
+}
+
+// Method used to keep all integers stored in 64 bit values, since CBOR does not have a distinction
+uint64_t getCoreconfValueAsInt64(CoreconfValueT* val) {
+    // NULL check to prevent dereference when getCoreconfHashMap returns NULL
+    if (val == NULL) {
         return 0;
+    }
+    switch (val->type) {
+        case CORECONF_INT_64:
+            return val->data.i64;
+        case CORECONF_REAL:
+            if (val->data.real_value >= 0) {
+                return (int64_t)val->data.real_value;
+            } else {
+                return 0;
+            }
+        case CORECONF_INT_16:
+            return val->data.i16;
+        case CORECONF_INT_32:
+            return val->data.i32;
+        case CORECONF_INT_8:
+            return val->data.i8;
+        case CORECONF_UINT_64:
+            return (int64_t)val->data.u64;
+        case CORECONF_UINT_16:
+            return (int64_t)val->data.u16;
+        case CORECONF_UINT_32:
+            return (int64_t)val->data.u32;
+        case CORECONF_UINT_8:
+            return (int64_t)val->data.u8;
+        default:
+            return 0;
+    }
 }
 
 void printCoreconf(CoreconfValueT* val) {
     if (!val) return;
-    if (val->type == CORECONF_STRING)
-        printf("%s", val->data.string_value);
-    else if (val->type == CORECONF_REAL)
-        printf("%f", val->data.real_value);
-    else if (val->type == CORECONF_INT_8)
-        printf("%d", (int)val->data.i8);
-    else if (val->type == CORECONF_INT_16)
-        printf("%d", (int)val->data.i16);
-    else if (val->type == CORECONF_INT_32)
-        printf("%d", (int)val->data.i32);
-    else if (val->type == CORECONF_INT_64)
-        printf("%" PRId64, val->data.i64);
-    else if (val->type == CORECONF_UINT_8)
-        printf("%u", (uint8_t)val->data.u8);
-    else if (val->type == CORECONF_UINT_16)
-        printf("%u", (uint16_t)val->data.u16);
-    else if (val->type == CORECONF_UINT_32)
-        printf("%u", (uint32_t)val->data.u32);
-    else if (val->type == CORECONF_UINT_64)
-        printf("%" PRIu64, val->data.u64);
-
-    else if (val->type == CORECONF_TRUE)
-        printf("true");
-    else if (val->type == CORECONF_FALSE)
-        printf("false");
-    else if (val->type == CORECONF_NULL)
-        printf("null");
-    else if (val->type == CORECONF_ARRAY) {
-        printf("[");
-        for (size_t i = 0; i < val->data.array_value->size; i++) {
-            printCoreconf(&val->data.array_value->elements[i]);
-            if (i != val->data.array_value->size - 1) printf(", ");
-        }
-        printf("]");
-    } else if (val->type == CORECONF_HASHMAP) {
-        printCoreconfMap(val->data.map_value);
+    switch (val->type) {
+        case CORECONF_STRING:
+            printf("%s", val->data.string_value);
+            break;
+        case CORECONF_REAL:
+            printf("%f", val->data.real_value);
+            break;
+        case CORECONF_INT_8:
+            printf("%d", (int)val->data.i8);
+            break;
+        case CORECONF_INT_16:
+            printf("%d", (int)val->data.i16);
+            break;
+        case CORECONF_INT_32:
+            printf("%d", (int)val->data.i32);
+            break;
+        case CORECONF_INT_64:
+            printf("%" PRId64, val->data.i64);
+            break;
+        case CORECONF_UINT_8:
+            printf("%u", (uint8_t)val->data.u8);
+            break;
+        case CORECONF_UINT_16:
+            printf("%u", (uint16_t)val->data.u16);
+            break;
+        case CORECONF_UINT_32:
+            printf("%u", (uint32_t)val->data.u32);
+            break;
+        case CORECONF_UINT_64:
+            printf("%" PRIu64, val->data.u64);
+            break;
+        case CORECONF_TRUE:
+            printf("true");
+            break;
+        case CORECONF_FALSE:
+            printf("false");
+            break;
+        case CORECONF_NULL:
+            printf("null");
+            break;
+        case CORECONF_ARRAY:
+            printf("[");
+            for (size_t i = 0; i < val->data.array_value->size; i++) {
+                printCoreconf(&val->data.array_value->elements[i]);
+                if (i != val->data.array_value->size - 1) printf(", ");
+            }
+            printf("]");
+            break;
+        case CORECONF_HASHMAP:
+            printCoreconfMap(val->data.map_value);
+            break;
     }
 }
 
@@ -291,6 +375,45 @@ void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value) {
         arr->data.array_value->elements[newSize - 1] = *value;
     }
     arr->data.array_value->size++;
+}
+
+// Search array for element with matching key, update if found, append if not
+// keySID and parentSID are used to calculate delta SID
+// Returns 0 on success, -1 on error
+int updateCoreconfArrayByKey(CoreconfValueT* arr, uint64_t keySID, uint64_t parentSID, uint64_t keyValue,
+                             CoreconfValueT* newValue) {
+    if (arr == NULL || arr->type != CORECONF_ARRAY || newValue == NULL) {
+        return -1;
+    }
+
+    // Calculate delta SID for key lookup
+    uint64_t deltaSID = keySID - parentSID;
+
+    // Search through array elements for one with matching key
+    for (size_t i = 0; i < arr->data.array_value->size; i++) {
+        CoreconfValueT* element = &arr->data.array_value->elements[i];
+
+        // Element must be a hashmap to contain keys
+        if (element->type != CORECONF_HASHMAP) {
+            continue;
+        }
+
+        // Check if this element has the key we're looking for (using delta SID)
+        CoreconfValueT* keyInElement = getCoreconfHashMap(element->data.map_value, deltaSID);
+        if (keyInElement != NULL) {
+            uint64_t elementKeyValue = getCoreconfValueAsUint64(keyInElement);
+            if (elementKeyValue == keyValue) {
+                // Found it - update this element
+                freeCoreconf(element, false);
+                *element = *newValue;
+                return 0;
+            }
+        }
+    }
+
+    // Key not found - append new element
+    addToCoreconfArray(arr, newValue);
+    return 0;
 }
 
 void freeCoreconf(CoreconfValueT* val, bool freeValue) {

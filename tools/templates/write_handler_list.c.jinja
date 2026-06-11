@@ -1,0 +1,82 @@
+int handler_write_{{ sid }}(SidHandlerContext *ctx, CoreconfValueT *value) {
+{% if keys %}
+    // Validate value is a hashmap containing keys and data
+    if (value->type != CORECONF_HASHMAP) {
+        printf("Error: Expected hashmap for list item write to SID {{ sid }}\n");
+        return -1;
+    }
+
+    // Extract keys from value hashmap (keys are stored with delta SIDs)
+{% for key in keys %}
+    CoreconfValueT* {{ key.name }}_value = getCoreconfHashMap(value->data.map_value, {{ key.sid - sid }});
+    if ({{ key.name }}_value == NULL) {
+        printf("Error: Missing key {{ key.name }} (SID {{ key.sid }}) in list item\n");
+        return -1;
+    }
+    {{ key.c_type }} {{ key.name }} = ({{ key.c_type }})getCoreconfValueAsUint64({{ key.name }}_value);
+
+{% endfor %}
+    // Call user-implemented write function
+    int result = {{ user_function }}({% for key in keys %}{{ key.name }}, {% endfor %}value);
+
+    // If user function succeeded, update the datastore (list item)
+    if (result == 0) {
+        uint64_t finalDeltaSID = 0;
+        CoreconfValueT* parentContainer = navigateToParentContainer(
+            ctx->coreconfModel, ctx->pathNode, {{ sid }}, &finalDeltaSID);
+
+        if (parentContainer == NULL) {
+            printf("Error: Failed to navigate to parent for list SID {{ sid }}\n");
+            return -1;
+        }
+
+        if (parentContainer->type == CORECONF_HASHMAP) {
+            // Get array at list SID using delta
+            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
+            if (arrayValue == NULL) {
+                printf("Error: List array for SID {{ sid }} not found in coreconfModel\n");
+                return -1;
+            }
+            if (arrayValue->type != CORECONF_ARRAY) {
+                printf("Error: SID {{ sid }} is not an array in coreconfModel\n");
+                return -1;
+            }
+
+            // Search for existing entry by key, update or append
+            int updateResult = updateCoreconfArrayByKey(arrayValue, {{ first_key_sid }}, {{ sid }}, {{ first_key_name }}, value);
+            if (updateResult != 0) {
+                printf("Warning: Failed to update array for SID {{ sid }} with map parent\n");
+            }
+        } else if (parentContainer->type == CORECONF_ARRAY) {
+            // Search for existing entry by key, update or append
+            int updateResult = updateCoreconfArrayByKey(parentContainer, {{ first_key_sid }}, {{ sid }}, {{ first_key_name }}, value);
+            if (updateResult != 0) {
+                printf("Warning: Failed to update array for SID {{ sid }} with array parent\n");
+            }
+        } else {
+            printf("Warning: Failed to update array for SID {{ sid }}: parent type invalid %d", parentContainer->type);
+        }
+    }
+
+    return result;
+{% else %}
+    // Call user-implemented write function
+    int result = {{ user_function }}(value);
+
+    // If user function succeeded, update the datastore
+    if (result == 0) {
+        uint64_t finalDeltaSID = 0;
+        CoreconfValueT* parentContainer = navigateToParentContainer(
+            ctx->coreconfModel, ctx->pathNode, {{ sid }}, &finalDeltaSID);
+
+        if (parentContainer != NULL) {
+            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
+            if (arrayValue != NULL && arrayValue->type == CORECONF_ARRAY) {
+                addToCoreconfArray(arrayValue, value);
+            }
+        }
+    }
+
+    return result;
+{% endif %}
+}
