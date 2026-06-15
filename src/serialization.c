@@ -8,22 +8,22 @@
 /**
  * Internal methods, not exposed to the user
  */
-int _parse_array(nanocbor_value_t *value, CoreconfValueT *coreconfValue, unsigned indent);
-int _parse_map(nanocbor_value_t *value, CoreconfValueT *coreconfValue, unsigned indent);
-int _parse_float(nanocbor_value_t *value);
+int _parse_array(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent);
+int _parse_map(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent);
+int _parse_float(nanocbor_value_t* value);
 
-void serializeCoreconfObject(CoreconfObjectT *object, void *cbor_) {
-    nanocbor_encoder_t *cbor = (nanocbor_encoder_t *)cbor_;
+void serializeCoreconfObject(CoreconfObjectT* object, void* cbor_) {
+    nanocbor_encoder_t* cbor = (nanocbor_encoder_t*)cbor_;
     nanocbor_fmt_uint(cbor, object->key);
     coreconfToCBOR(object->value, cbor);
 }
 
 // Serialization and Deserialization into CBOR
-int coreconfToCBOR(CoreconfValueT *coreconfValue, nanocbor_encoder_t *cbor) {
+int coreconfToCBOR(CoreconfValueT* coreconfValue, nanocbor_encoder_t* cbor) {
     switch (coreconfValue->type) {
         case CORECONF_HASHMAP: {
             nanocbor_fmt_map(cbor, coreconfValue->data.map_value->size);
-            iterateCoreconfHashMap(coreconfValue->data.map_value, (void *)cbor, serializeCoreconfObject);
+            iterateCoreconfHashMap(coreconfValue->data.map_value, (void*)cbor, serializeCoreconfObject);
             // nanocbor_fmt_end_indefinite(cbor);
             break;
         }
@@ -66,7 +66,7 @@ int coreconfToCBOR(CoreconfValueT *coreconfValue, nanocbor_encoder_t *cbor) {
             break;
         case CORECONF_STRING:
             // Null terminate string value and then put it
-            nanocbor_put_tstr(cbor, (const char *)coreconfValue->data.string_value);
+            nanocbor_put_tstr(cbor, (const char*)coreconfValue->data.string_value);
             break;
         case CORECONF_TRUE:
             nanocbor_fmt_uint(cbor, 1);
@@ -83,8 +83,8 @@ int coreconfToCBOR(CoreconfValueT *coreconfValue, nanocbor_encoder_t *cbor) {
 }
 
 // Deserialization from CBOR to Coreconf
-CoreconfValueT *cborToCoreconfValue(nanocbor_value_t *value, unsigned indent) {
-    CoreconfValueT *coreconfValue = NULL;
+CoreconfValueT* cborToCoreconfValue(nanocbor_value_t* value, unsigned indent) {
+    CoreconfValueT* coreconfValue = NULL;
     uint8_t type = nanocbor_get_type(value);
     if (indent > CORECONF_MAX_DEPTH) {
         return NULL;
@@ -107,18 +107,18 @@ CoreconfValueT *cborToCoreconfValue(nanocbor_value_t *value, unsigned indent) {
             }
         } break;
         case NANOCBOR_TYPE_BSTR: {
-            const uint8_t *buf = NULL;
+            const uint8_t* buf = NULL;
             size_t len = 0;
             res = nanocbor_get_bstr(value, &buf, &len);
             if (res >= 0) {
                 if (!buf) {
                     return NULL;
                 }
-                coreconfValue = createCoreconfString((const char *)buf);
+                coreconfValue = createCoreconfString((const char*)buf);
             }
         } break;
         case NANOCBOR_TYPE_TSTR: {
-            const uint8_t *buf = NULL;
+            const uint8_t* buf = NULL;
             size_t len = 0;
             res = nanocbor_get_tstr(value, &buf, &len);
 
@@ -127,16 +127,26 @@ CoreconfValueT *cborToCoreconfValue(nanocbor_value_t *value, unsigned indent) {
             snprintf(formattedString, (int)len + 1, "%.*s", (int)len, buf);
 
             if (res >= 0) {
-                coreconfValue = createCoreconfString((const char *)formattedString);
+                coreconfValue = createCoreconfString((const char*)formattedString);
             }
         } break;
         case NANOCBOR_TYPE_ARR: {
             coreconfValue = createCoreconfArray();
             res = _parse_array(value, coreconfValue, indent);
+            if (res < 0) {
+                freeCoreconfHashMap(coreconfValue->data.map_value);
+                free(coreconfValue);
+                return NULL;
+            }
         } break;
         case NANOCBOR_TYPE_MAP: {
             coreconfValue = createCoreconfHashmap();
             res = _parse_map(value, coreconfValue, indent);
+            if (res < 0) {
+                freeCoreconfHashMap(coreconfValue->data.map_value);
+                free(coreconfValue);
+                return NULL;
+            }
         } break;
         // NOTE: There is no NANOCBOR_TYPE_DOUBLE mask, which is weird?!
         case NANOCBOR_TYPE_FLOAT: {
@@ -151,21 +161,21 @@ CoreconfValueT *cborToCoreconfValue(nanocbor_value_t *value, unsigned indent) {
     return coreconfValue;
 }
 
-int _parse_array(nanocbor_value_t *value, CoreconfValueT *coreconfValue, unsigned indent) {
+int _parse_array(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent) {
     nanocbor_value_t cborArrayValue;
     if (nanocbor_enter_array(value, &cborArrayValue) < NANOCBOR_OK) {
         printf("Error entering array\n");
         return -1;
     }
     while (!nanocbor_at_end(&cborArrayValue)) {
-        CoreconfValueT *arrayValue = cborToCoreconfValue(&cborArrayValue, indent + 1);
+        CoreconfValueT* arrayValue = cborToCoreconfValue(&cborArrayValue, indent + 1);
         addToCoreconfArray(coreconfValue, arrayValue);
     }
     nanocbor_leave_container(value, &cborArrayValue);
     return NANOCBOR_OK;
 }
 
-int _parse_map(nanocbor_value_t *value, CoreconfValueT *coreconfValue, unsigned indent) {
+int _parse_map(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent) {
     nanocbor_value_t map;
     int loopCount = 0;
     if (nanocbor_enter_map(value, &map) < NANOCBOR_OK) {
@@ -195,7 +205,7 @@ int _parse_map(nanocbor_value_t *value, CoreconfValueT *coreconfValue, unsigned 
 }
 
 // Parse float
-int _parse_float(nanocbor_value_t *value) {
+int _parse_float(nanocbor_value_t* value) {
     double f = 0;
     int res = nanocbor_get_double(value, &f);
     if (res >= NANOCBOR_OK) {
@@ -204,16 +214,16 @@ int _parse_float(nanocbor_value_t *value) {
     return res;
 }
 
-int keyMappingHashMapToCBOR(struct hashmap *keyMappingHashMap, nanocbor_encoder_t *cbor) {
+int keyMappingHashMapToCBOR(struct hashmap* keyMappingHashMap, nanocbor_encoder_t* cbor) {
     // Iterate through keyMappingHashMap
     size_t iter = 0;
-    void *item;
+    void* item;
 
     // Start map encoding in CBOR
     nanocbor_fmt_map(cbor, hashmap_count(keyMappingHashMap));
 
     while (hashmap_iter(keyMappingHashMap, &iter, &item)) {
-        const KeyMappingT *keyMapping = item;
+        const KeyMappingT* keyMapping = item;
         // Add items to the map
         nanocbor_fmt_uint(cbor, keyMapping->key);
         // Iterate through the keyMapping->dynamicLongList and add to the array
@@ -230,8 +240,8 @@ int keyMappingHashMapToCBOR(struct hashmap *keyMappingHashMap, nanocbor_encoder_
 }
 
 // Deserialize a CBOR buffer to a KeyMappingHashMap
-struct hashmap *cborToKeyMappingHashMap(nanocbor_value_t *value) {
-    struct hashmap *keyMappingHashMap =
+struct hashmap* cborToKeyMappingHashMap(nanocbor_value_t* value) {
+    struct hashmap* keyMappingHashMap =
         hashmap_new(sizeof(KeyMappingT), 0, 0, 0, keyMappingHash, keyMappingCompare, NULL, NULL);
     nanocbor_value_t map;
     if (nanocbor_enter_map(value, &map) < NANOCBOR_OK) return NULL;
@@ -246,7 +256,7 @@ struct hashmap *cborToKeyMappingHashMap(nanocbor_value_t *value) {
         if (res < 0) {
             printf("Error parsing map key\n");
         }
-        KeyMappingT *keyMapping = malloc(sizeof(KeyMappingT));
+        KeyMappingT* keyMapping = malloc(sizeof(KeyMappingT));
         keyMapping->key = key;
         keyMapping->dynamicLongList = malloc(sizeof(DynamicLongListT));
         initializeDynamicLongList(keyMapping->dynamicLongList);
@@ -274,4 +284,15 @@ struct hashmap *cborToKeyMappingHashMap(nanocbor_value_t *value) {
     }
     nanocbor_leave_container(value, &map);
     return keyMappingHashMap;
+}
+
+void freeKeyMappingHashMap(struct hashmap* map) {
+    size_t iter = 0;
+    void* item;
+    while (hashmap_iter(map, &iter, &item)) {
+        KeyMappingT* keyMapping = (KeyMappingT*)item;
+        if (keyMapping->dynamicLongList) {
+            freeDynamicLongList(keyMapping->dynamicLongList);
+        }
+    }
 }

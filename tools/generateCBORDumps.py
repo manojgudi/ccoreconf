@@ -1,3 +1,4 @@
+# Example python3 generateCBORDumps.py ../samples/simple_yang/sensor_instance.json ../samples/simple_yang/sensor@unknown.sid cborDumpsHeader.h
 import cbor2
 import pycoreconf
 import argparse

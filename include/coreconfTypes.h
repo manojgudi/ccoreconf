@@ -38,6 +38,7 @@ typedef struct CoreconfValue {
     coreconf_type type;
     union {
         char* string_value;
+        int string_length;
         double real_value;
         int8_t i8;
         uint8_t u8;
@@ -70,8 +71,7 @@ typedef struct CoreconfArray {
     size_t size;
 } CoreconfArrayT;
 
-size_t hashKey(uint32_t v);
-size_t murmurHash(uint64_t key);
+size_t hashKey(uint64_t key);
 void freeCoreconf(CoreconfValueT* val, bool freeValue);
 
 CoreconfValueT* createCoreconfString(const char* value);
@@ -96,6 +96,7 @@ CoreconfValueT* wrapCoreconfHashmap(CoreconfHashMapT* map);
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value);
 CoreconfValueT* getCoreconfHashMap(CoreconfHashMapT* map, uint64_t key);
 void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value);
+void freeCoreconfHashMap(CoreconfHashMapT* map);
 
 void printCoreconfObject(CoreconfObjectT* obj);
 void printCoreconfMap(CoreconfHashMapT* map);

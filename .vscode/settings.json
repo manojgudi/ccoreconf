@@ -14,7 +14,15 @@
         "array": "c",
         "string": "c",
         "string_view": "c",
-        "ranges": "c"
+        "ranges": "c",
+        "zcbor_encode.h": "c",
+        "zcbor_common.h": "c",
+        "string.h": "c",
+        "zcbor_serialization.h": "c",
+        "typeinfo": "c",
+        "stdbool.h": "c",
+        "stddef.h": "c",
+        "zcbor_decode.h": "c"
     },
     "editor.formatOnSave": true,
 }

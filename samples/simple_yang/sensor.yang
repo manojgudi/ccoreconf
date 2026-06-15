@@ -1,10 +1,8 @@
 module sensor {
-  
-  yang-version "1.1";
 
-  namespace "http://sensorexample.in/sensor-example";
+  namespace "urn:example:params:xml:ns:yang:sensor";
 
-  prefix "sen1";
+  prefix senPrefix;
 
   identity manufacturer{
     description "Manufacturer of the sensor";
@@ -36,6 +34,7 @@ module sensor {
    }
  }
 
+container sensor{
  container sensordata{
     list dataReadings{
       key "readingIndex";
@@ -63,5 +62,6 @@ module sensor {
         type battery-level;
       }
     }
-  }
+}  }
+
 }

@@ -13,3 +13,5 @@ CoreconfValueT* cborToCoreconfValue(nanocbor_value_t* value, unsigned indent);
 int keyMappingHashMapToCBOR(struct hashmap* keyMappingHashMap, nanocbor_encoder_t* cbor);
 // Deserialize KeyMappingHashMap from CBOR
 struct hashmap* cborToKeyMappingHashMap(nanocbor_value_t* value);
+
+void freeKeyMappingHashMap(struct hashmap *map);

@@ -17,17 +17,18 @@ HEADER_DIR = include
 OBJ_DIR = obj
 
 # External libraries
-LIBNANOCBOR_LIB = -lnanocbor
+LIBNANOCBOR = -lnanocbor
+
 
 # Include directories for external libraries
-INCLUDE_DIRS =  -I$(NANOCBOR_INCLUDE)
+INCLUDE_DIRS =  -I$(NANOCBOR_INCLUDE) -I$(ZCBOR_INCLUDE)
 
 # Library directories for external libraries
 LIB_DIRS =  -L$(NANOCBOR_BUILD) 
 
 
 # Source files
-SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
+SRC_FILES = $(wildcard $(SRC_DIR)/*.c) $(ZCBOR_SOURCE/*.c)
 
 # Object files
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
@@ -40,10 +41,17 @@ $(LIB_NAME).a: $(OBJ_FILES)
 	ar rcs $@ $^ 
 
 EXEC_NAME = example
-EXEC_OUTPUT = examples
 # Build rule for exec
 $(EXEC_NAME): $(OBJ_FILES) examples/demo_functionalities_coreconf.c
-	$(CC) $(CFLAGS) $(INCLUDE_DIRS) -o $@ $^ $(LIB_DIRS) $(JANSSON_LIB) $(LIBNANOCBOR_LIB) 
+	$(CC) $(CFLAGS) $(INCLUDE_DIRS) -o $@ $^ $(LIB_DIRS) $(LIBNANOCBOR) 
+
+
+TEST_NAME = test
+# Build rule for exec
+$(TEST_NAME): $(OBJ_FILES) examples/coreconf_types_example.c
+	$(CC) $(CFLAGS) $(INCLUDE_DIRS) -o $@ $^ $(LIB_DIRS) $(LIBNANOCBOR) 
+
+
 
 
 # Build rule for object files

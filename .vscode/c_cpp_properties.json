@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/include/**",
-                "{workspaceFolder}/../../nanocbor/include/**"
+                "{workspaceFolder}/../../nanocbor/include/**",
+                "{workspaceFolder}/../../zcbor/include/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
