@@ -99,17 +99,27 @@ void addLong(DynamicLongListT *dynamicLongList, long value) {
     dynamicLongList->longList[currentListSize] = value;
 }
 
-// pop the last value from dynamicLongList
-long popLong(DynamicLongListT *dynamicLongList) {
+// get the last value from dynamicLongList
+// with an option to remove the item from the list
+long getLong(DynamicLongListT *dynamicLongList, bool removeFromList) {
     // If its NULL, then do nothing
     if (!dynamicLongList) return 0;
     // If the list is empty, then return -1
     if (dynamicLongList->size == 0) return 0;
     long lastValue = dynamicLongList->longList[dynamicLongList->size - 1];
-    dynamicLongList->longList = (long *)realloc(dynamicLongList->longList, (dynamicLongList->size - 1) * sizeof(long));
-    dynamicLongList->size = dynamicLongList->size - 1;
+    if (removeFromList == true) {
+        dynamicLongList->longList =
+            (long *)realloc(dynamicLongList->longList, (dynamicLongList->size - 1) * sizeof(long));
+        dynamicLongList->size = dynamicLongList->size - 1;
+    }
     return lastValue;
 }
+
+// pop the last value from dynamicLongList
+long popLong(DynamicLongListT *dynamicLongList) { return getLong(dynamicLongList, true); }
+
+// peek the last value from dynamicLongList, do not remove it
+long peekLong(DynamicLongListT *dynamicLongList) { return getLong(dynamicLongList, false); }
 
 // Clone a DynamicLongListT
 void cloneDynamicLongList(DynamicLongListT *originalDynamicLongList, DynamicLongListT *clonedDynamicLongList) {
