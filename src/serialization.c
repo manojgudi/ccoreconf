@@ -242,7 +242,7 @@ int keyMappingHashMapToCBOR(struct hashmap* keyMappingHashMap, nanocbor_encoder_
 // Deserialize a CBOR buffer to a KeyMappingHashMap
 struct hashmap* cborToKeyMappingHashMap(nanocbor_value_t* value) {
     struct hashmap* keyMappingHashMap =
-        hashmap_new(sizeof(KeyMappingT), 0, 0, 0, keyMappingHash, keyMappingCompare, NULL, NULL);
+        hashmap_new(sizeof(KeyMappingT), 0, 0, 0, keyMappingHash, keyMappingCompare, keyMappingFree, NULL);
     nanocbor_value_t map;
     if (nanocbor_enter_map(value, &map) < NANOCBOR_OK) return NULL;
     int loopCounter = 0;
@@ -284,15 +284,4 @@ struct hashmap* cborToKeyMappingHashMap(nanocbor_value_t* value) {
     }
     nanocbor_leave_container(value, &map);
     return keyMappingHashMap;
-}
-
-void freeKeyMappingHashMap(struct hashmap* map) {
-    size_t iter = 0;
-    void* item;
-    while (hashmap_iter(map, &iter, &item)) {
-        KeyMappingT* keyMapping = (KeyMappingT*)item;
-        if (keyMapping->dynamicLongList) {
-            freeDynamicLongList(keyMapping->dynamicLongList);
-        }
-    }
 }

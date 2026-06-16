@@ -179,6 +179,14 @@ uint64_t keyMappingHash(const void *item, uint64_t seed0, uint64_t seed1) {
     return hashmap_murmur(&(keyMapping->key), sizeof(uint64_t), seed0, seed1);
 }
 
+void keyMappingFree(void *item) {
+    KeyMappingT *keyMapping = (KeyMappingT *)item;
+    if (keyMapping && keyMapping->dynamicLongList) {
+        freeDynamicLongList(keyMapping->dynamicLongList);
+        keyMapping->dynamicLongList = NULL;
+    }
+}
+
 int identifierSIDCompare(const void *a, const void *b, void *udata) {
     // NOTE Keep it unused for compatibility reasons
     (void)udata;
