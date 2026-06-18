@@ -321,9 +321,9 @@ int64_t char2int64(char *keyString) {
   Convert char* to uint64_t, return UINTMAX_MIN in case of an error
 */
 uint64_t char2uint64(char *keyString) {
-    // Convert char* to int64_t using strtoimax
+    // Convert char* to uint64_t using strtoumax
     uintmax_t uintValue = strtoumax(keyString, NULL, 10);
-    if (uintValue == 0 || uintValue == UINTMAX_MAX) {
+    if (uintValue == UINTMAX_MAX) {
         fprintf(stderr, "Conversion error or out of range");
         return 0;
     }
