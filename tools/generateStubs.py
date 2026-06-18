@@ -120,9 +120,13 @@ enumTypes = {}
 functionNameWithEnumTypes = {}
 
 
-def formatIdentifier(identifier):
+def formatIdentifier(identifier, max_words=2):
     """
     Format the identifier by replacing "/", "-", ":" with "_"
+
+    Args:
+        identifier: The SID identifier path
+        max_words: Maximum number of words to use from the end of the path (default: 2)
     """
     # Capitalize the letter next to "-"
     while "-" in identifier:
@@ -136,16 +140,20 @@ def formatIdentifier(identifier):
     if identifier[0] == "_":
         identifier = identifier[1:]
 
-    # Shorten it, take the last two words and use that.
+    # Shorten it, take the last max_words words and use that.
     # The hope is that for most cases this is unique enough
-    id_name = "_".join([item for item in identifier.split("_")[-2:]])
+    id_name = "_".join([item for item in identifier.split("_")[-max_words:]])
 
     return id_name
 
 
-def generateSIDPreprocessors(model):
+def generateSIDPreprocessors(model, max_words=2):
     """
     Take pycoreconf generated model as input and generate C headers for all the sids using Jinja2
+
+    Args:
+        model: The pycoreconf model
+        max_words: Maximum number of words to use from identifier path
     """
     sid_defines = []
 
@@ -154,16 +162,22 @@ def generateSIDPreprocessors(model):
             continue
 
         itemType = model.types[identifier]
-        formattedItemIdentifier = formatIdentifier(identifier)
+        formattedItemIdentifier = formatIdentifier(identifier, max_words)
 
         # Resolve Enumeration type
         if isinstance(itemType, dict):
             functionName = formattedItemIdentifier
-            enumDefinition = ", ".join(
-                f"{value} = {key}" for key, value in itemType.items()
-            )
-            # Signal the code generator that this is an enum type
+            # Create enum type name first
             enumTypeName = functionName.title() + "Enum"
+
+            # Prefix each enum value with the enum type name to avoid conflicts
+            # Format: EnumTypeName_value = numeric_value
+            # Sanitize value names: replace dashes with underscores for valid C identifiers
+            enumDefinition = ", ".join(
+                f"{enumTypeName}_{value.replace('-', '_')} = {key}" for key, value in itemType.items()
+            )
+
+            # Signal the code generator that this is an enum type
             enumTypes[enumTypeName] = enumDefinition
             functionNameWithEnumTypes[functionName] = enumTypeName
 
@@ -183,11 +197,17 @@ def generateSIDPreprocessors(model):
     return template.render(sid_defines=sid_defines)
 
 
-def generateFunctionPreprocessors(functionPrefix, sid, identifier):
+def generateFunctionPreprocessors(functionPrefix, sid, identifier, max_words=2):
     """
     Construct function name and its SID and put them as synonyms in the preprocessor using Jinja2
+
+    Args:
+        functionPrefix: Prefix for the function name
+        sid: The SID value
+        identifier: The identifier path
+        max_words: Maximum number of words to use from identifier path
     """
-    functionName = formatIdentifier(identifier)
+    functionName = formatIdentifier(identifier, max_words)
 
     env = get_jinja_env()
     template = env.get_template('function_alias.h.jinja')
@@ -198,7 +218,7 @@ def generateFunctionPreprocessors(functionPrefix, sid, identifier):
 
 
 class SIDItem:
-    def __init__(self, namespace, identifier, sid, type_=None, stable=False, isList=False):
+    def __init__(self, namespace, identifier, sid, type_=None, stable=False, isList=False, max_words=2):
         self.namespace = namespace
         self.identifier = identifier
         self.sid = sid
@@ -206,6 +226,7 @@ class SIDItem:
         self.sidKeyItems = []
         self.functionPrototype = ""
         self.isList = isList
+        self.max_words = max_words
 
         if type_:
             # NOTE fix this later
@@ -220,12 +241,14 @@ class SIDItem:
     def checkType(self):
         # Ideally this should come from libcbor?
         # Check if self.type is an ENUM
-        if not isinstance(self.type, dict):
+        if isinstance(self.type, dict):
+            # Enum types are stored as dicts - convert to "enum" string
+            self.type = "enum"
+        elif self.type not in cborTypeToCMapping:
             # Check if self.type in cborType
-            if self.type not in cborTypeToCMapping:
-                print("Invalid type: " + self.type)
-                # NOTE treat Invalid types as string
-                self.type = "string"
+            print("Invalid type: " + self.type)
+            # NOTE treat Invalid types as string
+            self.type = "string"
 
     def addSidKey(self, sidKeyItem):
         self.sidKeyItems.append(sidKeyItem)
@@ -270,8 +293,8 @@ class SIDItem:
         """
         leafInitialization = ""
         leafReturn = ""
-        functionName = formatIdentifier(self.identifier)
-        instanceName = formatIdentifier(self.identifier) + "Instance"
+        functionName = formatIdentifier(self.identifier, self.max_words)
+        instanceName = formatIdentifier(self.identifier, self.max_words) + "Instance"
 
         # If the type is enum, then initialize it differently
         if self.type == "enum":
@@ -316,22 +339,30 @@ class SIDItem:
         if self.namespace != "data":
             return ""
 
-        functionName = formatIdentifier(self.identifier)
+        functionName = formatIdentifier(self.identifier, self.max_words)
 
         # Prepare keys context
         keys = []
         if self.sidKeyItems:
             keys = [
                 {
-                    'name': formatIdentifier(k.identifier),
+                    'name': formatIdentifier(k.identifier, self.max_words),
                     'c_type': cborTypeToCMapping[k.type]
                 }
                 for k in self.sidKeyItems
             ]
 
+        # Determine if this is a container or list (both use CoreconfValueT*)
+        is_container_or_list = self.isList or self.type == "void"
+
         # Determine return type
-        returnType = "CoreconfValueT*" if self.isList else cborTypeToCMapping[self.type]
         enumType = functionNameWithEnumTypes.get(functionName, "")
+        if is_container_or_list:
+            returnType = "CoreconfValueT*"
+        elif self.type == "enum" and enumType:
+            returnType = "enum " + enumType
+        else:
+            returnType = cborTypeToCMapping[self.type]
 
         # Prepare context
         context = {
@@ -340,7 +371,7 @@ class SIDItem:
             'function_name': "read_" + functionName,
             'identifier': self.identifier,
             'keys': keys,
-            'is_list': self.isList
+            'is_container_or_list': is_container_or_list
         }
 
         # Render template
@@ -351,9 +382,9 @@ class SIDItem:
         # Build function prototype for header
         keyArgs = ", ".join([f"{k['c_type']} {k['name']}" for k in keys])
         if keys:
-            functionPrototype = f"{returnType} {enumType + ' ' if enumType and not self.isList else ''}read_{functionName}({keyArgs});"
+            functionPrototype = f"{returnType} read_{functionName}({keyArgs});"
         else:
-            functionPrototype = f"{returnType} {enumType + ' ' if enumType and not self.isList else ''}read_{functionName}(void);"
+            functionPrototype = f"{returnType} read_{functionName}(void);"
 
         self.addFunctionPrototype(functionPrototype)
         return functionString
@@ -366,18 +397,19 @@ class SIDItem:
         if self.namespace != "data":
             return ""
 
-        # Skip void types (unless it's a list)
-        if self.type == "void" and not self.isList:
-            return ""
+        # Skip void types (unless it's a list or container)
+        # Containers (void types) should be treated like lists - they return CoreconfValueT*
+        # if self.type == "void" and not self.isList:
+        #     return ""
 
-        functionName = formatIdentifier(self.identifier)
+        functionName = formatIdentifier(self.identifier, self.max_words)
 
         # Prepare keys context
         keys = []
         if self.sidKeyItems:
             keys = [
                 {
-                    'name': formatIdentifier(k.identifier),
+                    'name': formatIdentifier(k.identifier, self.max_words),
                     'c_type': cborTypeToCMapping[k.type]
                 }
                 for k in self.sidKeyItems
@@ -385,15 +417,25 @@ class SIDItem:
 
         # Determine value type
         enumType = functionNameWithEnumTypes.get(functionName, "")
-        valueType = "CoreconfValueT*" if self.isList else (cborTypeToCMapping[self.type] + (" " + enumType if enumType else ""))
+        if self.isList:
+            valueType = "CoreconfValueT*"
+        elif self.type == "void":
+            # Containers (void type) accept CoreconfValueT* like lists
+            valueType = "CoreconfValueT*"
+        elif self.type == "enum" and enumType:
+            valueType = "enum " + enumType
+        else:
+            valueType = cborTypeToCMapping[self.type]
 
         # Prepare context
+        # Treat void types (containers) like lists - they work with CoreconfValueT*
+        is_container_or_list = self.isList or self.type == "void"
         context = {
             'docstring': self.generateDocStrings(),
             'function_name': "write_" + functionName,
             'keys': keys,
             'value_type': valueType,
-            'is_list': self.isList
+            'is_list': is_container_or_list
         }
 
         # Render template
@@ -420,19 +462,22 @@ class SIDItem:
         if self.namespace != "data":
             return ""
 
-        # Skip if type not supported in handlers yet (unless it's a list)
-        if not self.isList and self.type not in coreconfTypeConstructors:
+        # Determine if this is a container or list (both use CoreconfValueT*)
+        is_container_or_list = self.isList or self.type == "void"
+
+        # Skip if type not supported in handlers yet (unless it's a list or container)
+        if not is_container_or_list and self.type not in coreconfTypeConstructors:
             return ""
 
-        functionName = formatIdentifier(self.identifier)
+        functionName = formatIdentifier(self.identifier, self.max_words)
         userFunctionName = f"read_{functionName}"
 
         # Prepare template context
         context = {
             'sid': self.sid,
             'user_function': userFunctionName,
-            'is_list': self.isList,
-            'return_type': "CoreconfValueT*" if self.isList else cborTypeToCMapping.get(self.type, "void"),
+            'is_container_or_list': is_container_or_list,
+            'return_type': "CoreconfValueT*" if is_container_or_list else cborTypeToCMapping.get(self.type, "void"),
             'constructor_function': coreconfTypeConstructors.get(self.type, ""),
             'keys': []
         }
@@ -441,7 +486,7 @@ class SIDItem:
         if self.sidKeyItems:
             context['keys'] = [
                 {
-                    'name': formatIdentifier(k.identifier),
+                    'name': formatIdentifier(k.identifier, self.max_words),
                     'c_type': cborTypeToCMapping[k.type]
                 }
                 for k in self.sidKeyItems
@@ -461,11 +506,12 @@ class SIDItem:
         if self.namespace != "data":
             return ""
 
-        # Skip void types (unless it's a list)
-        if self.type == "void" and not self.isList:
-            return ""
+        # Skip void types (unless it's a list or container)
+        # Containers should be treated like lists
+        # if self.type == "void" and not self.isList:
+        #     return ""
 
-        functionName = formatIdentifier(self.identifier)
+        functionName = formatIdentifier(self.identifier, self.max_words)
         userFunctionName = f"write_{functionName}"
 
         # Prepare keys context
@@ -473,7 +519,7 @@ class SIDItem:
         if self.sidKeyItems:
             keys = [
                 {
-                    'name': formatIdentifier(k.identifier),
+                    'name': formatIdentifier(k.identifier, self.max_words),
                     'c_type': cborTypeToCMapping[k.type],
                     'sid': k.sid
                 }
@@ -482,8 +528,11 @@ class SIDItem:
 
         env = get_jinja_env()
 
-        # For lists, use the list-specific template
-        if self.isList:
+        # Determine if this is a container or list (both use CoreconfValueT*)
+        is_container_or_list = self.isList or self.type == "void"
+
+        # For lists and containers, use the list-specific template
+        if is_container_or_list:
             context = {
                 'sid': self.sid,
                 'user_function': userFunctionName,
@@ -572,6 +621,12 @@ def main():
         type=str,
         help="Two files will be generated, one with the function stubs and the other with the headers",
     )
+    parser.add_argument(
+        "--max-identifier-words",
+        type=int,
+        default=2,
+        help="Maximum number of words to use from identifier path when generating function names (default: 2)",
+    )
     args = parser.parse_args()
 
     # User implementation files (stubs that user modifies)
@@ -618,7 +673,7 @@ def main():
     cCode = ""
 
     # Iterate through dataItems and generate preprocessor directives for each item
-    preprocessorDirectives = generateSIDPreprocessors(ccm)
+    preprocessorDirectives = generateSIDPreprocessors(ccm, args.max_identifier_words)
     hCode += preprocessorDirectives + "\n\n"
 
     # Iterate through dataItems and generate C code for each item
@@ -648,21 +703,31 @@ def main():
 
         # For list SIDs, we always want to generate handlers even without a simple type
         if not isListSID:
-            # For non-list items, skip if no type
-            if identifier not in ccm.types:
-                continue
             # Ignore items which are keys
             if sid in keyMappingKeysList:
                 continue
+            # For non-list items, skip if no type and has child elements
+            # (We want to generate handlers for containers that have no children)
+            if identifier not in ccm.types:
+                # Check if this is a container with children by seeing if any other
+                # identifiers start with this one
+                has_children = any(other_id.startswith(identifier + "/")
+                                   for other_id in ccm.sids.keys() if other_id != identifier)
+                if has_children:
+                    # This is a container with children, still generate handlers for it
+                    pass
+                else:
+                    # This might be an intermediate node we don't need
+                    continue
 
         itemType = ccm.types.get(identifier, "void")
 
-        implHCode += generateFunctionPreprocessors("read_", sid, identifier) + "\n"
-        implHCode += generateFunctionPreprocessors("write_", sid, identifier) + "\n"
+        implHCode += generateFunctionPreprocessors("read_", sid, identifier, args.max_identifier_words) + "\n"
+        implHCode += generateFunctionPreprocessors("write_", sid, identifier, args.max_identifier_words) + "\n"
 
         # Generate C code for this item
         # TODO: Do we need to add back in support for stable/unstable?
-        sidItem = SIDItem(ccm.namespace[identifier], identifier, sid, itemType, False, isList=isListSID)
+        sidItem = SIDItem(ccm.namespace[identifier], identifier, sid, itemType, False, isList=isListSID, max_words=args.max_identifier_words)
         processedSIDs.add(sid)
 
         # Generate C code for this item
@@ -681,6 +746,7 @@ def main():
                 sidKey,
                 ccm.types[ccm.ids[sidKey]],
                 False,
+                max_words=args.max_identifier_words
             )
             sidItem.addSidKey(sidKeyItem)
 
