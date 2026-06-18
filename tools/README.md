@@ -384,4 +384,72 @@ This will generate four files:
 
 **Important**: Implementation template files are meant to be copied once and then edited by the user. Handler files can be regenerated at any time without losing user code.
 
+## Generating JSON Instance Files
+
+### Purpose
+
+The ccserver requires a complete JSON instance of your YANG model to initialize the datastore. Every SID must be present in this instance, otherwise the server will fail to find it during FETCH/iPATCH operations.
+
+### Tool: generateInstanceFromSid.py
+
+This tool automatically generates a complete JSON instance from SID files using pycoreconf, ensuring all nodes are present with appropriate default values.
+
+#### Usage
+
+```bash
+# Generate from a single SID file
+python3 generateInstanceFromSid.py -f model.sid -o instance.json
+
+# Generate from multiple SID files (e.g., with dependencies)
+python3 generateInstanceFromSid.py -f model1.sid model2.sid ietf-yang-types.sid -o instance.json
+
+# Generate without sample list entries (empty arrays)
+python3 generateInstanceFromSid.py -f model.sid -o instance.json --no-sample-entries
+```
+
+#### Features
+
+- **Uses pycoreconf**: Leverages the pycoreconf library's YANG model understanding for accurate JSON generation
+- **Path validation**: Only creates nodes that exist in the SID files, skipping YANG choice/case constructs
+- **Type-aware defaults**: Assigns appropriate default values based on YANG types:
+  - Numeric types (uint8, int32, etc.): `0`
+  - Booleans: `false`
+  - Strings: `"0"`
+  - MAC addresses: `"00:00:00:00:00:00"`
+  - Enumerations: First enum value (string name, not numeric)
+- **Automatic list detection**: Uses the `key-mapping` field from SID files to identify YANG lists
+- **Sample entries**: Automatically creates sample entries for lists with all keys populated
+- **Reference type handling**: Skips identityref, leafref, and instance-identifier types (require actual data)
+- **Multiple file support**: Can process multiple SID files for models with dependencies
+
+#### Example Output
+
+For the simple-example model, it generates:
+
+```json
+{
+  "simple-example:data-store": {
+    "data-store-value": 0,
+    "item-list": [
+      {
+        "index": 0,
+        "value": 0,
+        "sub-item-list": [
+          {
+            "index": 0,
+            "sub-value": 0
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### Next Steps After Generation
+
+1. **Review and customize** the generated JSON with realistic values
+2. **Add more list entries** if needed (copy and modify the sample entries)
+3. **Use in ccserver build** by passing the generated CBOR buffer to CMake
+
 _Please feel free to leave a comment or bug-report in case you find any issue._
