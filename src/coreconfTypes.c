@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../include/sid.h"
+
 CoreconfValueT* createCoreconfString(const char* value) {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
     val->type = CORECONF_STRING;
@@ -261,6 +263,8 @@ uint64_t getCoreconfValueAsUint64(CoreconfValueT* val) {
             return val->data.u32;
         case CORECONF_UINT_8:
             return val->data.u8;
+        case CORECONF_STRING:
+            return char2uint64(val->data.string_value);
         default:
             return 0;
     }
@@ -295,6 +299,8 @@ uint64_t getCoreconfValueAsInt64(CoreconfValueT* val) {
             return (int64_t)val->data.u32;
         case CORECONF_UINT_8:
             return (int64_t)val->data.u8;
+        case CORECONF_STRING:
+            return char2int64(val->data.string_value);
         default:
             return 0;
     }
