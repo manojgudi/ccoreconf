@@ -190,6 +190,13 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
         int64_t deltaSID = parentSID - previousSID;
         // Fetch the subTree for deltaSID using getCoreconfHashMap
         subTree = getCoreconfHashMap(subTree->data.map_value, deltaSID);
+
+        // If we try to access a list key that is not yet populated, then this will return NULL
+        // But if that happens it is not an error, so we need to return gracefully
+        if (subTree == NULL) {
+            return NULL;
+        }
+
         previousSID = parentSID;
 
         // Check if sidKeys is empty
