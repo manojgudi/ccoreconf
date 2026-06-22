@@ -816,6 +816,15 @@ def main():
 
     handlerCCode += registrationFunction
 
+    # Generate GET handler stub and declaration
+    get_stub_template = env.get_template('get_stub.c.jinja')
+    get_stub = get_stub_template.render()
+    implCCode += "\n" + get_stub + "\n"
+
+    get_handler_template = env.get_template('get_handler.c.jinja')
+    get_handler_decl = get_handler_template.render()
+    handlerHCode += "\n" + get_handler_decl + "\n"
+
     # Write implementation files
     print("//Implementation Header\n//-----------\n")
     print(implHIncludeString + implHCode)

@@ -1,0 +1,16 @@
+/**
+ * GET handler - Returns the coreconf model or a subset for GET requests
+ *
+ * @param coreconfModel - Pointer to the full coreconf model
+ * @return CoreconfValueT* - The value to return in the GET response
+ *                          By default returns the entire model, but can be
+ *                          overridden to return a filtered subset
+ *
+ * Default behavior: Returns the entire coreconfModel
+ * To customize: Implement logic to filter or transform the model
+ */
+CoreconfValueT* handleGetRequest(CoreconfValueT *coreconfModel) {
+    // Default: return the entire model
+    // To return a subset, implement your custom logic here
+    return coreconfModel;
+}
