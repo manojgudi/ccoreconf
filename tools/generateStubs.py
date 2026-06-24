@@ -825,6 +825,15 @@ def main():
     get_handler_decl = get_handler_template.render()
     handlerHCode += "\n" + get_handler_decl + "\n"
 
+    # Generate PUT handler stub and declaration
+    put_stub_template = env.get_template('put_stub.c.jinja')
+    put_stub = put_stub_template.render()
+    implCCode += "\n" + put_stub + "\n"
+
+    put_handler_template = env.get_template('put_handler.c.jinja')
+    put_handler_decl = put_handler_template.render()
+    handlerHCode += "\n" + put_handler_decl + "\n"
+
     # Write implementation files
     print("//Implementation Header\n//-----------\n")
     print(implHIncludeString + implHCode)
