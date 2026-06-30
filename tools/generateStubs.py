@@ -1,3 +1,12 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "cbor2",
+#     "jinja2",
+#     "pycoreconf @ git+ssh://git@github.com/budhe888/pycoreconf",
+# ]
+# ///
+
 # Read a SID JSON file and Generate a C header file with stubs for all the SID functions
 
 # Import argparse and write a command line parser to accept .sid file as input
