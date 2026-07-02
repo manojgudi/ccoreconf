@@ -1,22 +1,28 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "cbor2",
+#     "jinja2",
+#     "pycoreconf @ git+ssh://git@github.com/budhe888/pycoreconf",
+# ]
+# ///
+
 # Example python3 generateCBORDumps.py ../samples/simple_yang/sensor_instance.json ../samples/simple_yang/sensor@unknown.sid cborDumpsHeader.h
 import cbor2
 import pycoreconf
 import argparse
+import os
+from jinja2 import Environment, FileSystemLoader
 
-# Header preprocessor string"
-preprocessorString = """
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
 
-// Default definitions of buffer sizes used by RIOT application, safe to ignore
-#define MAX_CORECONF_BUFFER_SIZE 4096
-#define MAX_KEY_MAPPING_SIZE 128
-#define MAX_CBOR_REQUEST_PAYLOAD_SIZE 32
-#define MAX_CBOR_RESPONSE_PAYLOAD_SIZE 128
-#define MAX_PERMISSIBLE_TRAVERSAL_REQUESTS 5
-\n\n\n
-"""
+def get_jinja_env():
+    """Get Jinja2 environment with templates directory"""
+    template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+    return Environment(
+        loader=FileSystemLoader(template_dir),
+        trim_blocks=True,
+        lstrip_blocks=True
+    )
 
 
 def recursivelyConvertJSONToPy(jsonData):
@@ -85,25 +91,6 @@ def main():
     print("CBOR Data")
     print(cborData.hex())
 
-    # Save the data into a file
-    # Fix the output file name, its saved as .h file?
-    with open(outputFileName, "w") as file:
-        print("Data saved to " + outputFileName)
-        file.write(preprocessorString)
-        file.write("const uint8_t coreconfModelCBORBuffer" + "[] = {")
-        # Write the data into the file, if the last element, don't add a comma
-        for i in range(len(cborData)):
-            x = str(hex(cborData[i]))[2:]
-            # If x is less than 2 digits, add a 0 to the front
-            if len(x) == 1:
-                x = "0" + x
-            if i == len(cborData) - 1:
-                file.write("0x" + x)
-            else:
-                file.write("0x" + x + ", ")
-
-        file.write("};\n\n\n")
-
     # Extract the key mapping table from the SID file
     keyMap = coreconfModel.key_mapping
 
@@ -120,23 +107,21 @@ def main():
     print("Key Mapping Data Hex String:")
     print(keyMappingCborData.hex())
 
-    # Save the data into a the output file
-    with open(outputFileName, "a") as file:
-        print("Key mapping saved to " + outputFileName)
+    # Render template with both buffers
+    env = get_jinja_env()
+    template = env.get_template('cbor_dumps.h.jinja')
 
-        file.write("const uint8_t keyMappingCBORBuffer" + "[] = {")
-        # Write the data into the file, if the last element, don't add a comma
-        for i in range(len(keyMappingCborData)):
-            x = str(hex(keyMappingCborData[i]))[2:]
-            # If x is less than 2 digits, add a 0 to the front
-            if len(x) == 1:
-                x = "0" + x
-            if i == len(keyMappingCborData) - 1:
-                file.write("0x" + x)
-            else:
-                file.write("0x" + x + ", ")
+    context = {
+        'coreconf_bytes': list(cborData),
+        'key_mapping_bytes': list(keyMappingCborData)
+    }
 
-        file.write("};\n")
+    output = template.render(context)
+
+    # Save to file
+    with open(outputFileName, "w") as file:
+        print(f"Data saved to {outputFileName}")
+        file.write(output)
 
 
 if __name__ == "__main__":

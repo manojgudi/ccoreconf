@@ -1,0 +1,5 @@
+void registerGeneratedHandlers(void) {
+{% for handler in handlers %}
+    registerSidHandler({{ handler.sid }}, {{ handler.read_handler }}, {{ handler.write_handler }}, "{{ handler.identifier }}", "{{ handler.type }}");
+{% endfor %}
+}

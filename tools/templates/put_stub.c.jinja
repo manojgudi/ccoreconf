@@ -1,0 +1,91 @@
+/**
+ * PUT handler - Validates and replaces the coreconf model
+ *
+ * @param coreconfModel - Pointer to the current coreconf model
+ * @param newValue - The new value to replace the model with
+ * @param clookupHashmap - Pointer to the lookup hashmap that needs rebuilding
+ * @return int - 0 on success, non-zero error code on failure
+ *
+ * This function performs validation and replaces the model on success
+ */
+int handlePutRequest(CoreconfValueT **coreconfModel, CoreconfValueT *newValue, struct hashmap **clookupHashmap) {
+    if (coreconfModel == NULL || *coreconfModel == NULL || newValue == NULL) {
+        printf("PUT validation failed: NULL pointer\n");
+        return -1;
+    }
+
+    // Validate that both are hashmaps (required for top-level CORECONF model)
+    if ((*coreconfModel)->type != CORECONF_HASHMAP || newValue->type != CORECONF_HASHMAP) {
+        printf("PUT validation failed: Top-level must be a hashmap\n");
+        return -2;
+    }
+
+    CoreconfHashMapT *currentMap = (*coreconfModel)->data.map_value;
+    CoreconfHashMapT *newMap = newValue->data.map_value;
+
+    if (currentMap == NULL || newMap == NULL) {
+        printf("PUT validation failed: Invalid hashmap structure\n");
+        return -3;
+    }
+
+    // Validate that the top-level SIDs match
+    // The top-level map keys are the module SIDs
+    if (currentMap->size == 0 || newMap->size == 0) {
+        printf("PUT validation failed: Empty hashmaps\n");
+        return -4;
+    }
+
+    // Check if top-level SIDs are compatible
+    // Iterate through new hashmap and check if at least one SID exists in current map
+    bool foundMatchingSID = false;
+    for (size_t i = 0; i < HASHMAP_TABLE_SIZE && !foundMatchingSID; i++) {
+        CoreconfObjectT *newEntry = newMap->table[i];
+        while (newEntry != NULL) {
+            uint64_t newSID = newEntry->key;
+
+            // Check if this SID exists in the current map
+            for (size_t j = 0; j < HASHMAP_TABLE_SIZE; j++) {
+                CoreconfObjectT *currentEntry = currentMap->table[j];
+                while (currentEntry != NULL) {
+                    if (currentEntry->key == newSID) {
+                        foundMatchingSID = true;
+                        break;
+                    }
+                    currentEntry = currentEntry->next;
+                }
+                if (foundMatchingSID) {
+                    break;
+                }
+            }
+
+            if (foundMatchingSID) {
+                break;
+            }
+            newEntry = newEntry->next;
+        }
+    }
+
+    if (!foundMatchingSID) {
+        printf("PUT validation failed: No matching top-level SIDs\n");
+        return -5;
+    }
+
+    // TODO: Add any additional user-specific validation logic here
+    // Return a non-zero error code to reject the PUT request
+
+    // All validation passed - free old model and replace with new one
+    freeCoreconf(*coreconfModel, true);
+    *coreconfModel = newValue;
+
+    // Rebuild lookup hashmap with the new model
+    if (clookupHashmap != NULL && *clookupHashmap != NULL) {
+        hashmap_free(*clookupHashmap);
+        *clookupHashmap = hashmap_new(sizeof(CLookupT), 0, 0, 0, clookupHash, clookupCompare, clookupFree, NULL);
+        buildCLookupHashmapFromCoreconf(*coreconfModel, *clookupHashmap, 0, 0);
+        printf("PUT succeeded: Model replaced and lookup hashmap rebuilt\n");
+    } else {
+        printf("PUT succeeded: Model replaced (no lookup hashmap to rebuild)\n");
+    }
+
+    return 0;
+}

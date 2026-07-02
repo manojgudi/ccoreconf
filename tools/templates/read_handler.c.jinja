@@ -1,0 +1,25 @@
+CoreconfValueT* handler_read_{{ sid }}(SidHandlerContext *ctx) {
+{% if keys %}
+    // Extract keys from context (keys are always stored as uint64_t in longList)
+{% for key in keys %}
+    {{ key.c_type }} {{ key.name }} = ({{ key.c_type }})ctx->keys->longList[{{ loop.index0 }}];
+{% endfor %}
+
+    // Call user-implemented read function
+    {{ return_type }} result = {{ user_function }}({% for key in keys %}{{ key.name }}{% if not loop.last %}, {% endif %}{% endfor %});
+{% else %}
+    // Call user-implemented read function
+    {{ return_type }} result = {{ user_function }}();
+{% endif %}
+
+{% if is_container_or_list %}
+    if (result == NULL) {
+        return examineCoreconfValue(ctx->coreconfModel, ctx->keys, ctx->pathNode);
+    } else {
+        return result;
+    }
+{% else %}
+    // Convert native type to CoreconfValueT
+    return examineCoreconfValue(ctx->coreconfModel, ctx->keys, ctx->pathNode);
+{% endif %}
+}

@@ -1,0 +1,3 @@
+{% for sid_def in sid_defines -%}
+#define  SID_{{ sid_def.name }} {{ sid_def.sid }}
+{% endfor %}

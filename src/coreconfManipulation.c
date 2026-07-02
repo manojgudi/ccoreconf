@@ -32,6 +32,14 @@ uint64_t clookupHash(const void *item, uint64_t seed0, uint64_t seed1) {
     return hashmap_murmur(&clookup->childSID, sizeof(uint64_t), seed0, seed1);
 }
 
+void clookupFree(void *item) {
+    CLookupT *clookup = (CLookupT *)item;
+    if (clookup && clookup->dynamicLongList) {
+        freeDynamicLongList(clookup->dynamicLongList);
+        clookup->dynamicLongList = NULL;
+    }
+}
+
 /**
  * Functions to Create Path Node used for traversing the coreconf model
  */
@@ -182,6 +190,13 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
         int64_t deltaSID = parentSID - previousSID;
         // Fetch the subTree for deltaSID using getCoreconfHashMap
         subTree = getCoreconfHashMap(subTree->data.map_value, deltaSID);
+
+        // If we try to access a list key that is not yet populated, then this will return NULL
+        // But if that happens it is not an error, so we need to return gracefully
+        if (subTree == NULL) {
+            return NULL;
+        }
+
         previousSID = parentSID;
 
         // Check if sidKeys is empty
@@ -314,4 +329,52 @@ void freeCLookupHashmap(struct hashmap *map) {
             freeDynamicLongList(clookup->dynamicLongList);
         }
     }
+}
+
+/**
+ * Navigate to parent container of a target SID using delta encoding and PathNode
+ * This function traverses the coreconf model hierarchy using the PathNode chain,
+ * applying delta SID encoding at each level to find the parent container.
+ *
+ * @param root Root of the coreconf model (must be a hashmap)
+ * @param pathNode Path to navigate (built by findRequirementForSID)
+ * @param targetSID The final target SID
+ * @param finalDeltaSID Output parameter for the final delta SID from parent to target
+ * @return Pointer to parent container (hashmap), or NULL on error
+ */
+CoreconfValueT *navigateToParentContainer(CoreconfValueT *root, PathNodeT *pathNode, uint64_t targetSID,
+                                          uint64_t *finalDeltaSID) {
+    if (root == NULL || pathNode == NULL || finalDeltaSID == NULL) {
+        printf("Error: NULL parameter in navigateToParentContainer\n");
+        return NULL;
+    }
+
+    CoreconfValueT *current = root;
+    PathNodeT *path = pathNode;
+    uint64_t previousSID = 0;
+
+    while (path->parentSID != (int64_t)targetSID) {
+        // Get the parentSID from the currentPathNode
+        int64_t parentSID = path->parentSID;
+
+        // Switch to nextPathNode
+        path = path->nextPathNode;
+
+        int64_t deltaSID = parentSID - previousSID;
+        // Fetch the subTree for deltaSID using getCoreconfHashMap
+        current = getCoreconfHashMap(current->data.map_value, deltaSID);
+        previousSID = parentSID;
+    }
+
+    // Calculate final delta SID from parent to target
+    *finalDeltaSID = targetSID - previousSID;
+
+    // Verify parent is a hashmap
+    if (current->type != CORECONF_HASHMAP && current->type != CORECONF_ARRAY) {
+        printf("Error: Parent container is not a hashmap or array for SID %lu (got type %d)\n", targetSID,
+               current->type);
+        return NULL;
+    }
+
+    return current;
 }

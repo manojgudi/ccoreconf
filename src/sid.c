@@ -317,6 +317,29 @@ int64_t char2int64(char *keyString) {
     return int64Value;
 }
 
+/*
+  Convert char* to uint64_t, return UINTMAX_MIN in case of an error
+*/
+uint64_t char2uint64(char *keyString) {
+    // Convert char* to uint64_t using strtoumax
+    uintmax_t uintValue = strtoumax(keyString, NULL, 10);
+    if (uintValue == UINTMAX_MAX) {
+        fprintf(stderr, "Conversion error or out of range");
+        return 0;
+    }
+
+    // Check for valid conversion
+    if (errno == ERANGE) {
+        fprintf(stderr, "Value out of range");
+        return 0;
+    }
+
+    // Convert uintmax_t to uint64_t
+    uint64_t uint64Value = (uint64_t)uintValue;
+
+    return uint64Value;
+}
+
 char *int2str(char *keyString, int64_t keyInt64) {
     int keyStringLength = snprintf(NULL, 0, "%d ", (int)keyInt64);
     if (keyStringLength < 0) {

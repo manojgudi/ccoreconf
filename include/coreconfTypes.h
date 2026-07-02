@@ -97,6 +97,8 @@ int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* v
 CoreconfValueT* getCoreconfHashMap(CoreconfHashMapT* map, uint64_t key);
 void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value);
 void freeCoreconfHashMap(CoreconfHashMapT* map);
+int updateCoreconfArrayByKey(CoreconfValueT* arr, uint64_t keySID, uint64_t parentSID, uint64_t keyValue,
+                             CoreconfValueT* newValue);
 
 void printCoreconfObject(CoreconfObjectT* obj);
 void printCoreconfMap(CoreconfHashMapT* map);
@@ -105,8 +107,12 @@ void printCoreconf(CoreconfValueT* val);
 // Iterate over CoreconfHashMap and apply a function to each CoreconfObject value
 void iterateCoreconfHashMap(CoreconfHashMapT* map, void* udata, void (*f)(CoreconfObjectT* object, void* udata));
 
+bool isTypeUint(uint64_t type);
+bool isTypeInt(uint64_t type);
+
 // get uint64_t  from any CoreconfValueT of REAL or UINT or INT type
 uint64_t getCoreconfValueAsUint64(CoreconfValueT* val);
+uint64_t getCoreconfValueAsInt64(CoreconfValueT* val);
 
 // Allow us to use non-standard function
 extern char* strdup(const char*);
