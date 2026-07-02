@@ -21,7 +21,7 @@ LIBNANOCBOR = -lnanocbor
 
 
 # Include directories for external libraries
-INCLUDE_DIRS =  -I$(NANOCBOR_INCLUDE) -I$(ZCBOR_INCLUDE)
+INCLUDE_DIRS =  -I$(NANOCBOR_INCLUDE) -I$(ZCBOR_INCLUDE) -Iinclude
 
 # Library directories for external libraries
 LIB_DIRS =  -L$(NANOCBOR_BUILD) 
