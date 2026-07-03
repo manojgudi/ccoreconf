@@ -1,3 +1,12 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "cbor2",
+#     "jinja2",
+#     "pycoreconf @ git+ssh://git@github.com/budhe888/pycoreconf",
+# ]
+# ///
+
 # Example python3 generateCBORDumps.py ../samples/simple_yang/sensor_instance.json ../samples/simple_yang/sensor@unknown.sid cborDumpsHeader.h
 import cbor2
 import pycoreconf
