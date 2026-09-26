@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../include/coreconfTypes.h"
+#include "coreconfTypes.h"
 #include "hashmap.h"
 #include "sid.h"
 

@@ -5,164 +5,123 @@ This document explains how to build the ccoreconf library using CMake.
 ## Prerequisites
 
 - CMake 3.15 or higher
-- GCC or compatible C compiler
-- nanocbor library
+- GCC or compatible C11 compiler
+- [nanocbor](https://github.com/bergzand/NanoCBOR) (headers and library)
 
-## Basic Build
-
-### 1. Configure the build
+## Quick start
 
 ```bash
 mkdir build
 cd build
 cmake ..
-```
-
-### 2. Build the library
-
-```bash
 cmake --build .
 ```
 
-This will create:
-- `build/libccoreconf.a` - The static library
-- `build/examples/` - Example executables (if enabled)
+This produces:
 
-## Specifying nanocbor Location
+- `build/libccoreconf.a` — static library (or `libccoreconf.so` if `-DBUILD_SHARED_LIBS=ON`)
+- `build/examples/demo_functionalities_coreconf` — example executable
 
-If nanocbor is installed in a non-standard location, you can specify its path:
+## Telling CMake where nanocbor lives
 
-### Using environment variables
-
-```bash
-export NANOCBOR_INCLUDE=/path/to/nanocbor/include
-export NANOCBOR_BUILD=/path/to/nanocbor/lib
-mkdir build && cd build
-cmake ..
-cmake --build .
-```
-
-### Using CMake variables
+If nanocbor is not in a standard system location, point CMake at it. The
+following forms are all equivalent and may be mixed:
 
 ```bash
-mkdir build && cd build
+# As -D variables (preferred for CI)
 cmake -DNANOCBOR_INCLUDE=/path/to/nanocbor/include \
-      -DNANOCBOR_BUILD=/path/to/nanocbor/lib \
-      ..
-cmake --build .
+      -DNANOCBOR_BUILD=/path/to/nanocbor/build ..
+
+# As environment variables
+export NANOCBOR_INCLUDE=/path/to/nanocbor/include
+export NANOCBOR_BUILD=/path/to/nanocbor/build
+cmake ..
 ```
 
-## Build Options
+`NANOCBOR_INCLUDE` is the directory that contains `nanocbor/`
+(e.g. `…/nanocbor/include` if `…/nanocbor/include/nanocbor/nanocbor.h` exists).
+`NANOCBOR_BUILD` is the directory that contains `libnanocbor.a` or
+`libnanocbor.so`.
 
-### Build without examples
+If neither is set, CMake searches standard system paths automatically.
+You can also point at a sysroot containing both via `-DCMAKE_PREFIX_PATH=/path`.
+
+## Build options
+
+| Option               | Default | Description                                              |
+| -------------------- | :-----: | -------------------------------------------------------- |
+| `BUILD_EXAMPLES`     |   ON    | Build the `examples/` programs                           |
+| `INSTALL_EXAMPLES`   |   OFF   | Install example executables during `cmake --install`     |
+| `BUILD_SHARED_LIBS`  |   OFF   | Build ccoreconf as a shared library                      |
+| `CWARN_AS_ERROR`     |   ON    | Promote compiler warnings to errors                      |
+| `CMAKE_BUILD_TYPE`   | (empty) | `Debug` / `Release` / `RelWithDebInfo` / `MinSizeRel`    |
 
 ```bash
-cmake -DBUILD_EXAMPLES=OFF ..
-cmake --build .
-```
+# Release build, no examples
+cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF ..
 
-### Specify build type
-
-```bash
-# Debug build
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-
-# Release build
-cmake -DCMAKE_BUILD_TYPE=Release ..
+# Shared library, install examples
+cmake -DBUILD_SHARED_LIBS=ON -DINSTALL_EXAMPLES=ON ..
 ```
 
 ## Installation
 
-To install the library and headers to your system:
-
 ```bash
-cd build
-sudo cmake --install .
+cmake --install .                     # → /usr/local by default
+cmake --install . --prefix /opt/foo   # custom prefix
 ```
 
-By default, this installs:
-- Library to `/usr/local/lib/libccoreconf.a`
-- Headers to `/usr/local/include/ccoreconf/`
-- Examples to `/usr/local/bin/examples/` (if built)
+Default layout:
 
-To change the installation prefix:
-
-```bash
-cmake -DCMAKE_INSTALL_PREFIX=/your/custom/path ..
-cmake --build .
-cmake --install .
+```text
+<prefix>/lib/libccoreconf.{a,so}
+<prefix>/lib/cmake/ccoreconf/ccoreconfConfig.cmake
+<prefix>/lib/cmake/ccoreconf/ccoreconfConfigVersion.cmake
+<prefix>/lib/cmake/ccoreconf/ccoreconfTargets.cmake
+<prefix>/include/ccoreconf/*.h
 ```
 
-## Running Examples
+## Using ccoreconf from another CMake project
 
-After building with examples enabled:
+After `cmake --install`, downstream projects can do:
+
+```cmake
+find_package(ccoreconf REQUIRED)
+target_link_libraries(my_app PRIVATE ccoreconf::ccoreconf)
+```
+
+This automatically pulls in nanocbor through ccoreconf's `PUBLIC` linkage.
+
+For a tree-out-of-source build, use `add_subdirectory(path/to/ccoreconf)`;
+no `find_package` is required in that case.
+
+## Running the example
 
 ```bash
-# From the build directory
 ./examples/demo_functionalities_coreconf
-./examples/coreconf_types_example
-./examples/example_memory_tests
-./examples/example_nanocbor
 ```
 
-## Cleaning the Build
-
-To clean and rebuild:
+## Cleaning
 
 ```bash
-# Remove the build directory
-rm -rf build
-
-# Or use CMake's clean target
-cd build
-cmake --build . --target clean
-```
-
-## Integration with Other CMake Projects
-
-To use ccoreconf in your CMake project:
-
-```cmake
-# Add ccoreconf subdirectory
-add_subdirectory(path/to/ccoreconf)
-
-# Link your target with ccoreconf
-target_link_libraries(your_target PRIVATE ccoreconf)
-```
-
-Or if ccoreconf is installed system-wide:
-
-```cmake
-find_library(CCORECONF_LIB ccoreconf)
-target_link_libraries(your_target PRIVATE ${CCORECONF_LIB})
-target_include_directories(your_target PRIVATE /usr/local/include/ccoreconf)
+rm -rf build                       # nuke everything
+cmake --build build --target clean # CMake-only clean (keeps cache)
 ```
 
 ## Troubleshooting
 
-### nanocbor not found
+### "nanocbor was not found"
 
-If CMake cannot find nanocbor, ensure:
-1. nanocbor is properly installed
-2. `NANOCBOR_INCLUDE` and `NANOCBOR_BUILD` are set correctly
-3. The nanocbor library file is named `libnanocbor.a` or `libnanocbor.so`
+- Verify `NANOCBOR_INCLUDE` points to the directory containing `nanocbor/`.
+- Verify `NANOCBOR_BUILD` contains `libnanocbor.a` or `libnanocbor.so`.
+- Run `cmake ..` with `-DCMAKE_FIND_DEBUG_MODE=ON` to see exactly where
+  CMake looked.
 
-### Compiler errors
+### Strict warnings fail your build
 
-Make sure you're using a C11-compatible compiler:
-```bash
-cmake -DCMAKE_C_COMPILER=gcc ..
-```
+- Set `-DCWARN_AS_ERROR=OFF` to keep warnings non-fatal.
 
-## Comparison with Make
+### Linker error for nanocbor when consuming ccoreconf
 
-The CMake build provides the same functionality as the Makefile:
-
-| Makefile | CMake Equivalent |
-|----------|------------------|
-| `make` | `cmake --build .` |
-| `make clean` | `cmake --build . --target clean` |
-| `make ccoreconf.a` | `cmake --build . --target ccoreconf` |
-| `NANOCBOR_INCLUDE=...` | `cmake -DNANOCBOR_INCLUDE=...` |
-
-Both build systems can coexist in the repository.
+- Make sure `find_package(ccoreconf)` was used (which auto-pulls nanocbor),
+  not raw `-lccoreconf`.

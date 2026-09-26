@@ -63,3 +63,11 @@ install_manifest.txt
 CTestTestfile.cmake
 compile_commands.json
 __pycache__
+ccoreconfConfig.cmake
+ccoreconfConfigVersion.cmake
+ccoreconfTargets*.cmake
+
+# Misc
+.pi-lens/
+*.cmake.in
+

@@ -5,14 +5,14 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/include/**",
-                "{workspaceFolder}/../../nanocbor/include/**",
-                "{workspaceFolder}/../../zcbor/include/**"
+                "${env:NANOCBOR_INCLUDE}"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c17",
+            "cStandard": "c11",
             "cppStandard": "gnu++17",
-            "intelliSenseMode": "linux-gcc-x64"
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
     "version": 4

@@ -2,7 +2,7 @@
 #include <nanocbor/nanocbor.h>
 #include <stdio.h>
 
-#include "../include/coreconfTypes.h"
+#include "coreconfTypes.h"
 #include "hashmap.h"
 
 void serializeCoreconfObject(CoreconfObjectT* object, void* cbor_);
