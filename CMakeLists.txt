@@ -110,6 +110,7 @@ set(NANOCBOR_LIBRARIES    ${NANOCBOR_LIBRARY})
 # ---------------------------------------------------------------------------
 set(CCORECONF_SOURCES
     src/coreconfManipulation.c
+    src/coreconfModel.c
     src/coreconfTypes.c
     src/hashmap.c
     src/serialization.c
@@ -119,6 +120,7 @@ set(CCORECONF_SOURCES
 
 set(CCORECONF_HEADERS
     include/coreconfManipulation.h
+    include/coreconfModel.h
     include/coreconfTypes.h
     include/hashmap.h
     include/serialization.h
