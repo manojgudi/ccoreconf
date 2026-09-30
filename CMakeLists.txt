@@ -162,6 +162,15 @@ if(CWARN_AS_ERROR)
 endif()
 target_compile_options(ccoreconf PRIVATE ${_ccoreconf_warnings})
 
+# ccoreconf_add_model() -- defined before add_subdirectory(examples) so
+# examples/CMakeLists.txt can call it.
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CcoreconfModels.cmake)
+
+# Stable source-root variable, used by CcoreconfModels.cmake so paths to
+# tools/prepareModel.py etc. resolve from the repo root regardless of which
+# subdirectory's CMakeLists.txt calls ccoreconf_add_model().
+set(CCORECONF_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+
 # ---------------------------------------------------------------------------
 # Examples
 # ---------------------------------------------------------------------------
