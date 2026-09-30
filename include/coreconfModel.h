@@ -18,7 +18,7 @@
  *
  * Fields are public so that the generated <model>.c can initialise them
  * with static data tables from a CoreconfModelDesc.  Do not mutate the
- * fields after ccoreconf_model_load returns.
+ * fields after ccoreconfModelLoad returns.
  */
 typedef struct CoreconfModel {
     /* Parsed instance data, decoded from the wire-format CBOR blob. */
@@ -39,39 +39,87 @@ typedef struct CoreconfModel {
 } CoreconfModelT;
 
 /* ------------------------------------------------------------------------- *
+ * Static model-data tables (declared by generated <model>.c files).         *
+ * ------------------------------------------------------------------------- */
+
+/* SID file item kind — mirrors pycoreconf's namespace() output. */
+typedef enum {
+    SID_NS_MODULE   = 0,
+    SID_NS_IDENTITY = 1,
+    SID_NS_DATA     = 2,
+} SidNamespace;
+
+/* One entry per item in the SID file. */
+typedef struct {
+    const char    *identifier;
+    uint64_t       sid;
+    SidNamespace   ns;
+    int            is_list;
+    const long    *key_sids;
+    size_t         key_sids_count;
+} SidEntryT;
+
+/* One entry per YANG list in the key-mapping.  (Renamed from KeyMappingT
+ * to avoid collision with the runtime hashmap-storage type in sid.h.) */
+typedef struct {
+    uint64_t       list_sid;
+    const long    *key_sids;
+    size_t         key_sids_count;
+} SidKeyMappingT;
+
+/* One entry per SID with at least one parent in the data tree. */
+typedef struct {
+    uint64_t       child_sid;
+    const long    *parent_sids;
+    size_t         parent_sids_count;
+} CLookupEntryT;
+
+/* Descriptor bundling every input ccoreconfModelLoadDesc can consume. */
+typedef struct {
+    const uint8_t *instance_cbor;
+    size_t         instance_cbor_len;
+    const uint8_t *keymap_cbor;
+    size_t         keymap_cbor_len;
+
+    /* Optional static tables.  Any NULL falls back to the CBOR path. */
+    const SidEntryT   *sid_table;
+    size_t            sid_count;
+    const SidKeyMappingT *keymap_static;
+    size_t               keymap_static_count;
+    const CLookupEntryT *clookup_static;
+    size_t               clookup_static_count;
+} CoreconfModelDesc;
+
+/* ------------------------------------------------------------------------- *
  * Lifecycle                                                                 *
  * ------------------------------------------------------------------------- */
 
 /**
  * Decode the wire-format CBOR blobs and assemble a CoreconfModelT.
  *
- * @param instance_cbor  CORECONF instance bytes (the same bytes that the
- *                       wire protocol carries, typically produced by
- *                       tools/prepareModel.py cbor).
- * @param instance_len   Length of instance_cbor in bytes.
- * @param keymap_cbor    KeyMapping CBOR bytes (the same format that the
- *                       legacy coreconf_model_cbor.h used to embed).
- * @param keymap_len     Length of keymap_cbor in bytes.
+ * Convenience wrapper around ccoreconfModelLoadDesc that fills in a
+ * CoreconfModelDesc from raw CBOR pointers (no static tables).
  *
  * @return A new CoreconfModelT, or NULL on decode / allocation failure.
- *         Free with ccoreconf_model_free when done.
- *
- * @note   Older call sites that build the model by hand
- *         (nanocbor_decoder_init -> cborToCoreconfValue -> ... ->
- *         buildCLookupHashmapFromCoreconf) continue to work without
- *         changes — they just don't get the convenience of the model
- *         wrapper.
  */
-CoreconfModelT *ccoreconf_model_load(const uint8_t *instance_cbor,
+CoreconfModelT *ccoreconfModelLoad(const uint8_t *instance_cbor,
                                      size_t instance_len,
                                      const uint8_t *keymap_cbor,
                                      size_t keymap_len);
 
 /**
+ * Full-fat constructor.  Any of the static tables in `desc` may be NULL
+ * (falling back to CBOR decoding or runtime tree-walking).
+ *
+ * @return A new CoreconfModelT, or NULL on decode / allocation failure.
+ */
+CoreconfModelT *ccoreconfModelLoadDesc(const CoreconfModelDesc *desc);
+
+/**
  * Release a CoreconfModelT and all of its owned data.
  * Safe to call with NULL.
  */
-void ccoreconf_model_free(CoreconfModelT *model);
+void ccoreconfModelFree(CoreconfModelT *model);
 
 /* ------------------------------------------------------------------------- *
  * Model-aware query helpers                                                 *

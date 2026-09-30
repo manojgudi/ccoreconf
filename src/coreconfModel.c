@@ -22,15 +22,62 @@
 #include "../include/hashmap.h"
 #include "../include/serialization.h"
 
+/* ---- internal: build hashmap from a static SidKeyMappingT[] table ---- */
+static struct hashmap *buildKeymapFromStatic(const SidKeyMappingT *tbl,
+                                              size_t count) {
+    struct hashmap *km = hashmap_new(sizeof(KeyMappingT), 0, 0, 0,
+                                      keyMappingHash, keyMappingCompare,
+                                      keyMappingFree, NULL);
+    if (km == NULL) {
+        return NULL;
+    }
+    for (size_t i = 0; i < count; i++) {
+        KeyMappingT entry;
+        entry.key = (int64_t)tbl[i].list_sid;
+        entry.dynamicLongList = createDynamicLongList();
+        if (entry.dynamicLongList == NULL) {
+            hashmap_free(km);
+            return NULL;
+        }
+        for (size_t k = 0; k < tbl[i].key_sids_count; k++) {
+            addLong(entry.dynamicLongList, tbl[i].key_sids[k]);
+        }
+        hashmap_set(km, &entry);
+    }
+    return km;
+}
+
+/* ---- internal: build hashmap from a static CLookupEntryT[] table ---- */
+static struct hashmap *buildClookupFromStatic(const CLookupEntryT *tbl,
+                                               size_t count) {
+    struct hashmap *cm = hashmap_new(sizeof(CLookupT), 0, 0, 0,
+                                      clookupHash, clookupCompare,
+                                      clookupFree, NULL);
+    if (cm == NULL) {
+        return NULL;
+    }
+    for (size_t i = 0; i < count; i++) {
+        CLookupT entry;
+        entry.childSID = (int64_t)tbl[i].child_sid;
+        entry.dynamicLongList = createDynamicLongList();
+        if (entry.dynamicLongList == NULL) {
+            hashmap_free(cm);
+            return NULL;
+        }
+        for (size_t p = 0; p < tbl[i].parent_sids_count; p++) {
+            addUniqueLong(entry.dynamicLongList, tbl[i].parent_sids[p]);
+        }
+        hashmap_set(cm, &entry);
+    }
+    return cm;
+}
+
 /* ------------------------------------------------------------------------- *
  * Lifecycle                                                                 *
  * ------------------------------------------------------------------------- */
 
-CoreconfModelT *ccoreconf_model_load(const uint8_t *instance_cbor,
-                                     size_t instance_len,
-                                     const uint8_t *keymap_cbor,
-                                     size_t keymap_len) {
-    if (instance_cbor == NULL || keymap_cbor == NULL) {
+CoreconfModelT *ccoreconfModelLoadDesc(const CoreconfModelDesc *desc) {
+    if (desc == NULL || desc->instance_cbor == NULL) {
         return NULL;
     }
 
@@ -39,45 +86,76 @@ CoreconfModelT *ccoreconf_model_load(const uint8_t *instance_cbor,
         return NULL;
     }
 
-    /* Decode the instance tree. */
+    /* 1) Decode the instance tree (always required — it's the wire payload). */
     nanocbor_value_t instance_decoder;
-    nanocbor_decoder_init(&instance_decoder, instance_cbor, instance_len);
+    nanocbor_decoder_init(&instance_decoder, desc->instance_cbor, desc->instance_cbor_len);
     model->root = cborToCoreconfValue(&instance_decoder, 0);
     if (model->root == NULL) {
         free(model);
         return NULL;
     }
 
-    /* Decode the key-mapping table. */
-    nanocbor_value_t keymap_decoder;
-    nanocbor_decoder_init(&keymap_decoder, keymap_cbor, keymap_len);
-    model->keymap_hashmap = cborToKeyMappingHashMap(&keymap_decoder);
+    /* 2) Keymap: prefer static table, else decode CBOR. */
+    if (desc->keymap_static != NULL && desc->keymap_static_count > 0) {
+        model->keymap_hashmap = buildKeymapFromStatic(desc->keymap_static,
+                                                      desc->keymap_static_count);
+    } else if (desc->keymap_cbor != NULL && desc->keymap_cbor_len > 0) {
+        nanocbor_value_t keymap_decoder;
+        nanocbor_decoder_init(&keymap_decoder, desc->keymap_cbor, desc->keymap_cbor_len);
+        model->keymap_hashmap = cborToKeyMappingHashMap(&keymap_decoder);
+    } else {
+        model->keymap_hashmap = NULL;
+    }
     if (model->keymap_hashmap == NULL) {
         freeCoreconf(model->root, true);
         free(model);
         return NULL;
     }
 
-    /* Build the clookup table. */
-    model->clookup_hashmap = hashmap_new(sizeof(CLookupT), 0, 0, 0,
-                                        clookupHash, clookupCompare, NULL, NULL);
-    if (model->clookup_hashmap == NULL) {
-        hashmap_free(model->keymap_hashmap);
-        freeCoreconf(model->root, true);
-        free(model);
-        return NULL;
+    /* 3) Clookup: prefer static table, else walk the instance tree. */
+    if (desc->clookup_static != NULL && desc->clookup_static_count > 0) {
+        model->clookup_hashmap = buildClookupFromStatic(desc->clookup_static,
+                                                         desc->clookup_static_count);
+    } else {
+        model->clookup_hashmap = hashmap_new(sizeof(CLookupT), 0, 0, 0,
+                                            clookupHash, clookupCompare,
+                                            NULL, NULL);
+        if (model->clookup_hashmap == NULL) {
+            hashmap_free(model->keymap_hashmap);
+            freeCoreconf(model->root, true);
+            free(model);
+            return NULL;
+        }
+        buildCLookupHashmapFromCoreconf(model->root, model->clookup_hashmap, 0, 0);
     }
-    buildCLookupHashmapFromCoreconf(model->root, model->clookup_hashmap, 0, 0);
 
     return model;
 }
 
-void ccoreconf_model_free(CoreconfModelT *model) {
+CoreconfModelT *ccoreconfModelLoad(const uint8_t *instance_cbor,
+                                     size_t instance_len,
+                                     const uint8_t *keymap_cbor,
+                                     size_t keymap_len) {
+    CoreconfModelDesc desc;
+    memset(&desc, 0, sizeof(desc));
+    desc.instance_cbor = instance_cbor;
+    desc.instance_cbor_len = instance_len;
+    desc.keymap_cbor = keymap_cbor;
+    desc.keymap_cbor_len = keymap_len;
+    /* No static tables — desc fields stay NULL and the desc path falls
+     * back to CBOR / tree-walking. */
+    return ccoreconfModelLoadDesc(&desc);
+}
+
+void ccoreconfModelFree(CoreconfModelT *model) {
     if (model == NULL) {
         return;
     }
     if (model->clookup_hashmap != NULL) {
-        freeCLookupHashmap(model->clookup_hashmap);
+        /* hashmap_free will invoke the elfree callback (clookupFree for
+         * the static-table path, NULL + manual free for the legacy path).
+         * Do NOT also call freeCLookupHashmap() -- that's the legacy path
+         * for NULL-callback hashmaps; calling it here would double-free. */
         hashmap_free(model->clookup_hashmap);
         model->clookup_hashmap = NULL;
     }
