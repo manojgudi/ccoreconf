@@ -1,4 +1,4 @@
-int handler_write_{{ sid }}(SidHandlerContext *ctx, CoreconfValueT *value) {
+int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 {% if keys %}
     // Validate value is a hashmap containing keys and data
     if (value->type != CORECONF_HASHMAP) {

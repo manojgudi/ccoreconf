@@ -41,12 +41,12 @@ typedef struct KeyMappingStruct {
 
 typedef struct IdentifierSIDStruct {
     char *identifier;
-    long sid;
+    long SID;
 } IdentifierSIDT;
 
 // Inverse Map
 typedef struct SIDIdentifierStruct {
-    long sid;
+    long SID;
     char *identifier;
 } SIDIdentifierT;
 
@@ -58,7 +58,7 @@ typedef struct IdentifierTypeStruct {
 typedef struct SIDModelStruct {
     // TODO Define name limit
     char *modelName;
-    char *sidFilePath;
+    char *SIDFilePath;
 
     // NOTE These need to be explicitly initialized using hashmap_new in the main
 
@@ -67,7 +67,7 @@ typedef struct SIDModelStruct {
     // Contains
     struct hashmap *identifierSIDHashMap;
     // Contains
-    struct hashmap *sidIdentifierHashMap;
+    struct hashmap *SIDIdentifierHashMap;
     // Contains
     struct hashmap *identifierTypeHashMap;
 
@@ -96,8 +96,8 @@ void keyMappingFree(void *item);
 int identifierSIDCompare(const void *a, const void *b, void *udata);
 uint64_t identifierSIDHash(const void *item, uint64_t seed0, uint64_t seed1);
 
-int sidIdentifierCompare(const void *a, const void *b, void *udata);
-uint64_t sidIdentifierHash(const void *item, uint64_t seed0, uint64_t seed1);
+int SIDIdentifierCompare(const void *a, const void *b, void *udata);
+uint64_t SIDIdentifierHash(const void *item, uint64_t seed0, uint64_t seed1);
 
 int identifierTypeCompare(const void *a, const void *b, void *udata);
 uint64_t identifierTypeHash(const void *item, uint64_t seed0, uint64_t seed1);

@@ -1,4 +1,4 @@
-int handler_write_{{ sid }}(SidHandlerContext *ctx, CoreconfValueT *value) {
+int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Validate value type
 {% if type == "boolean" %}
     if (value->type != CORECONF_TRUE && value->type != CORECONF_FALSE) {

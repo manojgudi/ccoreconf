@@ -15,7 +15,7 @@ typedef struct CLookup {
 
 typedef struct PathNode {
     int64_t parentSID;
-    DynamicLongListT *sidKeys;
+    DynamicLongListT *SIDKeys;
     struct PathNode *nextPathNode;
 } PathNodeT;
 
@@ -28,11 +28,11 @@ void buildCLookupHashmapFromCoreconf(CoreconfValueT *coreconfValue, struct hashm
                                      int recursionDepth);
 
 // Node related function headers
-PathNodeT *createPathNode(int64_t parentSID, DynamicLongListT *sidKeys);
-PathNodeT *prependPathNode(PathNodeT *endNode, int64_t parentSID, DynamicLongListT *sidKeys);
+PathNodeT *createPathNode(int64_t parentSID, DynamicLongListT *SIDKeys);
+PathNodeT *prependPathNode(PathNodeT *endNode, int64_t parentSID, DynamicLongListT *SIDKeys);
 void printPathNode(PathNodeT *pathNode);
 void freePathNode(PathNodeT *pathNode);
-PathNodeT *findRequirementForSID(uint64_t sid, struct hashmap *clookupHashmap, struct hashmap *keyMappingHashMap);
+PathNodeT *findRequirementForSID(uint64_t SID, struct hashmap *clookupHashmap, struct hashmap *keyMappingHashMap);
 CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfValue, DynamicLongListT *requestKeys, PathNodeT *headNode);
 
 void freeCLookupHashmap(struct hashmap *map);

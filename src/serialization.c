@@ -295,8 +295,8 @@ int keyMappingHashMapToCBOR(struct hashmap* keyMappingHashMap, nanocbor_encoder_
         nanocbor_fmt_array(cbor, keyMapping->dynamicLongList->size);
         for (size_t i = 0; i < keyMapping->dynamicLongList->size; i++) {
             // Dereference the pointer and add to the array
-            uint64_t sidKey = *(keyMapping->dynamicLongList->longList + i);
-            nanocbor_fmt_uint(cbor, sidKey);
+            uint64_t SIDKey = *(keyMapping->dynamicLongList->longList + i);
+            nanocbor_fmt_uint(cbor, SIDKey);
         }
         // End the Array
     }
@@ -340,13 +340,13 @@ struct hashmap* cborToKeyMappingHashMap(nanocbor_value_t* value) {
                 return NULL;
             }
 
-            uint64_t sidKey = 0;
-            int res = nanocbor_get_uint64(&array, &sidKey);
+            uint64_t SIDKey = 0;
+            int res = nanocbor_get_uint64(&array, &SIDKey);
             if (res < 0) {
                 printf("Error parsing array value\n");
             }
             // Add to the dynamicLongList
-            addLong(keyMapping->dynamicLongList, sidKey);
+            addLong(keyMapping->dynamicLongList, SIDKey);
             loopCounter++;
         }
         nanocbor_leave_container(&map, &array);

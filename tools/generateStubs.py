@@ -465,7 +465,7 @@ class SIDItem:
     def generateReadHandlerWrapper(self):
         """
         Generate handler wrapper function for reads using Jinja2 template
-        Signature: CoreconfValueT* handler_read_<sid>(SidHandlerContext *ctx)
+        Signature: CoreconfValueT* handler_read_<sid>(SIDHandlerContextT *ctx)
         """
         # Don't do anything if the namespace is not "data"
         if self.namespace != "data":
@@ -509,7 +509,7 @@ class SIDItem:
     def generateWriteHandlerWrapper(self):
         """
         Generate handler wrapper function for writes using Jinja2 template
-        Signature: int handler_write_<sid>(SidHandlerContext *ctx, CoreconfValueT *value)
+        Signature: int handler_write_<sid>(SIDHandlerContextT *ctx, CoreconfValueT *value)
         """
         # Don't do anything if the namespace is not "data"
         if self.namespace != "data":
@@ -773,18 +773,18 @@ def main():
 
         if readWrapper:
             handlerCCode += readWrapper + "\n"
-            handlerHCode += f"CoreconfValueT* handler_read_{sid}(SidHandlerContext *ctx);\n"
+            handlerHCode += f"CoreconfValueT* handler_read_{sid}(SIDHandlerContextT *ctx);\n"
 
         if writeWrapper:
             handlerCCode += writeWrapper + "\n"
-            handlerHCode += f"int handler_write_{sid}(SidHandlerContext *ctx, CoreconfValueT *value);\n"
+            handlerHCode += f"int handler_write_{sid}(SIDHandlerContextT *ctx, CoreconfValueT *value);\n"
 
         # Build registration call if we have either handler
         if readWrapper or writeWrapper:
             readHandler = f"handler_read_{sid}" if readWrapper else "NULL"
             writeHandler = f"handler_write_{sid}" if writeWrapper else "NULL"
             registrationCalls.append(
-                f'    registerSidHandler({sid}, {readHandler}, {writeHandler}, "{identifier}", "{itemType}");'
+                f'    registerSIDHandler({sid}, {readHandler}, {writeHandler}, "{identifier}", "{itemType}");'
             )
 
     # Add enum type
@@ -807,9 +807,9 @@ def main():
         # Build handler list from registration calls
         for call in registrationCalls:
             # Parse the registration call to extract handler info
-            # Format: registerSidHandler(sid, read_handler, write_handler, "identifier", "type");
+            # Format: registerSIDHandler(sid, read_handler, write_handler, "identifier", "type");
             import re
-            match = re.search(r'registerSidHandler\((\d+), (.+?), (.+?), "(.+?)", "(.+?)"\)', call)
+            match = re.search(r'registerSIDHandler\((\d+), (.+?), (.+?), "(.+?)", "(.+?)"\)', call)
             if match:
                 handlers.append({
                     'sid': match.group(1),

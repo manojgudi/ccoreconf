@@ -201,18 +201,18 @@ uint64_t identifierSIDHash(const void *item, uint64_t seed0, uint64_t seed1) {
     return hashmap_sip(identifierSID->identifier, strlen(identifierSID->identifier), seed0, seed1);
 }
 
-int sidIdentifierCompare(const void *a, const void *b, void *udata) {
+int SIDIdentifierCompare(const void *a, const void *b, void *udata) {
     // NOTE Keep it unused for compatibility reasons
     (void)udata;
 
-    const SIDIdentifierT *sidIdentifier1 = (SIDIdentifierT *)a;
-    const SIDIdentifierT *sidIdentifier2 = (SIDIdentifierT *)b;
-    return (sidIdentifier1->sid != sidIdentifier2->sid);
+    const SIDIdentifierT *SIDIdentifier1 = (SIDIdentifierT *)a;
+    const SIDIdentifierT *SIDIdentifier2 = (SIDIdentifierT *)b;
+    return (SIDIdentifier1->SID != SIDIdentifier2->SID);
 }
 
-uint64_t sidIdentifierHash(const void *item, uint64_t seed0, uint64_t seed1) {
-    const SIDIdentifierT *sidIdentifier = (SIDIdentifierT *)item;
-    return hashmap_murmur(&(sidIdentifier->sid), sizeof(long), seed0, seed1);
+uint64_t SIDIdentifierHash(const void *item, uint64_t seed0, uint64_t seed1) {
+    const SIDIdentifierT *SIDIdentifier = (SIDIdentifierT *)item;
+    return hashmap_murmur(&(SIDIdentifier->SID), sizeof(long), seed0, seed1);
 }
 
 int identifierTypeCompare(const void *a, const void *b, void *udata) {
@@ -240,11 +240,11 @@ void printKeyMappingT(const KeyMappingT *keyMapping) {
 }
 
 void printIdentifierSIDT(const IdentifierSIDT *identifierSID) {
-    printf("\nIdentifier %s: %lu (SID) ", identifierSID->identifier, identifierSID->sid);
+    printf("\nIdentifier %s: %lu (SID) ", identifierSID->identifier, identifierSID->SID);
 }
 
-void printSIDIdentifierT(const SIDIdentifierT *sidIdentifier) {
-    printf("\nSID %lu: %s (Identifier) ", sidIdentifier->sid, sidIdentifier->identifier);
+void printSIDIdentifierT(const SIDIdentifierT *SIDIdentifier) {
+    printf("\nSID %lu: %s (Identifier) ", SIDIdentifier->SID, SIDIdentifier->identifier);
 }
 
 void printIdentifierTypeT(const IdentifierTypeT *identifierType) {
@@ -266,7 +266,7 @@ void printHashMap(struct hashmap *anyHashMap, enum HashMapTypeEnum hashmapType) 
     void *item;
     const KeyMappingT *keyMapping;
     const IdentifierSIDT *identifierSID;
-    const SIDIdentifierT *sidIdentifier;
+    const SIDIdentifierT *SIDIdentifier;
     const IdentifierTypeT *identifierType;
 
     while (hashmap_iter(anyHashMap, &iter, &item)) {
@@ -280,8 +280,8 @@ void printHashMap(struct hashmap *anyHashMap, enum HashMapTypeEnum hashmapType) 
                 printIdentifierSIDT(identifierSID);
                 break;
             case SID_IDENTIFIER:
-                sidIdentifier = item;
-                printSIDIdentifierT(sidIdentifier);
+                SIDIdentifier = item;
+                printSIDIdentifierT(SIDIdentifier);
                 break;
             case IDENTIFIER_TYPE:
                 identifierType = item;

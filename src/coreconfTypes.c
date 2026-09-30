@@ -233,7 +233,7 @@ bool isTypeInt(uint64_t type) {
     return (type == CORECONF_INT_8 || type == CORECONF_INT_16 || type == CORECONF_INT_32 || type == CORECONF_INT_64);
 }
 
-// Method used in examineCoreconf to match the sidKey value,
+// Method used in examineCoreconf to match the SIDKey value,
 // and to keep all integers stored in 64 bit values, since CBOR does not have a distinction
 uint64_t getCoreconfValueAsUint64(CoreconfValueT* val) {
     // NULL check to prevent dereference when getCoreconfHashMap returns NULL

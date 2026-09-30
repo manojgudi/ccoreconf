@@ -110,8 +110,8 @@ This is where you implement your business logic. The function stubs include:
 #include <coreconfTypes.h>
 
 // Handler wrappers that integrate with CORECONF server
-CoreconfValueT* handler_read_1011(SidHandlerContext *ctx);
-int handler_write_1011(SidHandlerContext *ctx, CoreconfValueT *value);
+CoreconfValueT* handler_read_1011(SIDHandlerContextT *ctx);
+int handler_write_1011(SIDHandlerContextT *ctx, CoreconfValueT *value);
 
 // Handler registration function
 void registerGeneratedHandlers(void);
@@ -121,7 +121,7 @@ void registerGeneratedHandlers(void);
 ### Handler Source (`sid_prototypes-handlers.c`)
 
 ```c
-CoreconfValueT* handler_read_1011(SidHandlerContext *ctx) {
+CoreconfValueT* handler_read_1011(SIDHandlerContextT *ctx) {
     // Call user-implemented read function
     uint64_t result = read_healthReadings_healthValue();
 
@@ -129,7 +129,7 @@ CoreconfValueT* handler_read_1011(SidHandlerContext *ctx) {
     return examineCoreconfValue(ctx->coreconfModel, ctx->keys, ctx->pathNode);
 }
 
-int handler_write_1011(SidHandlerContext *ctx, CoreconfValueT *value) {
+int handler_write_1011(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Validate value type (uses type-safe helper)
     if (!isTypeUint(value->type)) {
         printf("Error: Expected unsigned integer type for SID 1011\n");
@@ -198,7 +198,7 @@ These helpers automatically handle the type checking and extract from the correc
 For each data node, the generator creates:
 
 **Read Handler** (`handler_read_<SID>`):
-- Extracts keys from `SidHandlerContext`
+- Extracts keys from `SIDHandlerContextT`
 - Calls user implementation function
 - Returns `CoreconfValueT*` from datastore
 
