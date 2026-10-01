@@ -15,7 +15,8 @@ import re
 import pycoreconf
 from jinja2 import Environment, FileSystemLoader
 
-NAMESPACES = {"module": "SID_NS_MODULE", "identity": "SID_NS_IDENTITY", "data": "SID_NS_DATA"}
+NAMESPACES = {"module": "SID_NS_MODULE", "identity": "SID_NS_IDENTITY", "data": "SID_NS_DATA",
+              "feature": "SID_NS_FEATURE"}
 
 
 def get_jinja_env():
@@ -65,7 +66,7 @@ def collectEntries(sidFiles):
     for path in sidFiles:
         module, items, km = readSIDFile(path)
         for item in items:
-            # SIDNamespace in coreconfModel.h has no value for e.g. "feature" yet
+            # Namespaces SIDNamespace (coreconfModel.h) cannot represent
             if item["namespace"] not in NAMESPACES:
                 skipped[item["namespace"]] = skipped.get(item["namespace"], 0) + 1
                 continue

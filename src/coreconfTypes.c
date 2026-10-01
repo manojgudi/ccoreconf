@@ -15,6 +15,65 @@ CoreconfValueT* createCoreconfString(const char* value) {
     return val;
 }
 
+// Copy `length` bytes of a (not necessarily NUL-terminated) text string
+CoreconfValueT* createCoreconfStringLength(const char* value, size_t length) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    if (val == NULL) return NULL;
+    val->type = CORECONF_STRING;
+    val->data.string_value = malloc(length + 1);
+    if (val->data.string_value == NULL) {
+        free(val);
+        return NULL;
+    }
+    if (length > 0) memcpy(val->data.string_value, value, length);
+    val->data.string_value[length] = '\0';
+    return val;
+}
+
+CoreconfValueT* createCoreconfBytes(const uint8_t* data, size_t length) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    if (val == NULL) return NULL;
+    val->type = CORECONF_BYTES;
+    val->data.bytes_value.length = length;
+    val->data.bytes_value.data = NULL;
+    if (length > 0) {
+        val->data.bytes_value.data = malloc(length);
+        if (val->data.bytes_value.data == NULL) {
+            free(val);
+            return NULL;
+        }
+        memcpy(val->data.bytes_value.data, data, length);
+    }
+    return val;
+}
+
+CoreconfValueT* createCoreconfTag(uint64_t number, CoreconfValueT* value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    if (val == NULL) return NULL;
+    val->type = CORECONF_TAG;
+    val->data.tag_value.number = number;
+    val->data.tag_value.value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfNull(void) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    if (val == NULL) return NULL;
+    val->type = CORECONF_NULL;
+    return val;
+}
+
+bool isCoreconfTag(const CoreconfValueT* val, uint64_t number) {
+    return val != NULL && val->type == CORECONF_TAG && val->data.tag_value.number == number;
+}
+
+CoreconfValueT* getCoreconfTagValue(CoreconfValueT* val) {
+    while (val != NULL && val->type == CORECONF_TAG) {
+        val = val->data.tag_value.value;
+    }
+    return val;
+}
+
 CoreconfValueT* createCoreconfReal(double value) {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
     val->type = CORECONF_REAL;
@@ -236,6 +295,8 @@ bool isTypeInt(uint64_t type) {
 // Method used in examineCoreconf to match the SIDKey value,
 // and to keep all integers stored in 64 bit values, since CBOR does not have a distinction
 uint64_t getCoreconfValueAsUint64(CoreconfValueT* val) {
+    // e.g. an identityref inside a union (tag 45) reads as its SID
+    val = getCoreconfTagValue(val);
     // NULL check to prevent dereference when getCoreconfHashMap returns NULL
     if (val == NULL) {
         return 0;
@@ -272,6 +333,7 @@ uint64_t getCoreconfValueAsUint64(CoreconfValueT* val) {
 
 // Method used to keep all integers stored in 64 bit values, since CBOR does not have a distinction
 uint64_t getCoreconfValueAsInt64(CoreconfValueT* val) {
+    val = getCoreconfTagValue(val);
     // NULL check to prevent dereference when getCoreconfHashMap returns NULL
     if (val == NULL) {
         return 0;
@@ -359,6 +421,19 @@ void printCoreconf(CoreconfValueT* val) {
         case CORECONF_HASHMAP:
             printCoreconfMap(val->data.map_value);
             break;
+        case CORECONF_BYTES:
+            // CBOR diagnostic notation: h'0a1b'
+            printf("h'");
+            for (size_t i = 0; i < val->data.bytes_value.length; i++) {
+                printf("%02x", val->data.bytes_value.data[i]);
+            }
+            printf("'");
+            break;
+        case CORECONF_TAG:
+            printf("%" PRIu64 "(", val->data.tag_value.number);
+            printCoreconf(val->data.tag_value.value);
+            printf(")");
+            break;
     }
 }
 
@@ -434,6 +509,10 @@ void freeCoreconf(CoreconfValueT* val, bool freeValue) {
         free(val->data.array_value);
     } else if (val->type == CORECONF_HASHMAP) {
         freeCoreconfHashMap(val->data.map_value);
+    } else if (val->type == CORECONF_BYTES) {
+        free(val->data.bytes_value.data);
+    } else if (val->type == CORECONF_TAG) {
+        freeCoreconf(val->data.tag_value.value, true);
     }
 
     // freeValue is true when the value is not part of an array

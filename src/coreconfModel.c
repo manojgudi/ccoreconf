@@ -168,7 +168,8 @@ CoreconfModelT *ccoreconfModelLoadDesc(const CoreconfModelDescT *desc) {
         return NULL;
     }
 
-    /* 2) Keymap: prefer static table, else decode CBOR. */
+    /* 2) Keymap: prefer static table, else decode CBOR.  A model without
+     *    YANG lists has no keymap at all: that gives an empty table. */
     if (desc->keymapStatic != NULL && desc->keymapStaticCount > 0) {
         model->keymapHashmap = buildKeymapFromStatic(desc->keymapStatic,
                                                       desc->keymapStaticCount);
@@ -177,7 +178,7 @@ CoreconfModelT *ccoreconfModelLoadDesc(const CoreconfModelDescT *desc) {
         nanocbor_decoder_init(&keymapDecoder, desc->keymapCBOR, desc->keymapCBORLen);
         model->keymapHashmap = cborToKeyMappingHashMap(&keymapDecoder);
     } else {
-        model->keymapHashmap = NULL;
+        model->keymapHashmap = buildKeymapFromStatic(NULL, 0);
     }
     if (model->keymapHashmap == NULL) {
         freeCoreconf(model->root, true);

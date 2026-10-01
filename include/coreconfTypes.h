@@ -29,9 +29,9 @@ typedef enum {
     CORECONF_TRUE,
     CORECONF_FALSE,
     CORECONF_NULL,
-    CORECONF_HASHMAP
-    // Future
-    // CORECONF_BYTEARRAY
+    CORECONF_HASHMAP,
+    CORECONF_BYTES,  // CBOR byte string (YANG binary)
+    CORECONF_TAG     // CBOR tag around another value (RFC 9254 unions: 43 bits, 44 enum, 45 identityref, 46 instance-id)
 } coreconf_type;
 
 typedef struct CoreconfValue {
@@ -51,6 +51,14 @@ typedef struct CoreconfValue {
         struct CoreconfObject* object_value;
         struct CoreconfHashMap* map_value;
         struct CoreconfArray* array_value;
+        struct {
+            uint8_t* data;
+            size_t length;
+        } bytes_value;
+        struct {
+            uint64_t number;
+            struct CoreconfValue* value;  // Owned: freed with the tag
+        } tag_value;
     } data;
 } CoreconfValueT;
 
@@ -75,6 +83,11 @@ size_t hashKey(uint64_t key);
 void freeCoreconf(CoreconfValueT* val, bool freeValue);
 
 CoreconfValueT* createCoreconfString(const char* value);
+CoreconfValueT* createCoreconfStringLength(const char* value, size_t length);
+CoreconfValueT* createCoreconfBytes(const uint8_t* data, size_t length);
+// Takes ownership of `value`
+CoreconfValueT* createCoreconfTag(uint64_t number, CoreconfValueT* value);
+CoreconfValueT* createCoreconfNull(void);
 CoreconfValueT* createCoreconfReal(double value);
 CoreconfValueT* createCoreconfBoolean(bool value);
 
@@ -110,7 +123,12 @@ void iterateCoreconfHashMap(CoreconfHashMapT* map, void* udata, void (*f)(Coreco
 bool isTypeUint(uint64_t type);
 bool isTypeInt(uint64_t type);
 
-// get uint64_t  from any CoreconfValueT of REAL or UINT or INT type
+// True if `val` is a CORECONF_TAG with tag `number`
+bool isCoreconfTag(const CoreconfValueT* val, uint64_t number);
+// The value inside a tag (through nested tags); `val` itself if it is not a tag
+CoreconfValueT* getCoreconfTagValue(CoreconfValueT* val);
+
+// get uint64_t  from any CoreconfValueT of REAL or UINT or INT type (looks through tags)
 uint64_t getCoreconfValueAsUint64(CoreconfValueT* val);
 uint64_t getCoreconfValueAsInt64(CoreconfValueT* val);
 

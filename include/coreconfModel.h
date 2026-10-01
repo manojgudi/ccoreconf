@@ -52,6 +52,7 @@ typedef enum {
     SID_NS_MODULE   = 0,
     SID_NS_IDENTITY = 1,
     SID_NS_DATA     = 2,
+    SID_NS_FEATURE  = 3,
 } SIDNamespace;
 
 /* One entry per item in the SID file. */

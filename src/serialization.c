@@ -19,67 +19,83 @@ void serializeCoreconfObject(CoreconfObjectT* object, void* cbor_) {
 }
 
 // Serialization and Deserialization into CBOR
+// Returns 0 on success, -1 on an unsupported value or when the encoder buffer is too small
 int coreconfToCBOR(CoreconfValueT* coreconfValue, nanocbor_encoder_t* cbor) {
+    if (coreconfValue == NULL) return -1;
+    int res = 0;
     switch (coreconfValue->type) {
         case CORECONF_HASHMAP: {
-            nanocbor_fmt_map(cbor, coreconfValue->data.map_value->size);
-            iterateCoreconfHashMap(coreconfValue->data.map_value, (void*)cbor, serializeCoreconfObject);
-            // nanocbor_fmt_end_indefinite(cbor);
+            CoreconfHashMapT* map = coreconfValue->data.map_value;
+            res = nanocbor_fmt_map(cbor, map->size);
+            for (size_t i = 0; res >= 0 && i < HASHMAP_TABLE_SIZE; i++) {
+                for (CoreconfObjectT* object = map->table[i]; res >= 0 && object != NULL; object = object->next) {
+                    res = nanocbor_fmt_uint(cbor, object->key);
+                    if (res >= 0) res = coreconfToCBOR(object->value, cbor);
+                }
+            }
             break;
         }
         case CORECONF_ARRAY: {
             size_t arrayLength = coreconfValue->data.array_value->size;
-            nanocbor_fmt_array(cbor, arrayLength);
-            for (size_t i = 0; i < arrayLength; i++) {
-                coreconfToCBOR(&coreconfValue->data.array_value->elements[i], cbor);
+            res = nanocbor_fmt_array(cbor, arrayLength);
+            for (size_t i = 0; res >= 0 && i < arrayLength; i++) {
+                res = coreconfToCBOR(&coreconfValue->data.array_value->elements[i], cbor);
             }
+            break;
         }
-        // nanocbor_fmt_end_indefinite(cbor);
-        break;
         case CORECONF_REAL:
-            nanocbor_fmt_double(cbor, coreconfValue->data.real_value);
+            res = nanocbor_fmt_double(cbor, coreconfValue->data.real_value);
             break;
         case CORECONF_INT_8:
-            nanocbor_fmt_int(cbor, coreconfValue->data.i8);
+            res = nanocbor_fmt_int(cbor, coreconfValue->data.i8);
             break;
         case CORECONF_INT_16:
-            nanocbor_fmt_int(cbor, coreconfValue->data.i16);
+            res = nanocbor_fmt_int(cbor, coreconfValue->data.i16);
             break;
         case CORECONF_INT_32:
-            nanocbor_fmt_int(cbor, coreconfValue->data.i32);
+            res = nanocbor_fmt_int(cbor, coreconfValue->data.i32);
             break;
         case CORECONF_INT_64:
-            nanocbor_fmt_int(cbor, coreconfValue->data.i64);
+            res = nanocbor_fmt_int(cbor, coreconfValue->data.i64);
             break;
-
         case CORECONF_UINT_8:
-            nanocbor_fmt_uint(cbor, coreconfValue->data.u8);
+            res = nanocbor_fmt_uint(cbor, coreconfValue->data.u8);
             break;
         case CORECONF_UINT_16:
-            nanocbor_fmt_uint(cbor, coreconfValue->data.u16);
+            res = nanocbor_fmt_uint(cbor, coreconfValue->data.u16);
             break;
         case CORECONF_UINT_32:
-            nanocbor_fmt_uint(cbor, coreconfValue->data.u32);
+            res = nanocbor_fmt_uint(cbor, coreconfValue->data.u32);
             break;
         case CORECONF_UINT_64:
-            nanocbor_fmt_uint(cbor, coreconfValue->data.u64);
+            res = nanocbor_fmt_uint(cbor, coreconfValue->data.u64);
             break;
         case CORECONF_STRING:
-            // Null terminate string value and then put it
-            nanocbor_put_tstr(cbor, (const char*)coreconfValue->data.string_value);
+            res = nanocbor_put_tstr(cbor, (const char*)coreconfValue->data.string_value);
             break;
         case CORECONF_TRUE:
-            nanocbor_fmt_uint(cbor, 1);
+            res = nanocbor_fmt_bool(cbor, true);
             break;
         case CORECONF_FALSE:
-            nanocbor_fmt_uint(cbor, 0);
+            res = nanocbor_fmt_bool(cbor, false);
+            break;
+        case CORECONF_NULL:
+            res = nanocbor_fmt_null(cbor);
+            break;
+        case CORECONF_BYTES:
+            res = nanocbor_put_bstr(cbor, coreconfValue->data.bytes_value.data,
+                                    coreconfValue->data.bytes_value.length);
+            break;
+        case CORECONF_TAG:
+            res = nanocbor_fmt_tag(cbor, coreconfValue->data.tag_value.number);
+            if (res >= 0) res = coreconfToCBOR(coreconfValue->data.tag_value.value, cbor);
             break;
         default:
             // Something wrong happened
             return -1;
     }
 
-    return 0;
+    return (res < 0) ? -1 : 0;
 }
 
 // Deserialization from CBOR to Coreconf
@@ -149,35 +165,42 @@ CoreconfValueT* cborToCoreconfValue(nanocbor_value_t* value, unsigned indent) {
 
         } break;
         case NANOCBOR_TYPE_BSTR: {
+            // Not NUL-terminated and may contain 0x00: copy exactly `len` bytes
             const uint8_t* buf = NULL;
             size_t len = 0;
             res = nanocbor_get_bstr(value, &buf, &len);
             if (res >= 0) {
-                if (!buf) {
-                    return NULL;
-                }
-                coreconfValue = createCoreconfString((const char*)buf);
+                coreconfValue = createCoreconfBytes(buf, len);
             }
         } break;
         case NANOCBOR_TYPE_TSTR: {
             const uint8_t* buf = NULL;
             size_t len = 0;
             res = nanocbor_get_tstr(value, &buf, &len);
-
-            char formattedString[len + 1];
-            // Copy the source string into the destination string using snprintf
-            snprintf(formattedString, (int)len + 1, "%.*s", (int)len, buf);
-
             if (res >= 0) {
-                coreconfValue = createCoreconfString((const char*)formattedString);
+                coreconfValue = createCoreconfStringLength((const char*)buf, len);
+            }
+        } break;
+        case NANOCBOR_TYPE_TAG: {
+            // Keep any tag (RFC 9254 uses 43-47 inside unions) around its decoded value
+            uint32_t tagNumber = 0;
+            res = nanocbor_get_tag(value, &tagNumber);
+            if (res >= 0) {
+                CoreconfValueT* tagged = cborToCoreconfValue(value, indent + 1);
+                if (tagged == NULL) {
+                    return NULL;
+                }
+                coreconfValue = createCoreconfTag(tagNumber, tagged);
+                if (coreconfValue == NULL) {
+                    freeCoreconf(tagged, true);
+                }
             }
         } break;
         case NANOCBOR_TYPE_ARR: {
             coreconfValue = createCoreconfArray();
             res = _parse_array(value, coreconfValue, indent);
             if (res < 0) {
-                freeCoreconfHashMap(coreconfValue->data.map_value);
-                free(coreconfValue);
+                freeCoreconf(coreconfValue, true);
                 return NULL;
             }
         } break;
@@ -185,18 +208,18 @@ CoreconfValueT* cborToCoreconfValue(nanocbor_value_t* value, unsigned indent) {
             coreconfValue = createCoreconfHashmap();
             res = _parse_map(value, coreconfValue, indent);
             if (res < 0) {
-                freeCoreconfHashMap(coreconfValue->data.map_value);
-                free(coreconfValue);
+                freeCoreconf(coreconfValue, true);
                 return NULL;
             }
         } break;
         // NOTE: There is no NANOCBOR_TYPE_DOUBLE mask, which is weird?!
         // NANOCBOR_TYPE_FLOAT includes both floating-point numbers and simple values (bool, null, etc.)
         case NANOCBOR_TYPE_FLOAT: {
-            // Try boolean first
+            // null first (YANG empty, RFC 9254 section 6.9), then boolean, then double
             bool boolValue = false;
-            res = nanocbor_get_bool(value, &boolValue);
-            if (res >= 0) {
+            if (nanocbor_get_null(value) >= 0) {
+                coreconfValue = createCoreconfNull();
+            } else if ((res = nanocbor_get_bool(value, &boolValue)) >= 0) {
                 coreconfValue = createCoreconfBoolean(boolValue);
             } else {
                 // Try double
@@ -207,7 +230,6 @@ CoreconfValueT* cborToCoreconfValue(nanocbor_value_t* value, unsigned indent) {
                 }
             }
         } break;
-        // TODO Future Custom TAGS for Coreconf
         default:
             break;
     }
@@ -226,7 +248,9 @@ int _parse_array(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigne
             printf("Error: cborToCoreconfValue returned NULL in array\n");
             return -1;
         }
+        // The array stores a copy of the value struct; free the now-empty wrapper
         addToCoreconfArray(coreconfValue, arrayValue);
+        free(arrayValue);
     }
     if (nanocbor_leave_container(value, &cborArrayValue) < 0) {
         printf("Error leaving array container\n");
