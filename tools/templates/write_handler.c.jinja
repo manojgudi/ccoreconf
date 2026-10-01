@@ -5,7 +5,7 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         printf("Error: Expected boolean type for SID {{ sid }}\n");
         return -1;
     }
-{% elif type in ["uint8", "uint16", "uint32", "uint64"] %}
+{% elif type in ["uint8", "uint16", "uint32", "uint64", "identityref"] %}
     if (!isTypeUint(value->type)) {
         printf("Error: Expected unsigned integer type for SID {{ sid }}\n");
         return -1;
@@ -25,7 +25,7 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
 {% if type == "boolean" %}
     {{ c_type }} nativeValue = (value->type == CORECONF_TRUE);
-{% elif type in ["uint8", "uint16", "uint32", "uint64"] %}
+{% elif type in ["uint8", "uint16", "uint32", "uint64", "identityref"] %}
     {{ c_type }} nativeValue = getCoreconfValueAsUint64(value);
 {% elif type in ["int8", "int16", "int32", "int64"] %}
     {{ c_type }} nativeValue = getCoreconfValueAsInt64(value);

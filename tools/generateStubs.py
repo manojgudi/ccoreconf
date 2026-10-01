@@ -1,11 +1,4 @@
-# /// script
-# requires-python = ">=3.13"
-# dependencies = [
-#     "cbor2",
-#     "jinja2",
-#     "pycoreconf @ git+ssh://git@github.com/budhe888/pycoreconf",
-# ]
-# ///
+# Dependencies: see tools/requirements.txt (install into a venv)
 
 # Read a SID JSON file and Generate a C header file with stubs for all the SID functions
 
@@ -13,7 +6,6 @@
 # Read the .sid file and parse it as JSON
 import argparse
 import json
-import cbor2
 import pycoreconf
 import os
 import re
@@ -46,7 +38,7 @@ cborTypeToCMapping = {
     "bytes": "uint8_t *",
     "array": "uint8_t *",
     "enum": "enum",
-    "identityref": "char *",  # Map identityref to a char* since we dont have identityMap
+    "identityref": "uint64_t",  # The identity's SID (RFC 9254); name via ccoreconfModelLookupIdentifier()
     "void": "void",
 }
 
@@ -70,7 +62,7 @@ defaultTypeValue = {
     "bytes": "NULL",
     "array": "NULL",
     "enum": "enum",
-    "identityref": "NULL",
+    "identityref": "0",
     "void": "NULL",
 }
 
@@ -86,6 +78,7 @@ coreconfTypeConstructors = {
     "int64": "createCoreconfInt64",
     "boolean": "createCoreconfBoolean",
     "string": "createCoreconfString",
+    "identityref": "createCoreconfUint64",
     "float32": "createCoreconfReal",
     "float64": "createCoreconfReal",
     "decimal64": "createCoreconfReal",
@@ -103,6 +96,7 @@ coreconfTypeEnums = {
     "int64": "CORECONF_INT_64",
     "boolean": "CORECONF_TRUE",  # Will check value at runtime
     "string": "CORECONF_STRING",
+    "identityref": "CORECONF_UINT_64",
     "float32": "CORECONF_REAL",
     "float64": "CORECONF_REAL",
     "decimal64": "CORECONF_REAL",
@@ -120,6 +114,7 @@ coreconfTypeDataFields = {
     "int64": "i64",
     "boolean": "u8",  # Boolean is stored as u8
     "string": "string_value",
+    "identityref": "u64",
     "float32": "real_value",
     "float64": "real_value",
     "decimal64": "real_value",
@@ -157,16 +152,15 @@ def formatIdentifier(identifier, max_words=2):
     return id_name
 
 
-def generateSIDPreprocessors(model, max_words=2):
+def collectEnumTypes(model, max_words=2):
     """
-    Take pycoreconf generated model as input and generate C headers for all the sids using Jinja2
+    Collect the C enum definitions for all enumeration leaves into the
+    enumTypes / functionNameWithEnumTypes globals
 
     Args:
         model: The pycoreconf model
         max_words: Maximum number of words to use from identifier path
     """
-    sid_defines = []
-
     for identifier, sid in model.sids.items():
         if identifier not in model.types:
             continue
@@ -190,21 +184,6 @@ def generateSIDPreprocessors(model, max_words=2):
             # Signal the code generator that this is an enum type
             enumTypes[enumTypeName] = enumDefinition
             functionNameWithEnumTypes[functionName] = enumTypeName
-
-            sid_defines.append({
-                'name': formattedItemIdentifier.upper(),
-                'sid': sid
-            })
-        elif itemType in cborTypeToCMapping:
-            sid_defines.append({
-                'name': formattedItemIdentifier.upper(),
-                'sid': sid
-            })
-
-    # Render template
-    env = get_jinja_env()
-    template = env.get_template('sid_defines.h.jinja')
-    return template.render(sid_defines=sid_defines)
 
 
 def generateFunctionPreprocessors(functionPrefix, sid, identifier, max_words=2):
@@ -583,8 +562,6 @@ def findKeysForLeavesBySID(itemSID, model):
     itemIdentifier = model.ids[itemSID]
     requiredSIDKeys = []
 
-    print("DEETS", itemSID, itemIdentifier)
-
     # If itemSID is itself in keyMapping, then add its keys to requiredSIDKeys
     if str(itemSID) in model.key_mapping:
         sidKeys = model.key_mapping[str(itemSID)]
@@ -640,7 +617,7 @@ def main():
     args = parser.parse_args()
 
     # User implementation files (stubs that user modifies)
-    implHeaderFile = "./%s-impl-template.h" % args.proto
+    implHeaderFile = "./%s-impl.h" % args.proto
     implSourceFile = "./%s-impl-template.c" % args.proto
 
     # Handler wrapper files (auto-generated, don't modify)
@@ -678,24 +655,12 @@ def main():
         if int(listSid) in ccm.ids:
             listSIDs.add(int(listSid))
 
-    # Contain all the contents of the H & C file
-    hCode = ""
-    cCode = ""
-
-    # Iterate through dataItems and generate preprocessor directives for each item
-    preprocessorDirectives = generateSIDPreprocessors(ccm, args.max_identifier_words)
-    hCode += preprocessorDirectives + "\n\n"
+    # Enum types are needed by the read/write prototypes below
+    collectEnumTypes(ccm, args.max_identifier_words)
 
     # Iterate through dataItems and generate C code for each item
     implHCode = ""  # User implementation prototypes
     implCCode = ""  # User implementation stubs
-
-    # Add CBOR mapping to the implementation source file
-    # Dump the key_mapping into CBOR mapping
-    cborMapping = cbor2.dumps(ccm.key_mapping)
-    # Format the string to store as bytestrings in C
-    cborMapping = str(cborMapping).replace("b'", "").replace("'", "")
-    implCCode += '\nchar* keyMapping = "%s";\n' % (cborMapping)
 
     handlerHCode = ""  # Handler wrapper prototypes
     handlerCCode = ""  # Handler wrapper implementations
@@ -767,6 +732,7 @@ def main():
         writeStub = sidItem.generateCSetMethods()
         if writeStub:
             implCCode += writeStub + "\n"
+            implHCode += sidItem.functionPrototype + "\n"
 
         # Generate handler wrappers (handler_read_*/handler_write_*)
         readWrapper = sidItem.generateReadHandlerWrapper()
@@ -799,6 +765,8 @@ def main():
 
     # Per-model registration function, e.g. proto "sid-prototypes" -> sidPrototypesRegisterHandlers
     protoWords = [w for w in re.split(r'[^0-9A-Za-z]+', args.proto) if w]
+    if protoWords[0][0].isdigit():
+        protoWords.insert(0, "model")
     registerFunction = protoWords[0][0].lower() + protoWords[0][1:] + ''.join(w[0].upper() + w[1:] for w in protoWords[1:]) + 'RegisterHandlers'
 
     # Finalize handler header

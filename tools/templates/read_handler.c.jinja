@@ -19,7 +19,7 @@ CoreconfValueT* handler_read_{{ sid }}(SIDHandlerContextT *ctx) {
         return result;
     }
 {% else %}
-    // Convert native type to CoreconfValueT
-    return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
+    // Return the user's value; the caller owns (and frees) the new CoreconfValueT
+    return {{ constructor_function }}(result);
 {% endif %}
 }
