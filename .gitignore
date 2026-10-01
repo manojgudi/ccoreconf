@@ -1,8 +1,6 @@
 # Ignore files without extensions
 # Ignore all
 *
-# Claude files
-.claude/
 
 # Unignore all with extensions
 !*.*
@@ -76,3 +74,12 @@ ccoreconfTargets*.cmake
 
 # Local review notes, never committed
 pending/
+
+# Claude files
+.claude/
+patches/
+# Local design notes, never committed
+plans/
+
+# Python virtual env
+myenv/
