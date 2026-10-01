@@ -51,7 +51,7 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->coreconfModel, ctx->pathNode, {{ sid }}, &finalDeltaSID);
+            ctx->model->root, ctx->pathNode, {{ sid }}, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);

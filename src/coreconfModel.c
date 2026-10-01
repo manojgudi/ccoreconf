@@ -254,6 +254,10 @@ void ccoreconfModelFree(CoreconfModelT *model) {
         hashmap_free(model->SIDIdentifierHashmap);
         model->SIDIdentifierHashmap = NULL;
     }
+    if (model->handlerHashmap != NULL) {
+        hashmap_free(model->handlerHashmap);
+        model->handlerHashmap = NULL;
+    }
     if (model->root != NULL) {
         freeCoreconf(model->root, true);
         model->root = NULL;

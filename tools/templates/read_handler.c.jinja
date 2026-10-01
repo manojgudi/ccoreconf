@@ -14,12 +14,12 @@ CoreconfValueT* handler_read_{{ sid }}(SIDHandlerContextT *ctx) {
 
 {% if is_container_or_list %}
     if (result == NULL) {
-        return examineCoreconfValue(ctx->coreconfModel, ctx->keys, ctx->pathNode);
+        return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
     } else {
         return result;
     }
 {% else %}
     // Convert native type to CoreconfValueT
-    return examineCoreconfValue(ctx->coreconfModel, ctx->keys, ctx->pathNode);
+    return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
 {% endif %}
 }

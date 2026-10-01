@@ -1,16 +1,13 @@
 #include "sid_handlers.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 // Include ccoreconf headers for hashmap
 #include "hashmap.h"
-#include "coreconfTypes.h"
-#include "sid.h"
-
-// Global handler registry (hashmap of SIDHandlerEntryT keyed by SID)
-static struct hashmap *handlerRegistry = NULL;
+#include "coreconfModel.h"
 
 /**
  * Hash function for SIDHandlerEntryT based on SID
@@ -31,50 +28,31 @@ static int SIDHandlerCompare(const void *a, const void *b, void *udata) {
     return (entry1->SID != entry2->SID);
 }
 
-/**
- * Free function for SIDHandlerEntryT
- * Called when hashmap entries are freed
- */
-static void SIDHandlerFree(void *item) {
-    // SIDHandlerEntryT doesn't allocate any internal memory
-    // The identifier and type strings are owned by the caller (typically const strings)
-    // So nothing to free
-    (void)item;
-}
-
-int initializeSIDHandlerRegistry(void) {
-    if (handlerRegistry != NULL) {
-        fprintf(stderr, "Handler registry already initialized\n");
-        return -1;
-    }
-
-    handlerRegistry = hashmap_new(sizeof(SIDHandlerEntryT), 0, 0, 0,
-                                   SIDHandlerHash, SIDHandlerCompare,
-                                   SIDHandlerFree, NULL);
-
-    if (handlerRegistry == NULL) {
-        fprintf(stderr, "Failed to create handler registry\n");
-        return -1;
-    }
-
-    printf("SID handler registry initialized\n");
-    return 0;
-}
-
-int registerSIDHandler(uint64_t SID,
-                       SIDReadHandler readHandler,
-                       SIDWriteHandler writeHandler,
-                       const char *identifier,
-                       const char *type) {
-    if (handlerRegistry == NULL) {
-        fprintf(stderr, "Handler registry not initialized\n");
+int ccoreconfModelRegisterHandler(CoreconfModelT *model,
+                                  uint64_t SID,
+                                  SIDReadHandler readHandler,
+                                  SIDWriteHandler writeHandler,
+                                  const char *identifier,
+                                  const char *type) {
+    if (model == NULL) {
+        fprintf(stderr, "ccoreconfModelRegisterHandler: model is NULL\n");
         return -1;
     }
 
     // At least one handler must be provided
     if (readHandler == NULL && writeHandler == NULL) {
-        fprintf(stderr, "At least one handler (read or write) must be provided for SID %lu\n", SID);
+        fprintf(stderr, "At least one handler (read or write) must be provided for SID %" PRIu64 "\n", SID);
         return -1;
+    }
+
+    // Entries own no memory (identifier and type are borrowed), so no free callback
+    if (model->handlerHashmap == NULL) {
+        model->handlerHashmap = hashmap_new(sizeof(SIDHandlerEntryT), 0, 0, 0,
+                                            SIDHandlerHash, SIDHandlerCompare, NULL, NULL);
+        if (model->handlerHashmap == NULL) {
+            fprintf(stderr, "Failed to create handler registry\n");
+            return -1;
+        }
     }
 
     // Determine capability based on which handlers are provided
@@ -98,48 +76,39 @@ int registerSIDHandler(uint64_t SID,
     };
 
     // Add to registry (hashmap_set will copy the entry)
-    const SIDHandlerEntryT *existing = hashmap_set(handlerRegistry, &entry);
-
-    if (existing != NULL) {
-        printf("Warning: Replacing existing handler for SID %lu\n", SID);
+    const SIDHandlerEntryT *existing = hashmap_set(model->handlerHashmap, &entry);
+    if (existing == NULL && hashmap_oom(model->handlerHashmap)) {
+        fprintf(stderr, "Out of memory registering handler for SID %" PRIu64 "\n", SID);
+        return -1;
     }
 
-    printf("Registered handler for SID %lu (%s)\n", SID, identifier ? identifier : "unknown");
+    if (existing != NULL) {
+        printf("Warning: Replacing existing handler for SID %" PRIu64 "\n", SID);
+    }
+
+    printf("Registered handler for SID %" PRIu64 " (%s)\n", SID, identifier ? identifier : "unknown");
     return 0;
 }
 
-SIDHandlerEntryT* lookupSIDHandler(uint64_t SID) {
-    if (handlerRegistry == NULL) {
+const SIDHandlerEntryT *ccoreconfModelLookupHandler(CoreconfModelT *model, uint64_t SID) {
+    if (model == NULL || model->handlerHashmap == NULL) {
         return NULL;
     }
 
     // Create a temporary entry for lookup
     SIDHandlerEntryT lookup = { .SID = SID };
-    return (SIDHandlerEntryT*)hashmap_get(handlerRegistry, &lookup);
+    return (const SIDHandlerEntryT *)hashmap_get(model->handlerHashmap, &lookup);
 }
 
-void freeSIDHandlerRegistry(void) {
-    if (handlerRegistry != NULL) {
-        hashmap_free(handlerRegistry);
-        handlerRegistry = NULL;
-        printf("SID handler registry freed\n");
-    }
-}
-
-size_t getHandlerCount(void) {
-    if (handlerRegistry == NULL) {
+size_t ccoreconfModelHandlerCount(CoreconfModelT *model) {
+    if (model == NULL || model->handlerHashmap == NULL) {
         return 0;
     }
-    return hashmap_count(handlerRegistry);
+    return hashmap_count(model->handlerHashmap);
 }
 
-void printHandlerRegistry(void) {
-    if (handlerRegistry == NULL) {
-        printf("Handler registry not initialized\n");
-        return;
-    }
-
-    size_t count = hashmap_count(handlerRegistry);
+void ccoreconfModelPrintHandlers(CoreconfModelT *model) {
+    size_t count = ccoreconfModelHandlerCount(model);
     printf("\n=== SID Handler Registry (%zu handlers) ===\n", count);
 
     if (count == 0) {
@@ -149,7 +118,7 @@ void printHandlerRegistry(void) {
 
     size_t iter = 0;
     void *item;
-    while (hashmap_iter(handlerRegistry, &iter, &item)) {
+    while (hashmap_iter(model->handlerHashmap, &iter, &item)) {
         const SIDHandlerEntryT *entry = (const SIDHandlerEntryT *)item;
 
         const char *cap_str;
@@ -168,7 +137,7 @@ void printHandlerRegistry(void) {
                 break;
         }
 
-        printf("  SID %lu: %s [%s]\n",
+        printf("  SID %" PRIu64 ": %s [%s]\n",
                entry->SID,
                entry->identifier ? entry->identifier : "unknown",
                cap_str);

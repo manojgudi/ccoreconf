@@ -16,6 +16,7 @@ import json
 import cbor2
 import pycoreconf
 import os
+import re
 from jinja2 import Environment, FileSystemLoader
 
 # Set up Jinja2 environment
@@ -784,7 +785,7 @@ def main():
             readHandler = f"handler_read_{sid}" if readWrapper else "NULL"
             writeHandler = f"handler_write_{sid}" if writeWrapper else "NULL"
             registrationCalls.append(
-                f'    registerSIDHandler({sid}, {readHandler}, {writeHandler}, "{identifier}", "{itemType}");'
+                f'    ccoreconfModelRegisterHandler(model, {sid}, {readHandler}, {writeHandler}, "{identifier}", "{itemType}");'
             )
 
     # Add enum type
@@ -796,9 +797,13 @@ def main():
     implHCode += "// Implement these functions in your code\n\n"
     implHCode += '#endif\n'
 
+    # Per-model registration function, e.g. proto "sid-prototypes" -> sidPrototypesRegisterHandlers
+    protoWords = [w for w in re.split(r'[^0-9A-Za-z]+', args.proto) if w]
+    registerFunction = protoWords[0][0].lower() + protoWords[0][1:] + ''.join(w[0].upper() + w[1:] for w in protoWords[1:]) + 'RegisterHandlers'
+
     # Finalize handler header
     handlerHCode += "\n// Handler registration function\n"
-    handlerHCode += "void registerGeneratedHandlers(void);\n"
+    handlerHCode += f"void {registerFunction}(CoreconfModelT *model);\n"
     handlerHCode += '#endif\n'
 
     # Generate the registration function using template
@@ -807,9 +812,8 @@ def main():
         # Build handler list from registration calls
         for call in registrationCalls:
             # Parse the registration call to extract handler info
-            # Format: registerSIDHandler(sid, read_handler, write_handler, "identifier", "type");
-            import re
-            match = re.search(r'registerSIDHandler\((\d+), (.+?), (.+?), "(.+?)", "(.+?)"\)', call)
+            # Format: ccoreconfModelRegisterHandler(model, sid, read_handler, write_handler, "identifier", "type");
+            match = re.search(r'ccoreconfModelRegisterHandler\(model, (\d+), (.+?), (.+?), "(.+?)", "(.+?)"\)', call)
             if match:
                 handlers.append({
                     'sid': match.group(1),
@@ -821,7 +825,7 @@ def main():
 
     env = get_jinja_env()
     template = env.get_template('registration.c.jinja')
-    registrationFunction = template.render(handlers=handlers)
+    registrationFunction = template.render(handlers=handlers, register_function=registerFunction)
 
     handlerCCode += registrationFunction
 

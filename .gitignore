@@ -1,6 +1,8 @@
 # Ignore files without extensions
 # Ignore all
 *
+# Claude files
+.claude/
 
 # Unignore all with extensions
 !*.*
@@ -71,3 +73,6 @@ ccoreconfTargets*.cmake
 .pi-lens/
 *.cmake.in
 
+
+# Local review notes, never committed
+pending/

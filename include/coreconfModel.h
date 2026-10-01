@@ -7,6 +7,7 @@
 #include "coreconfManipulation.h"
 #include "coreconfTypes.h"
 #include "hashmap.h"
+#include "sid_handlers.h"
 
 /*
  * CoreconfModelT — a fully self-describing CORECONF model.
@@ -37,10 +38,9 @@ typedef struct CoreconfModel {
     struct hashmap *identifierSIDHashmap;   /* const char *identifier -> uint64_t SID */
     struct hashmap *SIDIdentifierHashmap;   /* uint64_t SID -> const char *identifier */
 
-    /* Reserved for step 6:
-     *   struct hashmap *identifierTypeHashmap;
-     *   struct hashmap *handlerHashmap;
-     */
+    /* SID -> SIDHandlerEntryT.  NULL until the first
+     * ccoreconfModelRegisterHandler call (see sid_handlers.h). */
+    struct hashmap *handlerHashmap;
 } CoreconfModelT;
 
 /* ------------------------------------------------------------------------- *
