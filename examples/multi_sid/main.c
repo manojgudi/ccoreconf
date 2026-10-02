@@ -157,7 +157,8 @@ static int runDeepQueries(CoreconfModelT *model) {
         }
 
         /* Returns { leafSID: <node borrowed from the model tree> }.  The node
-         * is not ours, so this wrapper must NOT be handed to freeCoreconf. */
+         * is not ours: free only the wrapper, with freeExaminedCoreconfValue(),
+         * never with freeCoreconf(). */
         CoreconfValueT *hit = ccoreconfModelExamineCoreconfValue(model, keys, path);
         CoreconfValueT *leaf = hit ? getCoreconfHashMap(hit->data.map_value, tc->leafSID) : NULL;
 
@@ -166,6 +167,7 @@ static int runDeepQueries(CoreconfModelT *model) {
         printf("  %s: %s  leaf %" PRIu64 "  got %-20s expected %s\n",
                tc->name, ok ? "PASS" : "FAIL", tc->leafSID, got, tc->expected);
 
+        freeExaminedCoreconfValue(hit);
         freeDynamicLongList(keys);
         freePathNode(path);
         passed += ok;
