@@ -131,6 +131,7 @@ PathNodeT *findRequirementForSID(uint64_t SID, struct hashmap *clookupHashmap, s
         clookup = (CLookupT *)hashmap_get(clookupHashmap, &(CLookupT){.childSID = currentSID});
         if (!clookup) {
             fprintf(stderr, "SID %" PRId64 " not found in the clookupHashmap\n", SID);
+            freePathNode(pathNodes);
             return NULL;
         }
 
