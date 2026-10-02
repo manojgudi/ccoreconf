@@ -23,6 +23,11 @@ set(CMAKE_C_EXTENSIONS OFF) # portable; use strict -std=c11
 # -DCWARN_AS_ERROR=OFF.
 option(CWARN_AS_ERROR "Promote compiler warnings to errors" ON)
 
+# Memory-error checking for development and tests: AddressSanitizer catches
+# out-of-bounds reads/writes, use-after-free and leaks; UBSan catches undefined
+# behaviour.  Slower and larger, so never for release or embedded builds.
+option(CCORECONF_SANITIZE "Build with AddressSanitizer + UndefinedBehaviorSanitizer" OFF)
+
 # ---------------------------------------------------------------------------
 # nanocbor discovery
 # ---------------------------------------------------------------------------
@@ -160,6 +165,13 @@ if(CWARN_AS_ERROR)
 endif()
 target_compile_options(ccoreconf PRIVATE ${_ccoreconf_warnings})
 
+# PUBLIC: every program linking ccoreconf must also be built with the sanitizers
+if(CCORECONF_SANITIZE)
+    set(_ccoreconf_sanitize -fsanitize=address,undefined -fno-omit-frame-pointer)
+    target_compile_options(ccoreconf PUBLIC ${_ccoreconf_sanitize})
+    target_link_options(ccoreconf PUBLIC ${_ccoreconf_sanitize})
+endif()
+
 # ccoreconfAddModel(), for projects that generate their model at build time
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CcoreconfModels.cmake)
 
@@ -214,6 +226,7 @@ message(STATUS "  Version:           ${PROJECT_VERSION}")
 message(STATUS "  C compiler:        ${CMAKE_C_COMPILER}")
 message(STATUS "  Build type:        ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Shared library:    ${BUILD_SHARED_LIBS}")
+message(STATUS "  Sanitizers:        ${CCORECONF_SANITIZE}")
 message(STATUS "  nanocbor include:  ${NANOCBOR_INCLUDE_DIRS}")
 message(STATUS "  nanocbor library:  ${NANOCBOR_LIBRARIES}")
 message(STATUS "")
