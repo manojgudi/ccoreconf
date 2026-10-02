@@ -7,7 +7,6 @@
         "sid.h":                  "c",
         "sid_handlers.h":         "c",
         "nanocbor.h":             "c",
-        "coreconf_model_cbor.h":  "c",
         "stdbool.h":              "c",
         "stddef.h":               "c",
         "stdint.h":               "c",

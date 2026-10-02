@@ -9,9 +9,7 @@ project(ccoreconf
 # ---------------------------------------------------------------------------
 # Options
 # ---------------------------------------------------------------------------
-option(BUILD_EXAMPLES    "Build example programs"               ON)
 option(BUILD_SHARED_LIBS "Build ccoreconf as a shared library"   OFF)
-option(INSTALL_EXAMPLES  "Install example executables"          OFF)
 
 # ---------------------------------------------------------------------------
 # C language settings
@@ -162,16 +160,8 @@ if(CWARN_AS_ERROR)
 endif()
 target_compile_options(ccoreconf PRIVATE ${_ccoreconf_warnings})
 
-# ccoreconfAddModel() -- defined before add_subdirectory(examples) so
-# examples/CMakeLists.txt can call it.
+# ccoreconfAddModel(), for projects that generate their model at build time
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CcoreconfModels.cmake)
-
-# ---------------------------------------------------------------------------
-# Examples
-# ---------------------------------------------------------------------------
-if(BUILD_EXAMPLES)
-    add_subdirectory(examples)
-endif()
 
 # ---------------------------------------------------------------------------
 # Install + package config
@@ -224,8 +214,6 @@ message(STATUS "  Version:           ${PROJECT_VERSION}")
 message(STATUS "  C compiler:        ${CMAKE_C_COMPILER}")
 message(STATUS "  Build type:        ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Shared library:    ${BUILD_SHARED_LIBS}")
-message(STATUS "  Build examples:    ${BUILD_EXAMPLES}")
-message(STATUS "  Install examples:  ${INSTALL_EXAMPLES}")
 message(STATUS "  nanocbor include:  ${NANOCBOR_INCLUDE_DIRS}")
 message(STATUS "  nanocbor library:  ${NANOCBOR_LIBRARIES}")
 message(STATUS "")

@@ -4,9 +4,6 @@ project(schc_demo C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-# Don't rebuild the library's own examples/ from inside this demo.
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-
 # The ccoreconf library lives two levels up: multi_sid -> examples -> ccoreconf.
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../.. ${CMAKE_CURRENT_BINARY_DIR}/ccoreconf-build)
 

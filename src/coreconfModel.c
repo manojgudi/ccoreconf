@@ -8,7 +8,7 @@
  * (root, clookupHashmap, keymapHashmap) tuples.
  *
  * The legacy single-model APIs are untouched, so existing call sites
- * (notably examples/demo_functionalities_coreconf.c) keep working.
+ * keep working.
  */
 
 #include "../include/coreconfModel.h"
