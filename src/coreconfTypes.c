@@ -248,16 +248,11 @@ void freeCoreconfHashMap(CoreconfHashMapT* map) {
     for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
         CoreconfObjectT* current = map->table[i];
         while (current != NULL) {
-            if (current->next != NULL) {
-                CoreconfObjectT* next = current->next;
-                // Free the value only if its not null
-                if (current->value != NULL) freeCoreconf(current->value, false);
-                free(current);
-                current = next;
-            } else {
-                free(current);
-                current = NULL;
-            }
+            CoreconfObjectT* next = current->next;
+            // Map values are allocated one by one (unlike array elements), so free each one entirely
+            freeCoreconf(current->value, true);
+            free(current);
+            current = next;
         }
     }
     free(map);
