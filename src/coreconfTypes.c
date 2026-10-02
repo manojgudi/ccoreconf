@@ -272,7 +272,7 @@ void printCoreconfMap(CoreconfHashMapT* map) {
 
 void printCoreconfObject(CoreconfObjectT* obj) {
     if (!obj) return;
-    printf("Key: %d Value: ", (int)obj->key);
+    printf("Key: %" PRIu64 " Value: ", obj->key);
     printCoreconf(obj->value);
     printf(", ");
     // printf("\n");
