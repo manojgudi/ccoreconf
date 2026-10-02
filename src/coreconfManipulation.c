@@ -316,7 +316,9 @@ void buildCLookupHashmapFromCoreconf(CoreconfValueT *coreconfValue, struct hashm
                     initializeDynamicLongList(clookup->dynamicLongList);
                     // Add the parentSID only if it doesn't exist in the dynamicLongList
                     addUniqueLong(clookup->dynamicLongList, parentSID);
+                    // hashmap_set copies the struct; the map now owns the list
                     hashmap_set(clookupHashmap, clookup);
+                    free(clookup);
                 } else {
                     // Add parentSID to the dynamicLongList only if it doesn't exist already
                     addUniqueLong(clookup->dynamicLongList, parentSID);

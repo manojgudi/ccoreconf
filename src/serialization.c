@@ -401,8 +401,9 @@ struct hashmap* cborToKeyMappingHashMap(nanocbor_value_t* value) {
         }
         nanocbor_leave_container(&map, &array);
 
-        // Insert into the hashmap
+        // Insert into the hashmap: hashmap_set copies the struct, the map now owns the list
         hashmap_set(keyMappingHashMap, keyMapping);
+        free(keyMapping);
         loopCounter++;
     }
     nanocbor_leave_container(value, &map);
