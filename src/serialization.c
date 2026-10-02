@@ -242,14 +242,40 @@ int _parse_array(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigne
         printf("Error entering array\n");
         return -1;
     }
+
+    // A definite-length CBOR array states its item count up front: allocate
+    // exactly that once, instead of growing per item.  Indefinite-length
+    // arrays have no count, so they grow one item at a time.
+    CoreconfArrayT* array = coreconfValue->data.array_value;
+    bool definite = !nanocbor_container_indefinite(&cborArrayValue);
+    size_t count = 0;
+    if (definite) {
+        count = nanocbor_array_items_remaining(&cborArrayValue);
+        // Every item takes at least one byte, so a larger count is malformed input
+        if (count > (size_t)(cborArrayValue.end - cborArrayValue.cur)) {
+            printf("Error: array length exceeds the input\n");
+            return -1;
+        }
+        if (count > 0) {
+            array->elements = malloc(count * sizeof(CoreconfValueT));
+            if (array->elements == NULL) {
+                return -1;
+            }
+        }
+    }
+
     while (!nanocbor_at_end(&cborArrayValue)) {
         CoreconfValueT* arrayValue = cborToCoreconfValue(&cborArrayValue, indent + 1);
         if (arrayValue == NULL) {
             printf("Error: cborToCoreconfValue returned NULL in array\n");
             return -1;
         }
+        if (definite && array->size < count) {
+            array->elements[array->size++] = *arrayValue;
+        } else {
+            addToCoreconfArray(coreconfValue, arrayValue);
+        }
         // The array stores a copy of the value struct; free the now-empty wrapper
-        addToCoreconfArray(coreconfValue, arrayValue);
         free(arrayValue);
     }
     if (nanocbor_leave_container(value, &cborArrayValue) < 0) {

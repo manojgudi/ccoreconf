@@ -441,16 +441,18 @@ CoreconfValueT* createCoreconfArray(void) {
     return val;
 }
 
+// Grows by exactly one element: no spare room, since RAM is scarce on embedded
+// targets.  Decoded arrays are allocated once at their full length instead
+// (see _parse_array), so this is only used for appends at runtime.
 void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value) {
-    if (arr->data.array_value->elements == NULL) {
-        arr->data.array_value->elements = malloc(sizeof(CoreconfValueT));
-        arr->data.array_value->elements[0] = *value;
-    } else {
-        size_t newSize = arr->data.array_value->size + 1;
-        arr->data.array_value->elements = realloc(arr->data.array_value->elements, newSize * sizeof(CoreconfValueT));
-        arr->data.array_value->elements[newSize - 1] = *value;
+    CoreconfArrayT* array = arr->data.array_value;
+    CoreconfValueT* elements = realloc(array->elements, (array->size + 1) * sizeof(CoreconfValueT));
+    if (elements == NULL) {
+        return;  // Out of memory: the array is left unchanged
     }
-    arr->data.array_value->size++;
+    array->elements = elements;
+    array->elements[array->size] = *value;
+    array->size++;
 }
 
 // Search array for element with matching key, update if found, append if not
