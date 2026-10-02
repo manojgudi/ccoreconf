@@ -9,16 +9,6 @@
 #include "../include/hashmap.h"
 
 #define SID_LENGTH 20
-// Array of string representations for the enum values
-const char *SchemaIdentifierTypeStrings[] = {"String",
-                                             "Unsigned Integer 8bit",
-                                             "Unsigned Integer 16bit",
-                                             "Unsigned Integer 32bit",
-                                             "Unsigned Integer 64bit",
-                                             "RCS Algorithm",
-                                             "Decimal 64bit",
-                                             "Boolean",
-                                             "Identity Ref"};
 
 DynamicLongListT *createDynamicLongList(void) {
     DynamicLongListT *dynamicLongList = (DynamicLongListT *)malloc(sizeof(DynamicLongListT));
@@ -190,48 +180,6 @@ void keyMappingFree(void *item) {
     }
 }
 
-int identifierSIDCompare(const void *a, const void *b, void *udata) {
-    // NOTE Keep it unused for compatibility reasons
-    (void)udata;
-
-    const IdentifierSIDT *identifierSID1 = (IdentifierSIDT *)a;
-    const IdentifierSIDT *identifierSID2 = (IdentifierSIDT *)b;
-    return strcmp(identifierSID1->identifier, identifierSID2->identifier);
-}
-
-uint64_t identifierSIDHash(const void *item, uint64_t seed0, uint64_t seed1) {
-    const IdentifierSIDT *identifierSID = (IdentifierSIDT *)item;
-    return hashmap_sip(identifierSID->identifier, strlen(identifierSID->identifier), seed0, seed1);
-}
-
-int SIDIdentifierCompare(const void *a, const void *b, void *udata) {
-    // NOTE Keep it unused for compatibility reasons
-    (void)udata;
-
-    const SIDIdentifierT *SIDIdentifier1 = (SIDIdentifierT *)a;
-    const SIDIdentifierT *SIDIdentifier2 = (SIDIdentifierT *)b;
-    return (SIDIdentifier1->SID != SIDIdentifier2->SID);
-}
-
-uint64_t SIDIdentifierHash(const void *item, uint64_t seed0, uint64_t seed1) {
-    const SIDIdentifierT *SIDIdentifier = (SIDIdentifierT *)item;
-    return hashmap_murmur(&(SIDIdentifier->SID), sizeof(long), seed0, seed1);
-}
-
-int identifierTypeCompare(const void *a, const void *b, void *udata) {
-    // NOTE Keep it unused for compatibility reasons
-    (void)udata;
-
-    const IdentifierTypeT *identifierType1 = (IdentifierTypeT *)a;
-    const IdentifierTypeT *identifierType2 = (IdentifierTypeT *)b;
-    return strcmp(identifierType1->identifier, identifierType2->identifier);
-}
-
-uint64_t identifierTypeHash(const void *item, uint64_t seed0, uint64_t seed1) {
-    const IdentifierTypeT *identifierType = (IdentifierTypeT *)item;
-    return hashmap_sip(identifierType->identifier, strlen(identifierType->identifier), seed0, seed1);
-}
-
 void printKeyMappingT(const KeyMappingT *keyMapping) {
     printf("\nFor the key %d: \n", (int)keyMapping->key);
 
@@ -242,58 +190,12 @@ void printKeyMappingT(const KeyMappingT *keyMapping) {
     }
 }
 
-void printIdentifierSIDT(const IdentifierSIDT *identifierSID) {
-    printf("\nIdentifier %s: %lu (SID) ", identifierSID->identifier, identifierSID->SID);
-}
-
-void printSIDIdentifierT(const SIDIdentifierT *SIDIdentifier) {
-    printf("\nSID %lu: %s (Identifier) ", SIDIdentifier->SID, SIDIdentifier->identifier);
-}
-
-void printIdentifierTypeT(const IdentifierTypeT *identifierType) {
-    printf("\nIdentifier %s: %s (type) ", identifierType->identifier,
-           SchemaIdentifierTypeStrings[identifierType->type]);
-}
-
 void printKeyMappingHashMap(struct hashmap *keyMappingHashMap) {
     size_t iter = 0;
     void *item;
     while (hashmap_iter(keyMappingHashMap, &iter, &item)) {
         const KeyMappingT *keyMapping = item;
         printKeyMappingT(keyMapping);
-    }
-}
-
-void printHashMap(struct hashmap *anyHashMap, enum HashMapTypeEnum hashmapType) {
-    size_t iter = 0;
-    void *item;
-    const KeyMappingT *keyMapping;
-    const IdentifierSIDT *identifierSID;
-    const SIDIdentifierT *SIDIdentifier;
-    const IdentifierTypeT *identifierType;
-
-    while (hashmap_iter(anyHashMap, &iter, &item)) {
-        switch (hashmapType) {
-            case KEY_MAPPING:
-                keyMapping = item;
-                printKeyMappingT(keyMapping);
-                break;
-            case IDENTIFIER_SID:
-                identifierSID = item;
-                printIdentifierSIDT(identifierSID);
-                break;
-            case SID_IDENTIFIER:
-                SIDIdentifier = item;
-                printSIDIdentifierT(SIDIdentifier);
-                break;
-            case IDENTIFIER_TYPE:
-                identifierType = item;
-                printIdentifierTypeT(identifierType);
-                break;
-            default:
-                fprintf(stderr, "Unknown Hashmap type");
-                break;
-        }
     }
 }
 
