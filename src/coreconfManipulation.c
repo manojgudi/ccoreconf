@@ -188,6 +188,10 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
         currentPathNode = currentPathNode->nextPathNode;
 
         int64_t deltaSID = parentSID - previousSID;
+        // Only a map can be descended into; anything else means the path does not exist here
+        if (subTree->type != CORECONF_HASHMAP) {
+            return NULL;
+        }
         // Fetch the subTree for deltaSID using getCoreconfHashMap
         subTree = getCoreconfHashMap(subTree->data.map_value, deltaSID);
 
@@ -212,8 +216,13 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
 
         // Iterate through the subTree
         size_t arraySize = subTree->data.array_value->size;
+        bool matched = false;
         for (size_t i = 0; i < arraySize; i++) {
             CoreconfValueT *element = &subTree->data.array_value->elements[i];
+            // A list entry is a map of its leaves; skip anything else
+            if (element->type != CORECONF_HASHMAP) {
+                continue;
+            }
 
             // Create a new DynamicLongListT
             DynamicLongListT *requestKeysClone = malloc(sizeof(DynamicLongListT));
@@ -243,6 +252,7 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
             // element
             if (compareDynamicLongList(SIDKeys, SIDKeyValueMatchDynamicLongList)) {
                 subTree = element;
+                matched = true;
                 cloneDynamicLongList(requestKeysClone, requestKeys);
                 freeDynamicLongList(requestKeysClone);
                 freeDynamicLongList(SIDKeyValueMatchDynamicLongList);
@@ -251,6 +261,12 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
 
             freeDynamicLongList(requestKeysClone);
             freeDynamicLongList(SIDKeyValueMatchDynamicLongList);
+        }
+
+        // No entry has these keys: the requested node does not exist.  Without
+        // this, subTree would still be the whole array, read as a map next.
+        if (!matched) {
+            return NULL;
         }
     }
 
