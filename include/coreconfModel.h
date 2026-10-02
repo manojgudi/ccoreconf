@@ -170,7 +170,8 @@ PathNodeT *ccoreconfModelFindRequirementForSID(CoreconfModelT *model, uint64_t S
 
 /** Navigate `model`'s tree along `headNode` using `requestKeys` and
  *  return the matching subtree.  Same semantics as the legacy
- *  examineCoreconfValue. */
+ *  examineCoreconfValue: the returned map borrows its node from the model,
+ *  so free it with freeExaminedCoreconfValue() before ccoreconfModelFree(). */
 CoreconfValueT *ccoreconfModelExamineCoreconfValue(CoreconfModelT *model,
                                                    DynamicLongListT *requestKeys,
                                                    PathNodeT *headNode);

@@ -260,6 +260,22 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
     return returnMap;
 }
 
+void freeExaminedCoreconfValue(CoreconfValueT *examined) {
+    if (examined == NULL || examined->type != CORECONF_HASHMAP) return;
+    // Free the map's entries but not their values: those belong to the model
+    CoreconfHashMapT *map = examined->data.map_value;
+    for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
+        CoreconfObjectT *current = map->table[i];
+        while (current != NULL) {
+            CoreconfObjectT *next = current->next;
+            free(current);
+            current = next;
+        }
+    }
+    free(map);
+    free(examined);
+}
+
 void buildCLookupHashmapFromCoreconf(CoreconfValueT *coreconfValue, struct hashmap *clookupHashmap, int64_t parentSID,
                                      int recursionDepth) {
     // If the depth exceeds than the MAX then return

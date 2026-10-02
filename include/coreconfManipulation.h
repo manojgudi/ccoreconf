@@ -33,7 +33,20 @@ PathNodeT *prependPathNode(PathNodeT *endNode, int64_t parentSID, DynamicLongLis
 void printPathNode(PathNodeT *pathNode);
 void freePathNode(PathNodeT *pathNode);
 PathNodeT *findRequirementForSID(uint64_t SID, struct hashmap *clookupHashmap, struct hashmap *keyMappingHashMap);
+/**
+ * Walk `coreconfValue` along `headNode` (from findRequirementForSID), using
+ * `requestKeys` to pick YANG list entries.  Keys are consumed from the END of
+ * `requestKeys` (it is used as a stack).
+ *
+ * @return A new single-entry map { SID: node }, or NULL if not found.
+ *         Ownership: the map itself is the caller's, but `node` is BORROWED
+ *         from `coreconfValue`.  Free the result with
+ *         freeExaminedCoreconfValue(), never with freeCoreconf(), and only
+ *         while the model is still alive.
+ */
 CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfValue, DynamicLongListT *requestKeys, PathNodeT *headNode);
+/** Free a result of examineCoreconfValue: the wrapper map only, not the borrowed node. */
+void freeExaminedCoreconfValue(CoreconfValueT *examined);
 
 void freeCLookupHashmap(struct hashmap *map);
 /**
