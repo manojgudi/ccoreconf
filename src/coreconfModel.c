@@ -193,7 +193,7 @@ CoreconfModelT *ccoreconfModelLoadDesc(const CoreconfModelDescT *desc) {
     } else {
         model->clookupHashmap = hashmap_new(sizeof(CLookupT), 0, 0, 0,
                                             clookupHash, clookupCompare,
-                                            NULL, NULL);
+                                            clookupFree, NULL);
         if (model->clookupHashmap == NULL) {
             hashmap_free(model->keymapHashmap);
             freeCoreconf(model->root, true);
@@ -236,10 +236,9 @@ void ccoreconfModelFree(CoreconfModelT *model) {
         return;
     }
     if (model->clookupHashmap != NULL) {
-        /* hashmap_free will invoke the elfree callback (clookupFree for
-         * the static-table path, NULL + manual free for the legacy path).
-         * Do NOT also call freeCLookupHashmap() -- that's the legacy path
-         * for NULL-callback hashmaps; calling it here would double-free. */
+        /* Every model clookup map has clookupFree as its free callback,
+         * so hashmap_free frees each entry's list.  Do NOT also call
+         * freeCLookupHashmap() here. */
         hashmap_free(model->clookupHashmap);
         model->clookupHashmap = NULL;
     }
@@ -290,13 +289,14 @@ void ccoreconfModelBuildCLookupHashmap(CoreconfModelT *model) {
     if (model == NULL || model->root == NULL) {
         return;
     }
-    /* Free any pre-existing clookup entries before rebuilding. */
+    /* Drop any pre-existing entries before rebuilding.  hashmap_clear calls
+     * the map's clookupFree callback on each entry (its second argument is
+     * update_cap, not "skip freeing"), so the lists are freed exactly once. */
     if (model->clookupHashmap != NULL) {
-        freeCLookupHashmap(model->clookupHashmap);
         hashmap_clear(model->clookupHashmap, false);
     } else {
         model->clookupHashmap = hashmap_new(sizeof(CLookupT), 0, 0, 0,
-                                            clookupHash, clookupCompare, NULL, NULL);
+                                            clookupHash, clookupCompare, clookupFree, NULL);
         if (model->clookupHashmap == NULL) {
             return;
         }

@@ -327,6 +327,8 @@ void freeCLookupHashmap(struct hashmap *map) {
         CLookupT *clookup = (CLookupT *)item;
         if (clookup->dynamicLongList) {
             freeDynamicLongList(clookup->dynamicLongList);
+            // NULL it, like clookupFree, so a later free of the same map is harmless
+            clookup->dynamicLongList = NULL;
         }
     }
 }
