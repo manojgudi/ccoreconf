@@ -512,9 +512,6 @@ void freeCoreconf(CoreconfValueT* val, bool freeValue) {
 
     // freeValue is true when the value is not part of an array
     if (freeValue) free(val);
-
-    // Set val as NULL
-    val = NULL;
 }
 
 // Iterate over CoreconfHashMap and apply a function to each CoreconfObject value
