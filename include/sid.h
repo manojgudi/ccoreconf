@@ -74,6 +74,7 @@ typedef struct SIDModelStruct {
 } SIDModelT;
 
 DynamicLongListT *createDynamicLongList(void);
+// Empties the list and frees its buffer: only for lists from createDynamicLongList
 void initializeDynamicLongList(DynamicLongListT *dynamicLongList);
 void addLong(DynamicLongListT *dynamicLongList, long value);
 long getLong(DynamicLongListT *dynamicLongList, bool removeFromList);

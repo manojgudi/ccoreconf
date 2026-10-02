@@ -373,8 +373,7 @@ struct hashmap* cborToKeyMappingHashMap(nanocbor_value_t* value) {
         }
         KeyMappingT* keyMapping = malloc(sizeof(KeyMappingT));
         keyMapping->key = key;
-        keyMapping->dynamicLongList = malloc(sizeof(DynamicLongListT));
-        initializeDynamicLongList(keyMapping->dynamicLongList);
+        keyMapping->dynamicLongList = createDynamicLongList();
 
         nanocbor_value_t array;
         if (nanocbor_enter_array(&map, &array) < NANOCBOR_OK) {

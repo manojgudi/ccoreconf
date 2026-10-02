@@ -49,7 +49,7 @@ PathNodeT *createPathNode(int64_t parentSID, DynamicLongListT *SIDKeys) {
     // Make a deep copy to decouple PathNodeT from keyMappingHashMap ownership.
     // This prevents use-after-free when either structure is destroyed.
     if (SIDKeys) {
-        DynamicLongListT *SIDKeysCopy = malloc(sizeof(DynamicLongListT));
+        DynamicLongListT *SIDKeysCopy = createDynamicLongList();
         cloneDynamicLongList(SIDKeys, SIDKeysCopy);
         pathNode->SIDKeys = SIDKeysCopy;
     } else {
@@ -226,12 +226,11 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
             }
 
             // Create a new DynamicLongListT
-            DynamicLongListT *requestKeysClone = malloc(sizeof(DynamicLongListT));
+            DynamicLongListT *requestKeysClone = createDynamicLongList();
             // Clone requestKeys
             cloneDynamicLongList(requestKeys, requestKeysClone);
             // Create SIDKeyValueMatchDynamicLongList
-            DynamicLongListT *SIDKeyValueMatchDynamicLongList = malloc(sizeof(DynamicLongListT));
-            initializeDynamicLongList(SIDKeyValueMatchDynamicLongList);
+            DynamicLongListT *SIDKeyValueMatchDynamicLongList = createDynamicLongList();
 
             // Iterate through SIDKeys
             for (int i = 0; i < (int)SIDKeys->size; i++) {
@@ -312,8 +311,7 @@ void buildCLookupHashmapFromCoreconf(CoreconfValueT *coreconfValue, struct hashm
                 if (!clookup) {
                     clookup = malloc(sizeof(CLookupT));
                     clookup->childSID = childSIDValue;
-                    clookup->dynamicLongList = malloc(sizeof(DynamicLongListT));
-                    initializeDynamicLongList(clookup->dynamicLongList);
+                    clookup->dynamicLongList = createDynamicLongList();
                     // Add the parentSID only if it doesn't exist in the dynamicLongList
                     addUniqueLong(clookup->dynamicLongList, parentSID);
                     // hashmap_set copies the struct; the map now owns the list

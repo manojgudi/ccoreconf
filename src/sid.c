@@ -32,10 +32,13 @@ DynamicLongListT *createDynamicLongList(void) {
     return dynamicLongList;
 }
 
+// Empty a list made by createDynamicLongList (or already initialized), freeing
+// its old buffer.  addLong allocates on demand: realloc(NULL, n) is malloc(n).
 void initializeDynamicLongList(DynamicLongListT *dynamicLongList) {
     // If its NULL, do nothing;
     if (!dynamicLongList) return;
-    dynamicLongList->longList = malloc(sizeof(long));
+    free(dynamicLongList->longList);
+    dynamicLongList->longList = NULL;
     dynamicLongList->size = 0;
 }
 
