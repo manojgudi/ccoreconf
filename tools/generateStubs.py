@@ -5,7 +5,6 @@
 # Import argparse and write a command line parser to accept .sid file as input
 # Read the .sid file and parse it as JSON
 import argparse
-import json
 import pycoreconf
 import os
 import re
@@ -40,30 +39,6 @@ cborTypeToCMapping = {
     "enum": "enum",
     "identityref": "uint64_t",  # The identity's SID (RFC 9254); name via ccoreconfModelLookupIdentifier()
     "void": "void",
-}
-
-
-# Define default/NULL values for each type
-defaultTypeValue = {
-    "uint8": "0",
-    "uint16": "0",
-    "uint32": "0",
-    "uint64": "0",
-    "int8": "0",
-    "int16": "0",
-    "int32": "0",
-    "int64": "0",
-    "float32": "0",
-    "float64": "0",
-    "decimal64": "0",
-    "boolean": "false",
-    "binary": "false",
-    "string": "NULL",
-    "bytes": "NULL",
-    "array": "NULL",
-    "enum": "enum",
-    "identityref": "0",
-    "void": "NULL",
 }
 
 # Map cbor types to CoreconfValueT constructor functions
@@ -276,50 +251,6 @@ class SIDItem:
         )
         return docString
 
-    def generateFunctionBody(self):
-        """
-        Generate function body to be placed inside the prototype functions
-        """
-        leafInitialization = ""
-        leafReturn = ""
-        functionName = formatIdentifier(self.identifier, self.max_words)
-        instanceName = formatIdentifier(self.identifier, self.max_words) + "Instance"
-
-        # If the type is enum, then initialize it differently
-        if self.type == "enum":
-            leafInitialization = (
-                cborTypeToCMapping[self.type]
-                + " "
-                + functionNameWithEnumTypes.get(functionName, "")
-                + " "
-                + instanceName
-                + ";\n\t"
-            )
-            leafReturn = "// Return the leaf \n" + "    return " + instanceName + ";"
-
-        # If the type is void, then don't initialize the leaf, else initialize with default value
-        elif self.type != "void":
-            leafInitialization = (
-                cborTypeToCMapping[self.type]
-                + " "
-                + instanceName
-                + "  = "
-                + defaultTypeValue[self.type]
-                + ";\n\t"
-            )
-            leafReturn = "// Return the leaf \n" + "    return " + instanceName + ";"
-
-        functionBodyTemplate = """{
-    // Initialize the leaf if it has a return type with a default value;
-    %s
-    // Do something with the leaf
-    %s
-}
-        """
-
-        functionBody = functionBodyTemplate % (leafInitialization, leafReturn)
-        return functionBody
-
     def generateCGetMethods(self):
         """
         Generate C read stub function using Jinja2 template
@@ -424,7 +355,7 @@ class SIDItem:
             'function_name': "write_" + functionName,
             'keys': keys,
             'value_type': valueType,
-            'is_list': is_container_or_list
+            'is_container_or_list': is_container_or_list
         }
 
         # Render template
