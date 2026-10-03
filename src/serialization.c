@@ -212,7 +212,7 @@ CoreconfValueT* cborToCoreconfValue(nanocbor_value_t* value, unsigned indent) {
             bool boolValue = false;
             if (nanocbor_get_null(value) >= 0) {
                 coreconfValue = createCoreconfNull();
-            } else if ((res = nanocbor_get_bool(value, &boolValue)) >= 0) {
+            } else if (nanocbor_get_bool(value, &boolValue) >= 0) {
                 coreconfValue = createCoreconfBoolean(boolValue);
             } else {
                 // Try double
