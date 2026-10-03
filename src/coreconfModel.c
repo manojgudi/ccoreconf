@@ -237,8 +237,7 @@ void ccoreconfModelFree(CoreconfModelT *model) {
     }
     if (model->clookupHashmap != NULL) {
         /* Every model clookup map has clookupFree as its free callback,
-         * so hashmap_free frees each entry's list.  Do NOT also call
-         * freeCLookupHashmap() here. */
+         * so hashmap_free frees each entry's list. */
         hashmap_free(model->clookupHashmap);
         model->clookupHashmap = NULL;
     }

@@ -163,14 +163,6 @@ CoreconfValueT* createCoreconfHashmap(void) {
     return val;
 }
 
-// Create CoreconfValueT* from an existing CoreconfHashMapT
-CoreconfValueT* wrapCoreconfHashmap(CoreconfHashMapT* map) {
-    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
-    val->type = CORECONF_HASHMAP;
-    val->data.map_value = map;
-    return val;
-}
-
 // Insert Coreconf Object into CoreconfHashMap
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value) {
     int loopCount = 0;
@@ -514,17 +506,6 @@ void freeCoreconf(CoreconfValueT* val, bool freeValue) {
 
     // freeValue is true when the value is not part of an array
     if (freeValue) free(val);
-}
-
-// Iterate over CoreconfHashMap and apply a function to each CoreconfObject value
-void iterateCoreconfHashMap(CoreconfHashMapT* map, void* udata, void (*f)(CoreconfObjectT* object, void* udata)) {
-    for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
-        CoreconfObjectT* current = map->table[i];
-        while (current != NULL) {
-            f(current, udata);
-            current = current->next;
-        }
-    }
 }
 
 // 64-bit MurmurHash3-inspired hash for CoreconfHashMap Keys

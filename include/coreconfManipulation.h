@@ -48,7 +48,6 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfValue, DynamicLongL
 /** Free a result of examineCoreconfValue: the wrapper map only, not the borrowed node. */
 void freeExaminedCoreconfValue(CoreconfValueT *examined);
 
-void freeCLookupHashmap(struct hashmap *map);
 /**
  * Navigate to parent container of a target SID using delta encoding and PathNode
  * @param root Root of the coreconf model

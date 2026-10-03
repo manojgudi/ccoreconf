@@ -41,11 +41,7 @@ void keyMappingFree(void *item);
 void printKeyMappingT(const KeyMappingT *keyMapping);
 void printKeyMappingHashMap(struct hashmap *keyMappingHashMap);
 
-// Path format function to remove trailing '\'
-void removeTrailingSlashFromPath(const char *qualifiedPath, char *formattedPath);
 int64_t char2int64(char *keyString);
 uint64_t char2uint64(char *keyString);
-char *int2str(char *keyString, int64_t keyInt64);
-char *getSubstringAfterLastColon(const char *input);
 
 #endif  // SID_H

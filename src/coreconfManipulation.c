@@ -350,22 +350,6 @@ void printCLookupHashmap(struct hashmap *clookupHashmap) {
     }
 }
 
-// Assume long value is 64bit long,
-void long2str(char *stringValue, long longValue) { sprintf(stringValue, "%ld", longValue); }
-
-void freeCLookupHashmap(struct hashmap *map) {
-    size_t iter = 0;
-    void *item;
-    while (hashmap_iter(map, &iter, &item)) {
-        CLookupT *clookup = (CLookupT *)item;
-        if (clookup->dynamicLongList) {
-            freeDynamicLongList(clookup->dynamicLongList);
-            // NULL it, like clookupFree, so a later free of the same map is harmless
-            clookup->dynamicLongList = NULL;
-        }
-    }
-}
-
 /**
  * Navigate to parent container of a target SID using delta encoding and PathNode
  * This function traverses the coreconf model hierarchy using the PathNode chain,

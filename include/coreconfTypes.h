@@ -104,7 +104,6 @@ CoreconfValueT* createCoreconfUint64(uint64_t value);
 CoreconfObjectT* createCoreconfObject(void);
 CoreconfValueT* createCoreconfArray(void);
 CoreconfValueT* createCoreconfHashmap(void);
-CoreconfValueT* wrapCoreconfHashmap(CoreconfHashMapT* map);
 
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value);
 CoreconfValueT* getCoreconfHashMap(CoreconfHashMapT* map, uint64_t key);
@@ -116,9 +115,6 @@ int updateCoreconfArrayByKey(CoreconfValueT* arr, uint64_t keySID, uint64_t pare
 void printCoreconfObject(CoreconfObjectT* obj);
 void printCoreconfMap(CoreconfHashMapT* map);
 void printCoreconf(CoreconfValueT* val);
-
-// Iterate over CoreconfHashMap and apply a function to each CoreconfObject value
-void iterateCoreconfHashMap(CoreconfHashMapT* map, void* udata, void (*f)(CoreconfObjectT* object, void* udata));
 
 bool isTypeUint(uint64_t type);
 bool isTypeInt(uint64_t type);

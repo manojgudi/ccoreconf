@@ -10,13 +10,6 @@
  */
 int _parse_array(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent);
 int _parse_map(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent);
-int _parse_float(nanocbor_value_t* value);
-
-void serializeCoreconfObject(CoreconfObjectT* object, void* cbor_) {
-    nanocbor_encoder_t* cbor = (nanocbor_encoder_t*)cbor_;
-    nanocbor_fmt_uint(cbor, object->key);
-    coreconfToCBOR(object->value, cbor);
-}
 
 // Serialization and Deserialization into CBOR
 // Returns 0 on success, -1 on an unsupported value or when the encoder buffer is too small
@@ -317,16 +310,6 @@ int _parse_map(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned 
         return -1;
     }
     return NANOCBOR_OK;
-}
-
-// Parse float
-int _parse_float(nanocbor_value_t* value) {
-    double f = 0;
-    int res = nanocbor_get_double(value, &f);
-    if (res >= NANOCBOR_OK) {
-        printf("%f", f);
-    }
-    return res;
 }
 
 int keyMappingHashMapToCBOR(struct hashmap* keyMappingHashMap, nanocbor_encoder_t* cbor) {
