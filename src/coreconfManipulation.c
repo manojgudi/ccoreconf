@@ -1,7 +1,6 @@
 #include "../include/coreconfManipulation.h"
 
 #include <inttypes.h>
-#include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -9,9 +8,6 @@
 #include "../include/hashmap.h"
 #include "../include/serialization.h"
 
-#define PATH_MAX_LENGTH 100
-#define MAX_STACK_SIZE 100
-#define SID_KEY_SIZE 21
 #define MAX_CORECONF_RECURSION_DEPTH 50
 
 /**

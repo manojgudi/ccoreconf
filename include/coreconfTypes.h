@@ -38,7 +38,6 @@ typedef struct CoreconfValue {
     coreconf_type type;
     union {
         char* string_value;
-        int string_length;
         double real_value;
         int8_t i8;
         uint8_t u8;
@@ -71,7 +70,6 @@ typedef struct CoreconfObject {
 typedef struct CoreconfHashMap {
     CoreconfObjectT* table[HASHMAP_TABLE_SIZE];
     size_t size;
-    size_t capacity;
 } CoreconfHashMapT;
 
 typedef struct CoreconfArray {

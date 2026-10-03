@@ -8,8 +8,6 @@
 
 #include "../include/hashmap.h"
 
-#define SID_LENGTH 20
-
 DynamicLongListT *createDynamicLongList(void) {
     DynamicLongListT *dynamicLongList = (DynamicLongListT *)malloc(sizeof(DynamicLongListT));
 

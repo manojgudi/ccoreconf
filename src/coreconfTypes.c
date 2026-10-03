@@ -156,7 +156,6 @@ CoreconfValueT* createCoreconfHashmap(void) {
     val->type = CORECONF_HASHMAP;
     val->data.map_value = malloc(sizeof(CoreconfHashMapT));
     val->data.map_value->size = 0;
-    val->data.map_value->capacity = HASHMAP_TABLE_SIZE;
     for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
         val->data.map_value->table[i] = NULL;
     }
