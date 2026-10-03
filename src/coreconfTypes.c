@@ -434,7 +434,7 @@ CoreconfValueT* createCoreconfArray(void) {
 
 // Grows by exactly one element: no spare room, since RAM is scarce on embedded
 // targets.  Decoded arrays are allocated once at their full length instead
-// (see _parse_array), so this is only used for appends at runtime.
+// (see parseArray in serialization.c), so this is only used for appends at runtime.
 void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value) {
     CoreconfArrayT* array = arr->data.array_value;
     CoreconfValueT* elements = realloc(array->elements, (array->size + 1) * sizeof(CoreconfValueT));
@@ -512,7 +512,7 @@ static size_t murmurHash(uint64_t key);
 
 size_t hashKey(uint64_t key) { return murmurHash(key); }
 
-size_t murmurHash(uint64_t key) {
+static size_t murmurHash(uint64_t key) {
     const uint64_t m = 0xc6a4a7935bd1e995ULL;
     const int r = 47;
 

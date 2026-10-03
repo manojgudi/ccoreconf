@@ -8,8 +8,8 @@
 /**
  * Internal methods, not exposed to the user
  */
-int _parse_array(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent);
-int _parse_map(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent);
+static int parseArray(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent);
+static int parseMap(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent);
 
 // Serialization and Deserialization into CBOR
 // Returns 0 on success, -1 on an unsupported value or when the encoder buffer is too small
@@ -191,7 +191,7 @@ CoreconfValueT* cborToCoreconfValue(nanocbor_value_t* value, unsigned indent) {
         } break;
         case NANOCBOR_TYPE_ARR: {
             coreconfValue = createCoreconfArray();
-            res = _parse_array(value, coreconfValue, indent);
+            res = parseArray(value, coreconfValue, indent);
             if (res < 0) {
                 freeCoreconf(coreconfValue, true);
                 return NULL;
@@ -199,7 +199,7 @@ CoreconfValueT* cborToCoreconfValue(nanocbor_value_t* value, unsigned indent) {
         } break;
         case NANOCBOR_TYPE_MAP: {
             coreconfValue = createCoreconfHashmap();
-            res = _parse_map(value, coreconfValue, indent);
+            res = parseMap(value, coreconfValue, indent);
             if (res < 0) {
                 freeCoreconf(coreconfValue, true);
                 return NULL;
@@ -229,7 +229,7 @@ CoreconfValueT* cborToCoreconfValue(nanocbor_value_t* value, unsigned indent) {
     return coreconfValue;
 }
 
-int _parse_array(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent) {
+static int parseArray(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent) {
     nanocbor_value_t cborArrayValue;
     if (nanocbor_enter_array(value, &cborArrayValue) < NANOCBOR_OK) {
         printf("Error entering array\n");
@@ -278,7 +278,7 @@ int _parse_array(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigne
     return NANOCBOR_OK;
 }
 
-int _parse_map(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent) {
+static int parseMap(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent) {
     nanocbor_value_t map;
     int loopCount = 0;
     if (nanocbor_enter_map(value, &map) < NANOCBOR_OK) {

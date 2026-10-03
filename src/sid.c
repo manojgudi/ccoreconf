@@ -31,7 +31,7 @@ void initializeDynamicLongList(DynamicLongListT *dynamicLongList) {
 }
 
 // Comparison function for qsort
-int compareLong(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
+static int compareLong(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
 
 // Function to sort the dynamic long list, it assumes sortedArray is already correctly inititliazed to
 // dynamicLongList->size
