@@ -54,7 +54,11 @@ def readSIDFile(path):
     items = obj.get("item") or obj.get("items") or []
     keyMapping = obj.get("key-mapping")
     if keyMapping is None:
-        raise SystemExit(f"{path}: no key-mapping; regenerate it with pyang --sid-extension")
+        # pyang --sid-extension leaves out key-mapping when the module has no lists,
+        # but always adds leaf types; without any type the extension was not used
+        if not any("type" in item for item in items):
+            raise SystemExit(f"{path}: no SID extensions (types, key-mapping); regenerate it with pyang --sid-extension")
+        keyMapping = {}
     return obj.get("module-name", "unknown"), items, keyMapping
 
 
