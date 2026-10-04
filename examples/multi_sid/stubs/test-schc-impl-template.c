@@ -254,10 +254,10 @@ int write_entry_compDecompActionValue(uint64_t rule_ruleIdValue, uint64_t rule_r
     Stable: False
 */
 
-bool read_compDecompActionValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index) {
-    // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/entry/comp-decomp-action-value/value"
-    bool mockValue = 0;
-    return mockValue;
+CoreconfValueT* read_compDecompActionValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index) {
+    // TODO: Implement read logic for list/container
+    // For now, return NULL
+    return NULL;
 }
 
 /*
@@ -269,7 +269,7 @@ bool read_compDecompActionValue_value(uint64_t rule_ruleIdValue, uint64_t rule_r
     Stable: False
 */
 
-int write_compDecompActionValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index, bool value) {
+int write_compDecompActionValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index, CoreconfValueT* value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -374,10 +374,10 @@ int write_entry_matchingOperatorValue(uint64_t rule_ruleIdValue, uint64_t rule_r
     Stable: False
 */
 
-bool read_matchingOperatorValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index) {
-    // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/entry/matching-operator-value/value"
-    bool mockValue = 0;
-    return mockValue;
+CoreconfValueT* read_matchingOperatorValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index) {
+    // TODO: Implement read logic for list/container
+    // For now, return NULL
+    return NULL;
 }
 
 /*
@@ -389,7 +389,7 @@ bool read_matchingOperatorValue_value(uint64_t rule_ruleIdValue, uint64_t rule_r
     Stable: False
 */
 
-int write_matchingOperatorValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index, bool value) {
+int write_matchingOperatorValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index, CoreconfValueT* value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -434,10 +434,10 @@ int write_entry_targetValue(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLengt
     Stable: False
 */
 
-bool read_targetValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index) {
-    // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/entry/target-value/value"
-    bool mockValue = 0;
-    return mockValue;
+CoreconfValueT* read_targetValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index) {
+    // TODO: Implement read logic for list/container
+    // For now, return NULL
+    return NULL;
 }
 
 /*
@@ -449,7 +449,7 @@ bool read_targetValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLengt
     Stable: False
 */
 
-int write_targetValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index, bool value) {
+int write_targetValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index, CoreconfValueT* value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;

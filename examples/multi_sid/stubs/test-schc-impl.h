@@ -42,8 +42,8 @@ CoreconfValueT* read_entry_compDecompActionValue(uint64_t rule_ruleIdValue, uint
 int write_entry_compDecompActionValue(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index, CoreconfValueT* value);
 #define read_compDecompActionValue_value read_60104
 #define write_compDecompActionValue_value write_60104
-bool read_compDecompActionValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index);
-int write_compDecompActionValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index, bool value);
+CoreconfValueT* read_compDecompActionValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index);
+int write_compDecompActionValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index, CoreconfValueT* value);
 #define read_entry_fieldLength read_60107
 #define write_entry_fieldLength write_60107
 CoreconfValueT* read_entry_fieldLength(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator);
@@ -58,16 +58,16 @@ CoreconfValueT* read_entry_matchingOperatorValue(uint64_t rule_ruleIdValue, uint
 int write_entry_matchingOperatorValue(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index, CoreconfValueT* value);
 #define read_matchingOperatorValue_value read_60112
 #define write_matchingOperatorValue_value write_60112
-bool read_matchingOperatorValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index);
-int write_matchingOperatorValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index, bool value);
+CoreconfValueT* read_matchingOperatorValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index);
+int write_matchingOperatorValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index, CoreconfValueT* value);
 #define read_entry_targetValue read_60113
 #define write_entry_targetValue write_60113
 CoreconfValueT* read_entry_targetValue(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index);
 int write_entry_targetValue(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index, CoreconfValueT* value);
 #define read_targetValue_value read_60115
 #define write_targetValue_value write_60115
-bool read_targetValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index);
-int write_targetValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index, bool value);
+CoreconfValueT* read_targetValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index);
+int write_targetValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index, CoreconfValueT* value);
 #define read_rule_fcnSize read_60116
 #define write_rule_fcnSize write_60116
 uint64_t read_rule_fcnSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength);

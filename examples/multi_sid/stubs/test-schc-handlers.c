@@ -556,6 +556,74 @@ int handler_write_60102(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     return result;
 }
 
+CoreconfValueT* handler_read_60104(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 6) {
+        printf("Error: SID 60104 needs 6 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+    uint64_t compDecompActionValue_index = (uint64_t)ctx->keys->longList[ctx->keys->size - 6];
+
+    // Call user-implemented read function
+    CoreconfValueT* result = read_compDecompActionValue_value(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, compDecompActionValue_index);
+
+    if (result == NULL) {
+        return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
+    } else {
+        return result;
+    }
+}
+
+int handler_write_60104(SIDHandlerContextT *ctx, CoreconfValueT *value) {
+    // Validate value type
+    // Binary leaf: a byte string, passed on as CoreconfValueT* (data + length)
+    if (!(value->type == CORECONF_BYTES)) {
+        printf("Error: Expected binary for SID 60104\n");
+        return -1;
+    }
+
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 6) {
+        printf("Error: SID 60104 needs 6 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+    uint64_t compDecompActionValue_index = (uint64_t)ctx->keys->longList[ctx->keys->size - 6];
+
+    // Call user-implemented write function
+    int result = write_compDecompActionValue_value(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, compDecompActionValue_index, value);
+
+    // If user function succeeded, update the datastore
+    if (result == 0) {
+        uint64_t finalDeltaSID = 0;
+        CoreconfValueT* parentContainer = navigateToParentContainer(
+            ctx->model->root, ctx->keys, ctx->pathNode, 60104, &finalDeltaSID);
+
+        if (parentContainer == NULL) {
+            printf("Error: Failed to navigate to parent for SID 60104\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60104\n");
+            return -1;
+        }
+    }
+
+    return result;
+}
+
 CoreconfValueT* handler_read_60107(SIDHandlerContextT *ctx) {
     // List keys, outermost list first.  ctx->keys is read from its end: the
     // same order as ccoreconfModelExamineCoreconfValue
@@ -774,6 +842,74 @@ int handler_write_60110(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     return result;
 }
 
+CoreconfValueT* handler_read_60112(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 6) {
+        printf("Error: SID 60112 needs 6 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+    uint64_t matchingOperatorValue_index = (uint64_t)ctx->keys->longList[ctx->keys->size - 6];
+
+    // Call user-implemented read function
+    CoreconfValueT* result = read_matchingOperatorValue_value(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, matchingOperatorValue_index);
+
+    if (result == NULL) {
+        return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
+    } else {
+        return result;
+    }
+}
+
+int handler_write_60112(SIDHandlerContextT *ctx, CoreconfValueT *value) {
+    // Validate value type
+    // Binary leaf: a byte string, passed on as CoreconfValueT* (data + length)
+    if (!(value->type == CORECONF_BYTES)) {
+        printf("Error: Expected binary for SID 60112\n");
+        return -1;
+    }
+
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 6) {
+        printf("Error: SID 60112 needs 6 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+    uint64_t matchingOperatorValue_index = (uint64_t)ctx->keys->longList[ctx->keys->size - 6];
+
+    // Call user-implemented write function
+    int result = write_matchingOperatorValue_value(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, matchingOperatorValue_index, value);
+
+    // If user function succeeded, update the datastore
+    if (result == 0) {
+        uint64_t finalDeltaSID = 0;
+        CoreconfValueT* parentContainer = navigateToParentContainer(
+            ctx->model->root, ctx->keys, ctx->pathNode, 60112, &finalDeltaSID);
+
+        if (parentContainer == NULL) {
+            printf("Error: Failed to navigate to parent for SID 60112\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60112\n");
+            return -1;
+        }
+    }
+
+    return result;
+}
+
 CoreconfValueT* handler_read_60113(SIDHandlerContextT *ctx) {
     // List keys, outermost list first.  ctx->keys is read from its end: the
     // same order as ccoreconfModelExamineCoreconfValue
@@ -854,6 +990,74 @@ int handler_write_60113(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         static const uint64_t keyDeltas[] = { 1 };
         if (updateCoreconfArrayByKeys(arrayValue, keyDeltas, 1, value) != 0) {
             printf("Error: Failed to update list entry for SID 60113\n");
+            return -1;
+        }
+    }
+
+    return result;
+}
+
+CoreconfValueT* handler_read_60115(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 6) {
+        printf("Error: SID 60115 needs 6 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+    uint64_t targetValue_index = (uint64_t)ctx->keys->longList[ctx->keys->size - 6];
+
+    // Call user-implemented read function
+    CoreconfValueT* result = read_targetValue_value(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, targetValue_index);
+
+    if (result == NULL) {
+        return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
+    } else {
+        return result;
+    }
+}
+
+int handler_write_60115(SIDHandlerContextT *ctx, CoreconfValueT *value) {
+    // Validate value type
+    // Binary leaf: a byte string, passed on as CoreconfValueT* (data + length)
+    if (!(value->type == CORECONF_BYTES)) {
+        printf("Error: Expected binary for SID 60115\n");
+        return -1;
+    }
+
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 6) {
+        printf("Error: SID 60115 needs 6 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+    uint64_t targetValue_index = (uint64_t)ctx->keys->longList[ctx->keys->size - 6];
+
+    // Call user-implemented write function
+    int result = write_targetValue_value(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, targetValue_index, value);
+
+    // If user function succeeded, update the datastore
+    if (result == 0) {
+        uint64_t finalDeltaSID = 0;
+        CoreconfValueT* parentContainer = navigateToParentContainer(
+            ctx->model->root, ctx->keys, ctx->pathNode, 60115, &finalDeltaSID);
+
+        if (parentContainer == NULL) {
+            printf("Error: Failed to navigate to parent for SID 60115\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60115\n");
             return -1;
         }
     }
@@ -1993,10 +2197,13 @@ void testSchcRegisterHandlers(CoreconfModelT *model) {
     ccoreconfModelRegisterHandler(model, 60100, handler_read_60100, handler_write_60100, "/ietf-schc:schc/rule/entry", "void");
     ccoreconfModelRegisterHandler(model, 60101, handler_read_60101, handler_write_60101, "/ietf-schc:schc/rule/entry/comp-decomp-action", "identityref");
     ccoreconfModelRegisterHandler(model, 60102, handler_read_60102, handler_write_60102, "/ietf-schc:schc/rule/entry/comp-decomp-action-value", "void");
+    ccoreconfModelRegisterHandler(model, 60104, handler_read_60104, handler_write_60104, "/ietf-schc:schc/rule/entry/comp-decomp-action-value/value", "binary");
     ccoreconfModelRegisterHandler(model, 60107, handler_read_60107, handler_write_60107, "/ietf-schc:schc/rule/entry/field-length", "['identityref', 'uint8']");
     ccoreconfModelRegisterHandler(model, 60109, handler_read_60109, handler_write_60109, "/ietf-schc:schc/rule/entry/matching-operator", "identityref");
     ccoreconfModelRegisterHandler(model, 60110, handler_read_60110, handler_write_60110, "/ietf-schc:schc/rule/entry/matching-operator-value", "void");
+    ccoreconfModelRegisterHandler(model, 60112, handler_read_60112, handler_write_60112, "/ietf-schc:schc/rule/entry/matching-operator-value/value", "binary");
     ccoreconfModelRegisterHandler(model, 60113, handler_read_60113, handler_write_60113, "/ietf-schc:schc/rule/entry/target-value", "void");
+    ccoreconfModelRegisterHandler(model, 60115, handler_read_60115, handler_write_60115, "/ietf-schc:schc/rule/entry/target-value/value", "binary");
     ccoreconfModelRegisterHandler(model, 60116, handler_read_60116, handler_write_60116, "/ietf-schc:schc/rule/fcn-size", "uint8");
     ccoreconfModelRegisterHandler(model, 60117, handler_read_60117, handler_write_60117, "/ietf-schc:schc/rule/fragmentation-mode", "identityref");
     ccoreconfModelRegisterHandler(model, 60118, handler_read_60118, handler_write_60118, "/ietf-schc:schc/rule/inactivity-timer", "void");

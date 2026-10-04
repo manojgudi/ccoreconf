@@ -32,7 +32,7 @@ cborTypeToCMapping = {
     "float64": "double",
     "decimal64": "double",
     "boolean": "bool",
-    "binary": "bool",
+    "binary": "CoreconfValueT*",  # A byte string: data + length, see CORECONF_BYTES
     "string": "char *",
     "bytes": "uint8_t *",
     "array": "uint8_t *",
@@ -40,6 +40,10 @@ cborTypeToCMapping = {
     "identityref": "uint64_t",  # The identity's SID (RFC 9254); name via ccoreconfModelLookupIdentifier()
     "void": "void",
 }
+
+# Types handed to user code as the CoreconfValueT* itself: containers (void),
+# unions (only the user knows which member a value is) and binary (data + length)
+coreconfValueTypes = ("void", "union", "binary")
 
 # Map cbor types to CoreconfValueT constructor functions
 coreconfTypeConstructors = {
@@ -277,8 +281,8 @@ class SIDItem:
 
         keys = self.keyContexts()
 
-        # Containers, lists and unions all use CoreconfValueT*
-        is_container_or_list = self.isList or self.type in ("void", "union")
+        # Containers, lists, unions and binary all use CoreconfValueT*
+        is_container_or_list = self.isList or self.type in coreconfValueTypes
 
         # Determine return type
         enumType = functionNameWithEnumTypes.get(functionName, "")
@@ -335,8 +339,8 @@ class SIDItem:
         enumType = functionNameWithEnumTypes.get(functionName, "")
         if self.isList:
             valueType = "CoreconfValueT*"
-        elif self.type in ("void", "union"):
-            # Containers and unions accept CoreconfValueT* like lists
+        elif self.type in coreconfValueTypes:
+            # Containers, unions and binary accept CoreconfValueT* like lists
             valueType = "CoreconfValueT*"
         elif self.type == "enum" and enumType:
             valueType = "enum " + enumType
@@ -344,8 +348,8 @@ class SIDItem:
             valueType = cborTypeToCMapping[self.type]
 
         # Prepare context
-        # Containers and unions work with CoreconfValueT*, like lists
-        is_container_or_list = self.isList or self.type in ("void", "union")
+        # Containers, unions and binary work with CoreconfValueT*, like lists
+        is_container_or_list = self.isList or self.type in coreconfValueTypes
         context = {
             'docstring': self.generateDocStrings(),
             'function_name': "write_" + functionName,
@@ -378,8 +382,8 @@ class SIDItem:
         if self.namespace != "data":
             return ""
 
-        # Containers, lists and unions all use CoreconfValueT*
-        is_container_or_list = self.isList or self.type in ("void", "union")
+        # Containers, lists, unions and binary all use CoreconfValueT*
+        is_container_or_list = self.isList or self.type in coreconfValueTypes
 
         # Skip if type not supported in handlers yet (unless it's a list or container)
         if not is_container_or_list and self.type not in coreconfTypeConstructors:
@@ -443,13 +447,15 @@ class SIDItem:
             template = env.get_template('write_handler_list.c.jinja')
             return template.render(context) + "\n"
 
-        if self.type == "union":
+        # Union and binary leaves: the value is passed on as CoreconfValueT*
+        if self.type in ("union", "binary"):
+            members = self.unionMembers if self.type == "union" else ["binary"]
             context = {
                 'sid': self.sid,
                 'user_function': userFunctionName,
-                'type': "union",
-                'members': ", ".join(str(m) for m in self.unionMembers),
-                'union_check': unionTypeCheck(self.unionMembers),
+                'type': self.type,
+                'members': ", ".join(str(m) for m in members),
+                'union_check': unionTypeCheck(members),
                 'keys': keys
             }
             template = env.get_template('write_handler.c.jinja')
@@ -476,9 +482,9 @@ class SIDItem:
 
 def unionTypeCheck(members):
     """
-    Returns a C condition on value->type that accepts any member type of a union.
-    A member with no simple check (enum, binary, nested union...) accepts any
-    non-container value.
+    Returns a C condition on value->type that accepts any member type of a union
+    (or the single type of a binary leaf).  A member with no simple check (enum,
+    nested union...) accepts any non-container value.
     """
     checks = []
     for member in members:
@@ -488,6 +494,8 @@ def unionTypeCheck(members):
             check = "isTypeInt(value->type)"
         elif member == "boolean":
             check = "value->type == CORECONF_TRUE || value->type == CORECONF_FALSE"
+        elif member == "binary":
+            check = "value->type == CORECONF_BYTES"
         elif member in coreconfTypeEnums:
             check = "value->type == " + coreconfTypeEnums[member]
         else:
