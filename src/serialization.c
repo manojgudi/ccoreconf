@@ -3,7 +3,7 @@
 #include <nanocbor/nanocbor.h>
 #include <stdio.h>
 
-#include "../include/sid.h"
+#include "../include/coreconfManipulation.h"
 
 /**
  * Internal methods, not exposed to the user

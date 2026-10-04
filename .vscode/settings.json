@@ -4,7 +4,7 @@
         "coreconfTypes.h":        "c",
         "hashmap.h":              "c",
         "serialization.h":        "c",
-        "sid.h":                  "c",
+        "dynamicLongList.h":      "c",
         "sid_handlers.h":         "c",
         "nanocbor.h":             "c",
         "stdbool.h":              "c",

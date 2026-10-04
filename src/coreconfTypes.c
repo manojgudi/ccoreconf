@@ -1,12 +1,57 @@
 #include "../include/coreconfTypes.h"
 
+#include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/sid.h"
+/*
+Convert char* to int64_t, return INTMAX_MIN in case of an error
+*/
+static int64_t char2int64(char *keyString) {
+    // Convert char* to int64_t using strtoimax
+    intmax_t intValue = strtoimax(keyString, NULL, 10);
+    if (intValue == INTMAX_MIN || intValue == INTMAX_MAX) {
+        fprintf(stderr, "Conversion error or out of range");
+        return INTMAX_MIN;
+    }
+
+    // Check for valid conversion
+    if (errno == ERANGE) {
+        fprintf(stderr, "Value out of range");
+        return INTMAX_MIN;
+    }
+
+    // Convert intmax_t to int64_t
+    int64_t int64Value = (int64_t)intValue;
+
+    return int64Value;
+}
+
+/*
+  Convert char* to uint64_t, return UINTMAX_MIN in case of an error
+*/
+static uint64_t char2uint64(char *keyString) {
+    // Convert char* to uint64_t using strtoumax
+    uintmax_t uintValue = strtoumax(keyString, NULL, 10);
+    if (uintValue == UINTMAX_MAX) {
+        fprintf(stderr, "Conversion error or out of range");
+        return 0;
+    }
+
+    // Check for valid conversion
+    if (errno == ERANGE) {
+        fprintf(stderr, "Value out of range");
+        return 0;
+    }
+
+    // Convert uintmax_t to uint64_t
+    uint64_t uint64Value = (uint64_t)uintValue;
+
+    return uint64Value;
+}
 
 CoreconfValueT* createCoreconfString(const char* value) {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));

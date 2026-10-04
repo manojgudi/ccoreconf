@@ -1,21 +1,14 @@
-#ifndef SID_H
-#define SID_H
+#ifndef DYNAMIC_LONG_LIST_H
+#define DYNAMIC_LONG_LIST_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdbool.h>
+#include <stddef.h>
 
-#include "hashmap.h"
-
+// A growable list of longs (SIDs, list key values), used as a stack by popLong
 typedef struct DynamicLongListStruct {
     long *longList;
     size_t size;
 } DynamicLongListT;
-
-typedef struct KeyMappingStruct {
-    int64_t key;
-    DynamicLongListT *dynamicLongList;
-} KeyMappingT;
 
 DynamicLongListT *createDynamicLongList(void);
 // Empties the list and frees its buffer: only for lists from createDynamicLongList
@@ -34,14 +27,4 @@ void addUniqueLong(DynamicLongListT *dynamicLongList, long value);
 void freeDynamicLongList(DynamicLongListT *dynamicLongList);
 void printDynamicLongList(DynamicLongListT *dynamicLongList);
 
-uint64_t keyMappingHash(const void *item, uint64_t seed0, uint64_t seed1);
-int keyMappingCompare(const void *a, const void *b, void *udata);
-void keyMappingFree(void *item);
-
-void printKeyMappingT(const KeyMappingT *keyMapping);
-void printKeyMappingHashMap(struct hashmap *keyMappingHashMap);
-
-int64_t char2int64(char *keyString);
-uint64_t char2uint64(char *keyString);
-
-#endif  // SID_H
+#endif  // DYNAMIC_LONG_LIST_H

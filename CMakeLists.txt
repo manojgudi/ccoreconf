@@ -115,9 +115,9 @@ set(CCORECONF_SOURCES
     src/coreconfManipulation.c
     src/coreconfModel.c
     src/coreconfTypes.c
+    src/dynamicLongList.c
     src/hashmap.c
     src/serialization.c
-    src/sid.c
     src/sid_handlers.c
 )
 
@@ -125,9 +125,9 @@ set(CCORECONF_HEADERS
     include/coreconfManipulation.h
     include/coreconfModel.h
     include/coreconfTypes.h
+    include/dynamicLongList.h
     include/hashmap.h
     include/serialization.h
-    include/sid.h
     include/sid_handlers.h
 )
 

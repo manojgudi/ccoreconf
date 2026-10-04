@@ -5,8 +5,14 @@
 #include <stdlib.h>
 
 #include "coreconfTypes.h"
+#include "dynamicLongList.h"
 #include "hashmap.h"
-#include "sid.h"
+
+// Key-mapping entry: a YANG list's SID and the SIDs of its keys
+typedef struct KeyMappingStruct {
+    int64_t key;
+    DynamicLongListT *dynamicLongList;
+} KeyMappingT;
 
 typedef struct CLookup {
     int64_t childSID;
@@ -18,6 +24,12 @@ typedef struct PathNode {
     DynamicLongListT *SIDKeys;
     struct PathNode *nextPathNode;
 } PathNodeT;
+
+uint64_t keyMappingHash(const void *item, uint64_t seed0, uint64_t seed1);
+int keyMappingCompare(const void *a, const void *b, void *udata);
+void keyMappingFree(void *item);
+void printKeyMappingT(const KeyMappingT *keyMapping);
+void printKeyMappingHashMap(struct hashmap *keyMappingHashMap);
 
 int clookupCompare(const void *a, const void *b, void *udata);
 uint64_t clookupHash(const void *item, uint64_t seed0, uint64_t seed1);

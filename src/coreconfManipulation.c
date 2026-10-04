@@ -11,6 +11,51 @@
 #define MAX_CORECONF_RECURSION_DEPTH 50
 
 /**
+ * Functions related to the key-mapping HashMap
+ */
+int keyMappingCompare(const void *a, const void *b, void *udata) {
+    // NOTE Keep it unused for compatibility reasons
+    (void)udata;
+
+    const KeyMappingT *keyMapping1 = (KeyMappingT *)a;
+    const KeyMappingT *keyMapping2 = (KeyMappingT *)b;
+    // return strcmp(keyMapping1->key, keyMapping2->key);
+    return (keyMapping1->key != keyMapping2->key);
+}
+
+uint64_t keyMappingHash(const void *item, uint64_t seed0, uint64_t seed1) {
+    const KeyMappingT *keyMapping = (KeyMappingT *)item;
+    return hashmap_murmur(&(keyMapping->key), sizeof(uint64_t), seed0, seed1);
+}
+
+void keyMappingFree(void *item) {
+    KeyMappingT *keyMapping = (KeyMappingT *)item;
+    if (keyMapping && keyMapping->dynamicLongList) {
+        freeDynamicLongList(keyMapping->dynamicLongList);
+        keyMapping->dynamicLongList = NULL;
+    }
+}
+
+void printKeyMappingT(const KeyMappingT *keyMapping) {
+    printf("\nFor the key %d: \n", (int)keyMapping->key);
+
+    // Iterate over DynamicLongListT
+    for (size_t i = 0; i < keyMapping->dynamicLongList->size; i++) {
+        long childSID = *(keyMapping->dynamicLongList->longList + i);
+        printf("%lu, ", childSID);
+    }
+}
+
+void printKeyMappingHashMap(struct hashmap *keyMappingHashMap) {
+    size_t iter = 0;
+    void *item;
+    while (hashmap_iter(keyMappingHashMap, &iter, &item)) {
+        const KeyMappingT *keyMapping = item;
+        printKeyMappingT(keyMapping);
+    }
+}
+
+/**
  * Functions related to CLookup HashMap
  */
 int clookupCompare(const void *a, const void *b, void *udata) {

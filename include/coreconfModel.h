@@ -66,7 +66,7 @@ typedef struct {
 } SIDEntryT;
 
 /* One entry per YANG list in the key-mapping.  (Renamed from KeyMappingT
- * to avoid collision with the runtime hashmap-storage type in sid.h.) */
+ * to avoid collision with the runtime hashmap-storage type in coreconfManipulation.h.) */
 typedef struct {
     uint64_t       listSID;
     const long    *keySIDs;

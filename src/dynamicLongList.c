@@ -1,12 +1,7 @@
-#include "../include/sid.h"
+#include "../include/dynamicLongList.h"
 
-#include <errno.h>
-#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
-#include "../include/hashmap.h"
 
 DynamicLongListT *createDynamicLongList(void) {
     DynamicLongListT *dynamicLongList = (DynamicLongListT *)malloc(sizeof(DynamicLongListT));
@@ -153,92 +148,4 @@ void freeDynamicLongList(DynamicLongListT *dynamicLongList) {
     if (!dynamicLongList) return;
     free(dynamicLongList->longList);
     free(dynamicLongList);
-}
-
-int keyMappingCompare(const void *a, const void *b, void *udata) {
-    // NOTE Keep it unused for compatibility reasons
-    (void)udata;
-
-    const KeyMappingT *keyMapping1 = (KeyMappingT *)a;
-    const KeyMappingT *keyMapping2 = (KeyMappingT *)b;
-    // return strcmp(keyMapping1->key, keyMapping2->key);
-    return (keyMapping1->key != keyMapping2->key);
-}
-
-uint64_t keyMappingHash(const void *item, uint64_t seed0, uint64_t seed1) {
-    const KeyMappingT *keyMapping = (KeyMappingT *)item;
-    return hashmap_murmur(&(keyMapping->key), sizeof(uint64_t), seed0, seed1);
-}
-
-void keyMappingFree(void *item) {
-    KeyMappingT *keyMapping = (KeyMappingT *)item;
-    if (keyMapping && keyMapping->dynamicLongList) {
-        freeDynamicLongList(keyMapping->dynamicLongList);
-        keyMapping->dynamicLongList = NULL;
-    }
-}
-
-void printKeyMappingT(const KeyMappingT *keyMapping) {
-    printf("\nFor the key %d: \n", (int)keyMapping->key);
-
-    // Iterate over DynamicLongListT
-    for (size_t i = 0; i < keyMapping->dynamicLongList->size; i++) {
-        long childSID = *(keyMapping->dynamicLongList->longList + i);
-        printf("%lu, ", childSID);
-    }
-}
-
-void printKeyMappingHashMap(struct hashmap *keyMappingHashMap) {
-    size_t iter = 0;
-    void *item;
-    while (hashmap_iter(keyMappingHashMap, &iter, &item)) {
-        const KeyMappingT *keyMapping = item;
-        printKeyMappingT(keyMapping);
-    }
-}
-
-/*
-Convert char* to int64_t, return INTMAX_MIN in case of an error
-*/
-int64_t char2int64(char *keyString) {
-    // Convert char* to int64_t using strtoimax
-    intmax_t intValue = strtoimax(keyString, NULL, 10);
-    if (intValue == INTMAX_MIN || intValue == INTMAX_MAX) {
-        fprintf(stderr, "Conversion error or out of range");
-        return INTMAX_MIN;
-    }
-
-    // Check for valid conversion
-    if (errno == ERANGE) {
-        fprintf(stderr, "Value out of range");
-        return INTMAX_MIN;
-    }
-
-    // Convert intmax_t to int64_t
-    int64_t int64Value = (int64_t)intValue;
-
-    return int64Value;
-}
-
-/*
-  Convert char* to uint64_t, return UINTMAX_MIN in case of an error
-*/
-uint64_t char2uint64(char *keyString) {
-    // Convert char* to uint64_t using strtoumax
-    uintmax_t uintValue = strtoumax(keyString, NULL, 10);
-    if (uintValue == UINTMAX_MAX) {
-        fprintf(stderr, "Conversion error or out of range");
-        return 0;
-    }
-
-    // Check for valid conversion
-    if (errno == ERANGE) {
-        fprintf(stderr, "Value out of range");
-        return 0;
-    }
-
-    // Convert uintmax_t to uint64_t
-    uint64_t uint64Value = (uint64_t)uintValue;
-
-    return uint64Value;
 }

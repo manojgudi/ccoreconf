@@ -9,7 +9,7 @@
 #include "coreconfTypes.h"
 #include "coreconfManipulation.h"
 #include "coreconfModel.h"
-#include "sid.h"
+#include "dynamicLongList.h"
 CoreconfValueT* handler_read_60095(SIDHandlerContextT *ctx) {
     // Call user-implemented read function
     CoreconfValueT* result = read_ietfSchc_schc();
