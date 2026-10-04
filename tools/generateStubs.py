@@ -192,13 +192,15 @@ class SIDItem:
         self.isList = isList
         self.max_words = max_words
 
+        self.unionMembers = []
         if type_:
-            # NOTE fix this later
             if isinstance(type_, list):
-                self.type = "void"
+                # A union leaf: its value is one of several member types
+                self.type = "union"
+                self.unionMembers = type_
             else:
                 self.type = type_
-            self.checkType()
+                self.checkType()
         else:
             self.type = "void"
 
@@ -272,8 +274,8 @@ class SIDItem:
                 for k in self.sidKeyItems
             ]
 
-        # Determine if this is a container or list (both use CoreconfValueT*)
-        is_container_or_list = self.isList or self.type == "void"
+        # Containers, lists and unions all use CoreconfValueT*
+        is_container_or_list = self.isList or self.type in ("void", "union")
 
         # Determine return type
         enumType = functionNameWithEnumTypes.get(functionName, "")
@@ -339,8 +341,8 @@ class SIDItem:
         enumType = functionNameWithEnumTypes.get(functionName, "")
         if self.isList:
             valueType = "CoreconfValueT*"
-        elif self.type == "void":
-            # Containers (void type) accept CoreconfValueT* like lists
+        elif self.type in ("void", "union"):
+            # Containers and unions accept CoreconfValueT* like lists
             valueType = "CoreconfValueT*"
         elif self.type == "enum" and enumType:
             valueType = "enum " + enumType
@@ -348,8 +350,8 @@ class SIDItem:
             valueType = cborTypeToCMapping[self.type]
 
         # Prepare context
-        # Treat void types (containers) like lists - they work with CoreconfValueT*
-        is_container_or_list = self.isList or self.type == "void"
+        # Containers and unions work with CoreconfValueT*, like lists
+        is_container_or_list = self.isList or self.type in ("void", "union")
         context = {
             'docstring': self.generateDocStrings(),
             'function_name': "write_" + functionName,
@@ -382,8 +384,8 @@ class SIDItem:
         if self.namespace != "data":
             return ""
 
-        # Determine if this is a container or list (both use CoreconfValueT*)
-        is_container_or_list = self.isList or self.type == "void"
+        # Containers, lists and unions all use CoreconfValueT*
+        is_container_or_list = self.isList or self.type in ("void", "union")
 
         # Skip if type not supported in handlers yet (unless it's a list or container)
         if not is_container_or_list and self.type not in coreconfTypeConstructors:
@@ -461,6 +463,18 @@ class SIDItem:
             template = env.get_template('write_handler_list.c.jinja')
             return template.render(context) + "\n"
 
+        if self.type == "union":
+            context = {
+                'sid': self.sid,
+                'user_function': userFunctionName,
+                'type': "union",
+                'members': ", ".join(str(m) for m in self.unionMembers),
+                'union_check': unionTypeCheck(self.unionMembers),
+                'keys': keys
+            }
+            template = env.get_template('write_handler.c.jinja')
+            return template.render(context) + "\n"
+
         # Skip if type not supported in handlers yet
         if self.type not in coreconfTypeEnums or self.type not in coreconfTypeDataFields:
             return ""
@@ -478,6 +492,29 @@ class SIDItem:
 
         template = env.get_template('write_handler.c.jinja')
         return template.render(context) + "\n"
+
+
+def unionTypeCheck(members):
+    """
+    Returns a C condition on value->type that accepts any member type of a union.
+    A member with no simple check (enum, binary, nested union...) accepts any
+    non-container value.
+    """
+    checks = []
+    for member in members:
+        if member in ("uint8", "uint16", "uint32", "uint64", "identityref"):
+            check = "isTypeUint(value->type)"
+        elif member in ("int8", "int16", "int32", "int64"):
+            check = "isTypeInt(value->type)"
+        elif member == "boolean":
+            check = "value->type == CORECONF_TRUE || value->type == CORECONF_FALSE"
+        elif member in coreconfTypeEnums:
+            check = "value->type == " + coreconfTypeEnums[member]
+        else:
+            return "value->type != CORECONF_HASHMAP && value->type != CORECONF_ARRAY"
+        if check not in checks:
+            checks.append(check)
+    return " || ".join(checks)
 
 
 def findKeysForLeavesBySID(itemSID, model):

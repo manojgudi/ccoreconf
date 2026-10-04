@@ -447,9 +447,10 @@ CoreconfValueT* handler_read_60107(SIDHandlerContextT *ctx) {
 }
 
 int handler_write_60107(SIDHandlerContextT *ctx, CoreconfValueT *value) {
-    // A container is written as a whole: expect a map of its children
-    if (value->type != CORECONF_HASHMAP) {
-        printf("Error: Expected hashmap for container write to SID 60107\n");
+    // Validate value type
+    // Union leaf: any of its member types (identityref, uint8)
+    if (!(isTypeUint(value->type))) {
+        printf("Error: Expected one of identityref, uint8 for SID 60107\n");
         return -1;
     }
 
@@ -467,7 +468,6 @@ int handler_write_60107(SIDHandlerContextT *ctx, CoreconfValueT *value) {
             return -1;
         }
 
-        // A write replaces: the container becomes exactly the written value
         if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
             printf("Error: Failed to update coreconfModel for SID 60107\n");
             return -1;

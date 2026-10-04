@@ -5,6 +5,12 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         printf("Error: Expected boolean type for SID {{ sid }}\n");
         return -1;
     }
+{% elif type == "union" %}
+    // Union leaf: any of its member types ({{ members }})
+    if (!({{ union_check }})) {
+        printf("Error: Expected one of {{ members }} for SID {{ sid }}\n");
+        return -1;
+    }
 {% elif type in ["uint8", "uint16", "uint32", "uint64", "identityref"] %}
     if (!isTypeUint(value->type)) {
         printf("Error: Expected unsigned integer type for SID {{ sid }}\n");
@@ -22,6 +28,7 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     }
 {% endif %}
 
+{% if type != "union" %}
     // Extract native value from CoreconfValueT
 {% if type == "boolean" %}
     {{ c_type }} nativeValue = (value->type == CORECONF_TRUE);
@@ -33,6 +40,7 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     {{ c_type }} nativeValue = value->data.{{ data_field }};
 {% endif %}
 
+{% endif %}
 {% if keys %}
     // Extract keys from context
 {% for key in keys %}
@@ -42,9 +50,9 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 {% endif %}
     // Call user-implemented write function
 {% if keys %}
-    int result = {{ user_function }}({% for key in keys %}{{ key.name }}, {% endfor %}nativeValue);
+    int result = {{ user_function }}({% for key in keys %}{{ key.name }}, {% endfor %}{{ "value" if type == "union" else "nativeValue" }});
 {% else %}
-    int result = {{ user_function }}(nativeValue);
+    int result = {{ user_function }}({{ "value" if type == "union" else "nativeValue" }});
 {% endif %}
 
     // If user function succeeded, update the datastore
