@@ -51,6 +51,12 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 
     return result;
 {% else %}
+    // A container is written as a whole: expect a map of its children
+    if (value->type != CORECONF_HASHMAP) {
+        printf("Error: Expected hashmap for container write to SID {{ sid }}\n");
+        return -1;
+    }
+
     // Call user-implemented write function
     int result = {{ user_function }}(value);
 
@@ -60,11 +66,15 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, {{ sid }}, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue != NULL && arrayValue->type == CORECONF_ARRAY) {
-                addToCoreconfArray(arrayValue, value);
-            }
+        if (parentContainer == NULL) {
+            printf("Error: Failed to navigate to parent for SID {{ sid }}\n");
+            return -1;
+        }
+
+        // A write replaces: the container becomes exactly the written value
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID {{ sid }}\n");
+            return -1;
         }
     }
 

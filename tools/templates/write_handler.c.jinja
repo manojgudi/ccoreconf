@@ -53,13 +53,13 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, {{ sid }}, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID {{ sid }}\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID {{ sid }}\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID {{ sid }}\n");
             return -1;
         }
     }

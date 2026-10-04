@@ -103,6 +103,7 @@ CoreconfObjectT* createCoreconfObject(void);
 CoreconfValueT* createCoreconfArray(void);
 CoreconfValueT* createCoreconfHashmap(void);
 
+// Insert or replace (never merges); the map owns `value` on success
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value);
 CoreconfValueT* getCoreconfHashMap(CoreconfHashMapT* map, uint64_t key);
 void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value);

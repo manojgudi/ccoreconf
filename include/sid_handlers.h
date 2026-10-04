@@ -40,8 +40,14 @@ typedef CoreconfValueT* (*SIDReadHandler)(SIDHandlerContextT *ctx);
 
 /**
  * Write handler function signature
+ *
+ * A write REPLACES the node at ctx->SID: a leaf gets the new value, and a
+ * container or list entry becomes exactly `value` (children not in `value`
+ * are removed).  Writes never merge.
+ *
  * @param ctx Context containing SID, keys, and model reference
- * @param value The value to write
+ * @param value The value to write.  On success (0) the model takes ownership
+ *              of it; on failure the caller still owns it.
  * @return 0 on success, non-zero error code on failure
  */
 typedef int (*SIDWriteHandler)(SIDHandlerContextT *ctx, CoreconfValueT *value);

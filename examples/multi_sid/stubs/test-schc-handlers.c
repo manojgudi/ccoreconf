@@ -22,6 +22,12 @@ CoreconfValueT* handler_read_60095(SIDHandlerContextT *ctx) {
 }
 
 int handler_write_60095(SIDHandlerContextT *ctx, CoreconfValueT *value) {
+    // A container is written as a whole: expect a map of its children
+    if (value->type != CORECONF_HASHMAP) {
+        printf("Error: Expected hashmap for container write to SID 60095\n");
+        return -1;
+    }
+
     // Call user-implemented write function
     int result = write_ietfSchc_schc(value);
 
@@ -31,11 +37,15 @@ int handler_write_60095(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60095, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue != NULL && arrayValue->type == CORECONF_ARRAY) {
-                addToCoreconfArray(arrayValue, value);
-            }
+        if (parentContainer == NULL) {
+            printf("Error: Failed to navigate to parent for SID 60095\n");
+            return -1;
+        }
+
+        // A write replaces: the container becomes exactly the written value
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60095\n");
+            return -1;
         }
     }
 
@@ -142,13 +152,13 @@ int handler_write_60097(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60097, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60097\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60097\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60097\n");
             return -1;
         }
     }
@@ -183,13 +193,13 @@ int handler_write_60098(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60098, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60098\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60098\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60098\n");
             return -1;
         }
     }
@@ -224,13 +234,13 @@ int handler_write_60099(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60099, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60099\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60099\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60099\n");
             return -1;
         }
     }
@@ -346,13 +356,13 @@ int handler_write_60101(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60101, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60101\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60101\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60101\n");
             return -1;
         }
     }
@@ -437,6 +447,12 @@ CoreconfValueT* handler_read_60107(SIDHandlerContextT *ctx) {
 }
 
 int handler_write_60107(SIDHandlerContextT *ctx, CoreconfValueT *value) {
+    // A container is written as a whole: expect a map of its children
+    if (value->type != CORECONF_HASHMAP) {
+        printf("Error: Expected hashmap for container write to SID 60107\n");
+        return -1;
+    }
+
     // Call user-implemented write function
     int result = write_entry_fieldLength(value);
 
@@ -446,11 +462,15 @@ int handler_write_60107(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60107, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue != NULL && arrayValue->type == CORECONF_ARRAY) {
-                addToCoreconfArray(arrayValue, value);
-            }
+        if (parentContainer == NULL) {
+            printf("Error: Failed to navigate to parent for SID 60107\n");
+            return -1;
+        }
+
+        // A write replaces: the container becomes exactly the written value
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60107\n");
+            return -1;
         }
     }
 
@@ -484,13 +504,13 @@ int handler_write_60109(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60109, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60109\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60109\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60109\n");
             return -1;
         }
     }
@@ -655,13 +675,13 @@ int handler_write_60116(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60116, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60116\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60116\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60116\n");
             return -1;
         }
     }
@@ -696,13 +716,13 @@ int handler_write_60117(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60117, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60117\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60117\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60117\n");
             return -1;
         }
     }
@@ -722,6 +742,12 @@ CoreconfValueT* handler_read_60118(SIDHandlerContextT *ctx) {
 }
 
 int handler_write_60118(SIDHandlerContextT *ctx, CoreconfValueT *value) {
+    // A container is written as a whole: expect a map of its children
+    if (value->type != CORECONF_HASHMAP) {
+        printf("Error: Expected hashmap for container write to SID 60118\n");
+        return -1;
+    }
+
     // Call user-implemented write function
     int result = write_rule_inactivityTimer(value);
 
@@ -731,11 +757,15 @@ int handler_write_60118(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60118, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue != NULL && arrayValue->type == CORECONF_ARRAY) {
-                addToCoreconfArray(arrayValue, value);
-            }
+        if (parentContainer == NULL) {
+            printf("Error: Failed to navigate to parent for SID 60118\n");
+            return -1;
+        }
+
+        // A write replaces: the container becomes exactly the written value
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60118\n");
+            return -1;
         }
     }
 
@@ -769,13 +799,13 @@ int handler_write_60119(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60119, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60119\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60119\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60119\n");
             return -1;
         }
     }
@@ -810,13 +840,13 @@ int handler_write_60120(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60120, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60120\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60120\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60120\n");
             return -1;
         }
     }
@@ -851,13 +881,13 @@ int handler_write_60121(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60121, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60121\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60121\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60121\n");
             return -1;
         }
     }
@@ -892,13 +922,13 @@ int handler_write_60122(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60122, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60122\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60122\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60122\n");
             return -1;
         }
     }
@@ -933,13 +963,13 @@ int handler_write_60123(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60123, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60123\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60123\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60123\n");
             return -1;
         }
     }
@@ -974,13 +1004,13 @@ int handler_write_60124(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60124, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60124\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60124\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60124\n");
             return -1;
         }
     }
@@ -1015,13 +1045,13 @@ int handler_write_60125(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60125, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60125\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60125\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60125\n");
             return -1;
         }
     }
@@ -1041,6 +1071,12 @@ CoreconfValueT* handler_read_60126(SIDHandlerContextT *ctx) {
 }
 
 int handler_write_60126(SIDHandlerContextT *ctx, CoreconfValueT *value) {
+    // A container is written as a whole: expect a map of its children
+    if (value->type != CORECONF_HASHMAP) {
+        printf("Error: Expected hashmap for container write to SID 60126\n");
+        return -1;
+    }
+
     // Call user-implemented write function
     int result = write_rule_retransmissionTimer(value);
 
@@ -1050,11 +1086,15 @@ int handler_write_60126(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60126, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue != NULL && arrayValue->type == CORECONF_ARRAY) {
-                addToCoreconfArray(arrayValue, value);
-            }
+        if (parentContainer == NULL) {
+            printf("Error: Failed to navigate to parent for SID 60126\n");
+            return -1;
+        }
+
+        // A write replaces: the container becomes exactly the written value
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60126\n");
+            return -1;
         }
     }
 
@@ -1088,13 +1128,13 @@ int handler_write_60127(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60127, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60127\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60127\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60127\n");
             return -1;
         }
     }
@@ -1129,13 +1169,13 @@ int handler_write_60128(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60128, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60128\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60128\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60128\n");
             return -1;
         }
     }
@@ -1170,13 +1210,13 @@ int handler_write_60131(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60131, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60131\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60131\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60131\n");
             return -1;
         }
     }
@@ -1211,13 +1251,13 @@ int handler_write_60132(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60132, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60132\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60132\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60132\n");
             return -1;
         }
     }
@@ -1252,13 +1292,13 @@ int handler_write_60133(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60133, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60133\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60133\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60133\n");
             return -1;
         }
     }
@@ -1293,13 +1333,13 @@ int handler_write_60134(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60134, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60134\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60134\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60134\n");
             return -1;
         }
     }
@@ -1334,13 +1374,13 @@ int handler_write_60135(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 60135, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 60135\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 60135\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 60135\n");
             return -1;
         }
     }
@@ -1375,13 +1415,13 @@ int handler_write_2000010(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         CoreconfValueT* parentContainer = navigateToParentContainer(
             ctx->model->root, ctx->keys, ctx->pathNode, 2000010, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID 2000010\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID 2000010\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID 2000010\n");
             return -1;
         }
     }

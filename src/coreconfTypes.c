@@ -207,7 +207,8 @@ CoreconfValueT* createCoreconfHashmap(void) {
     return val;
 }
 
-// Insert Coreconf Object into CoreconfHashMap
+// Insert `value` under `key`, or replace (and free) the value already there.
+// The map takes ownership of `value` on success (0); on error (-1) the caller keeps it.
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value) {
     int loopCount = 0;
     size_t index = hashKey(key);
@@ -231,25 +232,7 @@ int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* v
                 return -1;
             }
             if (current->key == key) {
-                // If both existing and new values are hashmaps, recursively merge
-                if (current->value->type == CORECONF_HASHMAP && value->type == CORECONF_HASHMAP) {
-                    // Iterate through all entries in the update hashmap
-                    for (size_t j = 0; j < HASHMAP_TABLE_SIZE; j++) {
-                        CoreconfObjectT* updateEntry = value->data.map_value->table[j];
-                        while (updateEntry != NULL) {
-                            int result = insertCoreconfHashMap(current->value->data.map_value, updateEntry->key,
-                                                               updateEntry->value);
-                            if (result != 0) {
-                                free(coreconfObject_);
-                                return result;
-                            }
-                            updateEntry = updateEntry->next;
-                        }
-                    }
-                    free(coreconfObject_);
-                    return 0;
-                }
-                // Otherwise, replace the value
+                // Replace the value, whatever its type (no merging of maps)
                 freeCoreconf(current->value, true);
                 current->value = value;
                 free(coreconfObject_);
