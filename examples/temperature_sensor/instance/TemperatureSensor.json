@@ -1,0 +1,9 @@
+{
+  "TemperatureSensor:TemperatureSensorObject": {
+    "statusLED": "green",
+    "batteryLevel": 87,
+    "temperature": {
+      "voltageADC": "1.8"
+    }
+  }
+}
