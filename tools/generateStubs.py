@@ -591,7 +591,7 @@ def main():
     handlerHCode = ""  # Handler wrapper prototypes
     handlerCCode = ""  # Handler wrapper implementations
 
-    registrationCalls = []
+    handlers = []  # One entry per SID with a read and/or write handler, for the registration function
     processedSIDs = set()
 
     for identifier, sid in ccm.sids.items():
@@ -674,13 +674,15 @@ def main():
             handlerCCode += writeWrapper + "\n"
             handlerHCode += f"int handler_write_{sid}(SIDHandlerContextT *ctx, CoreconfValueT *value);\n"
 
-        # Build registration call if we have either handler
+        # Register this SID if it has either handler
         if readWrapper or writeWrapper:
-            readHandler = f"handler_read_{sid}" if readWrapper else "NULL"
-            writeHandler = f"handler_write_{sid}" if writeWrapper else "NULL"
-            registrationCalls.append(
-                f'    ccoreconfModelRegisterHandler(model, {sid}, {readHandler}, {writeHandler}, "{identifier}", "{itemType}");'
-            )
+            handlers.append({
+                'sid': sid,
+                'read_handler': f"handler_read_{sid}" if readWrapper else "NULL",
+                'write_handler': f"handler_write_{sid}" if writeWrapper else "NULL",
+                'identifier': identifier,
+                'type': itemType
+            })
 
     # Add enum type
     for enumTypeName, enumDefinition in enumTypes.items():
@@ -703,22 +705,6 @@ def main():
     handlerHCode += '#endif\n'
 
     # Generate the registration function using template
-    handlers = []
-    if readWrapper or writeWrapper:
-        # Build handler list from registration calls
-        for call in registrationCalls:
-            # Parse the registration call to extract handler info
-            # Format: ccoreconfModelRegisterHandler(model, sid, read_handler, write_handler, "identifier", "type");
-            match = re.search(r'ccoreconfModelRegisterHandler\(model, (\d+), (.+?), (.+?), "(.+?)", "(.+?)"\)', call)
-            if match:
-                handlers.append({
-                    'sid': match.group(1),
-                    'read_handler': match.group(2),
-                    'write_handler': match.group(3),
-                    'identifier': match.group(4),
-                    'type': match.group(5)
-                })
-
     env = get_jinja_env()
     template = env.get_template('registration.c.jinja')
     registrationFunction = template.render(handlers=handlers, register_function=registerFunction)
