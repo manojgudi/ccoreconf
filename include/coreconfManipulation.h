@@ -61,14 +61,18 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfValue, DynamicLongL
 void freeExaminedCoreconfValue(CoreconfValueT *examined);
 
 /**
- * Navigate to parent container of a target SID using delta encoding and PathNode
+ * Navigate to the map that holds targetSID: its container, or the YANG list
+ * entry selected by requestKeys (consumed from the END, like
+ * examineCoreconfValue; the caller's list is not modified).
  * @param root Root of the coreconf model
+ * @param requestKeys Keys of the lists on the path (may be NULL if there are none)
  * @param pathNode Path to navigate (built by findRequirementForSID)
  * @param targetSID The final target SID
  * @param finalDeltaSID Output parameter for the final delta SID from parent to target
- * @return Pointer to parent container (hashmap), or NULL on error
+ * @return The parent map, borrowed from the model; NULL if the path or a list
+ *         entry does not exist.  Never an array.
  */
-CoreconfValueT *navigateToParentContainer(CoreconfValueT *root, PathNodeT *pathNode, uint64_t targetSID,
-                                          uint64_t *finalDeltaSID);
+CoreconfValueT *navigateToParentContainer(CoreconfValueT *root, DynamicLongListT *requestKeys, PathNodeT *pathNode,
+                                          uint64_t targetSID, uint64_t *finalDeltaSID);
 
 #endif  // CORECONF_MANIPULATION_H

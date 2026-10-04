@@ -29,7 +29,7 @@ int handler_write_60095(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60095, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60095, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
@@ -86,7 +86,7 @@ int handler_write_60096(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60096, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60096, &finalDeltaSID);
 
         if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for list SID 60096\n");
@@ -149,7 +149,7 @@ int handler_write_60097(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60097, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60097, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -190,7 +190,7 @@ int handler_write_60098(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60098, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60098, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -231,7 +231,7 @@ int handler_write_60099(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60099, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60099, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -299,7 +299,7 @@ int handler_write_60100(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60100, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60100, &finalDeltaSID);
 
         if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for list SID 60100\n");
@@ -362,7 +362,7 @@ int handler_write_60101(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60101, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60101, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -414,7 +414,7 @@ int handler_write_60102(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60102, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60102, &finalDeltaSID);
 
         if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for list SID 60102\n");
@@ -471,7 +471,7 @@ int handler_write_60107(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60107, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60107, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
@@ -509,7 +509,7 @@ int handler_write_60109(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60109, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60109, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -561,7 +561,7 @@ int handler_write_60110(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60110, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60110, &finalDeltaSID);
 
         if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for list SID 60110\n");
@@ -635,7 +635,7 @@ int handler_write_60113(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60113, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60113, &finalDeltaSID);
 
         if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for list SID 60113\n");
@@ -698,7 +698,7 @@ int handler_write_60116(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60116, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60116, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -739,7 +739,7 @@ int handler_write_60117(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60117, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60117, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -774,7 +774,7 @@ int handler_write_60118(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60118, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60118, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
@@ -812,7 +812,7 @@ int handler_write_60119(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60119, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60119, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -853,7 +853,7 @@ int handler_write_60120(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60120, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60120, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -894,7 +894,7 @@ int handler_write_60121(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60121, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60121, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -935,7 +935,7 @@ int handler_write_60122(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60122, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60122, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -976,7 +976,7 @@ int handler_write_60123(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60123, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60123, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -1017,7 +1017,7 @@ int handler_write_60124(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60124, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60124, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -1058,7 +1058,7 @@ int handler_write_60125(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60125, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60125, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -1093,7 +1093,7 @@ int handler_write_60126(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60126, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60126, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
@@ -1131,7 +1131,7 @@ int handler_write_60127(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60127, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60127, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -1172,7 +1172,7 @@ int handler_write_60128(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60128, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60128, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -1213,7 +1213,7 @@ int handler_write_60131(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60131, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60131, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -1254,7 +1254,7 @@ int handler_write_60132(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60132, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60132, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -1295,7 +1295,7 @@ int handler_write_60133(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60133, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60133, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -1336,7 +1336,7 @@ int handler_write_60134(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60134, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60134, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -1377,7 +1377,7 @@ int handler_write_60135(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 60135, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 60135, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
@@ -1418,7 +1418,7 @@ int handler_write_2000010(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->model->root, ctx->pathNode, 2000010, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, 2000010, &finalDeltaSID);
 
         if (parentContainer != NULL) {
             int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
