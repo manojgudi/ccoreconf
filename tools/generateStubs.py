@@ -548,15 +548,17 @@ def main():
         default=2,
         help="Maximum number of words to use from identifier path when generating function names (default: 2)",
     )
+    parser.add_argument("--output-dir", default=".", help="Directory for the generated files (default: .)")
     args = parser.parse_args()
+    os.makedirs(args.output_dir, exist_ok=True)
 
     # User implementation files (stubs that user modifies)
-    implHeaderFile = "./%s-impl.h" % args.proto
-    implSourceFile = "./%s-impl-template.c" % args.proto
+    implHeaderFile = os.path.join(args.output_dir, "%s-impl.h" % args.proto)
+    implSourceFile = os.path.join(args.output_dir, "%s-impl-template.c" % args.proto)
 
     # Handler wrapper files (auto-generated, don't modify)
-    handlerHeaderFile = "./%s-handlers.h" % args.proto
-    handlerSourceFile = "./%s-handlers.c" % args.proto
+    handlerHeaderFile = os.path.join(args.output_dir, "%s-handlers.h" % args.proto)
+    handlerSourceFile = os.path.join(args.output_dir, "%s-handlers.c" % args.proto)
 
     # Generate include strings using templates
     env = get_jinja_env()
