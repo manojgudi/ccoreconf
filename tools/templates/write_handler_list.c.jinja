@@ -1,13 +1,17 @@
 int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
-{% if keys %}
+{% set error_return = "-1" %}
+{% if value_keys %}
     // Validate value is a hashmap containing keys and data
     if (value->type != CORECONF_HASHMAP) {
         printf("Error: Expected hashmap for list item write to SID {{ sid }}\n");
         return -1;
     }
 
-    // Extract keys from value hashmap (keys are stored with delta SIDs)
-{% for key in keys %}
+{% if ctx_keys %}
+{% include 'ctx_keys.c.jinja' %}
+{% endif %}
+    // The entry's own keys, from the written value (stored with delta SIDs)
+{% for key in value_keys %}
     CoreconfValueT* {{ key.name }}_value = getCoreconfHashMap(value->data.map_value, {{ key.sid - sid }});
     if ({{ key.name }}_value == NULL) {
         printf("Error: Missing key {{ key.name }} (SID {{ key.sid }}) in list item\n");
@@ -42,8 +46,8 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         }
 
         // Replace the entry whose keys all match, or append; the array takes value
-        static const uint64_t keyDeltas[] = { {% for key in keys %}{{ key.sid - sid }}{% if not loop.last %}, {% endif %}{% endfor %} };
-        if (updateCoreconfArrayByKeys(arrayValue, keyDeltas, {{ keys | length }}, value) != 0) {
+        static const uint64_t keyDeltas[] = { {% for key in value_keys %}{{ key.sid - sid }}{% if not loop.last %}, {% endif %}{% endfor %} };
+        if (updateCoreconfArrayByKeys(arrayValue, keyDeltas, {{ value_keys | length }}, value) != 0) {
             printf("Error: Failed to update list entry for SID {{ sid }}\n");
             return -1;
         }
@@ -57,8 +61,11 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         return -1;
     }
 
+{% if ctx_keys %}
+{% include 'ctx_keys.c.jinja' %}
+{% endif %}
     // Call user-implemented write function
-    int result = {{ user_function }}(value);
+    int result = {{ user_function }}({% for key in keys %}{{ key.name }}, {% endfor %}value);
 
     // If user function succeeded, update the datastore
     if (result == 0) {

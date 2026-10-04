@@ -70,11 +70,11 @@ int write_schc_rule(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, Corec
     SID: 60097
     Module: data
     Identifier: /ietf-schc:schc/rule/ack-behavior
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_ackBehavior(void) {
+uint64_t read_rule_ackBehavior(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/ack-behavior"
     uint64_t mockValue = 0;
     return mockValue;
@@ -85,11 +85,11 @@ uint64_t read_rule_ackBehavior(void) {
     SID: 60097
     Module: data
     Identifier: /ietf-schc:schc/rule/ack-behavior
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_ackBehavior(uint64_t value) {
+int write_rule_ackBehavior(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -100,11 +100,11 @@ int write_rule_ackBehavior(uint64_t value) {
     SID: 60098
     Module: data
     Identifier: /ietf-schc:schc/rule/direction
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_direction(void) {
+uint64_t read_rule_direction(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/direction"
     uint64_t mockValue = 0;
     return mockValue;
@@ -115,11 +115,11 @@ uint64_t read_rule_direction(void) {
     SID: 60098
     Module: data
     Identifier: /ietf-schc:schc/rule/direction
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_direction(uint64_t value) {
+int write_rule_direction(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -130,11 +130,11 @@ int write_rule_direction(uint64_t value) {
     SID: 60099
     Module: data
     Identifier: /ietf-schc:schc/rule/dtag-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_dtagSize(void) {
+uint64_t read_rule_dtagSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/dtag-size"
     uint64_t mockValue = 0;
     return mockValue;
@@ -145,11 +145,11 @@ uint64_t read_rule_dtagSize(void) {
     SID: 60099
     Module: data
     Identifier: /ietf-schc:schc/rule/dtag-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_dtagSize(uint64_t value) {
+int write_rule_dtagSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -160,11 +160,11 @@ int write_rule_dtagSize(uint64_t value) {
     SID: 60100
     Module: data
     Identifier: /ietf-schc:schc/rule/entry
-    function params:/ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator
     Stable: False
 */
 
-CoreconfValueT* read_rule_entry(uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator) {
+CoreconfValueT* read_rule_entry(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator) {
     // TODO: Implement read logic for list/container
     // For now, return NULL
     return NULL;
@@ -175,11 +175,11 @@ CoreconfValueT* read_rule_entry(uint64_t entry_fieldId, uint64_t entry_fieldPosi
     SID: 60100
     Module: data
     Identifier: /ietf-schc:schc/rule/entry
-    function params:/ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator
     Stable: False
 */
 
-int write_rule_entry(uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, CoreconfValueT* value) {
+int write_rule_entry(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, CoreconfValueT* value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -190,11 +190,11 @@ int write_rule_entry(uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint6
     SID: 60101
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/comp-decomp-action
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator
     Stable: False
 */
 
-uint64_t read_entry_compDecompAction(void) {
+uint64_t read_entry_compDecompAction(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/entry/comp-decomp-action"
     uint64_t mockValue = 0;
     return mockValue;
@@ -205,11 +205,11 @@ uint64_t read_entry_compDecompAction(void) {
     SID: 60101
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/comp-decomp-action
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator
     Stable: False
 */
 
-int write_entry_compDecompAction(uint64_t value) {
+int write_entry_compDecompAction(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -220,11 +220,11 @@ int write_entry_compDecompAction(uint64_t value) {
     SID: 60102
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/comp-decomp-action-value
-    function params:/ietf-schc:schc/rule/entry/comp-decomp-action-value/index
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator , /ietf-schc:schc/rule/entry/comp-decomp-action-value/index
     Stable: False
 */
 
-CoreconfValueT* read_entry_compDecompActionValue(uint64_t compDecompActionValue_index) {
+CoreconfValueT* read_entry_compDecompActionValue(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index) {
     // TODO: Implement read logic for list/container
     // For now, return NULL
     return NULL;
@@ -235,11 +235,11 @@ CoreconfValueT* read_entry_compDecompActionValue(uint64_t compDecompActionValue_
     SID: 60102
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/comp-decomp-action-value
-    function params:/ietf-schc:schc/rule/entry/comp-decomp-action-value/index
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator , /ietf-schc:schc/rule/entry/comp-decomp-action-value/index
     Stable: False
 */
 
-int write_entry_compDecompActionValue(uint64_t compDecompActionValue_index, CoreconfValueT* value) {
+int write_entry_compDecompActionValue(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index, CoreconfValueT* value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -250,11 +250,11 @@ int write_entry_compDecompActionValue(uint64_t compDecompActionValue_index, Core
     SID: 60104
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/comp-decomp-action-value/value
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator , /ietf-schc:schc/rule/entry/comp-decomp-action-value/index
     Stable: False
 */
 
-bool read_compDecompActionValue_value(void) {
+bool read_compDecompActionValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/entry/comp-decomp-action-value/value"
     bool mockValue = 0;
     return mockValue;
@@ -265,11 +265,11 @@ bool read_compDecompActionValue_value(void) {
     SID: 60104
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/comp-decomp-action-value/value
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator , /ietf-schc:schc/rule/entry/comp-decomp-action-value/index
     Stable: False
 */
 
-int write_compDecompActionValue_value(bool value) {
+int write_compDecompActionValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t compDecompActionValue_index, bool value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -280,11 +280,11 @@ int write_compDecompActionValue_value(bool value) {
     SID: 60107
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/field-length
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator
     Stable: False
 */
 
-CoreconfValueT* read_entry_fieldLength(void) {
+CoreconfValueT* read_entry_fieldLength(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator) {
     // TODO: Implement read logic for list/container
     // For now, return NULL
     return NULL;
@@ -295,11 +295,11 @@ CoreconfValueT* read_entry_fieldLength(void) {
     SID: 60107
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/field-length
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator
     Stable: False
 */
 
-int write_entry_fieldLength(CoreconfValueT* value) {
+int write_entry_fieldLength(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, CoreconfValueT* value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -310,11 +310,11 @@ int write_entry_fieldLength(CoreconfValueT* value) {
     SID: 60109
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/matching-operator
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator
     Stable: False
 */
 
-uint64_t read_entry_matchingOperator(void) {
+uint64_t read_entry_matchingOperator(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/entry/matching-operator"
     uint64_t mockValue = 0;
     return mockValue;
@@ -325,11 +325,11 @@ uint64_t read_entry_matchingOperator(void) {
     SID: 60109
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/matching-operator
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator
     Stable: False
 */
 
-int write_entry_matchingOperator(uint64_t value) {
+int write_entry_matchingOperator(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -340,11 +340,11 @@ int write_entry_matchingOperator(uint64_t value) {
     SID: 60110
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/matching-operator-value
-    function params:/ietf-schc:schc/rule/entry/matching-operator-value/index
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator , /ietf-schc:schc/rule/entry/matching-operator-value/index
     Stable: False
 */
 
-CoreconfValueT* read_entry_matchingOperatorValue(uint64_t matchingOperatorValue_index) {
+CoreconfValueT* read_entry_matchingOperatorValue(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index) {
     // TODO: Implement read logic for list/container
     // For now, return NULL
     return NULL;
@@ -355,11 +355,11 @@ CoreconfValueT* read_entry_matchingOperatorValue(uint64_t matchingOperatorValue_
     SID: 60110
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/matching-operator-value
-    function params:/ietf-schc:schc/rule/entry/matching-operator-value/index
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator , /ietf-schc:schc/rule/entry/matching-operator-value/index
     Stable: False
 */
 
-int write_entry_matchingOperatorValue(uint64_t matchingOperatorValue_index, CoreconfValueT* value) {
+int write_entry_matchingOperatorValue(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index, CoreconfValueT* value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -370,11 +370,11 @@ int write_entry_matchingOperatorValue(uint64_t matchingOperatorValue_index, Core
     SID: 60112
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/matching-operator-value/value
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator , /ietf-schc:schc/rule/entry/matching-operator-value/index
     Stable: False
 */
 
-bool read_matchingOperatorValue_value(void) {
+bool read_matchingOperatorValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/entry/matching-operator-value/value"
     bool mockValue = 0;
     return mockValue;
@@ -385,11 +385,11 @@ bool read_matchingOperatorValue_value(void) {
     SID: 60112
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/matching-operator-value/value
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator , /ietf-schc:schc/rule/entry/matching-operator-value/index
     Stable: False
 */
 
-int write_matchingOperatorValue_value(bool value) {
+int write_matchingOperatorValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t matchingOperatorValue_index, bool value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -400,11 +400,11 @@ int write_matchingOperatorValue_value(bool value) {
     SID: 60113
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/target-value
-    function params:/ietf-schc:schc/rule/entry/target-value/index
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator , /ietf-schc:schc/rule/entry/target-value/index
     Stable: False
 */
 
-CoreconfValueT* read_entry_targetValue(uint64_t targetValue_index) {
+CoreconfValueT* read_entry_targetValue(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index) {
     // TODO: Implement read logic for list/container
     // For now, return NULL
     return NULL;
@@ -415,11 +415,11 @@ CoreconfValueT* read_entry_targetValue(uint64_t targetValue_index) {
     SID: 60113
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/target-value
-    function params:/ietf-schc:schc/rule/entry/target-value/index
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator , /ietf-schc:schc/rule/entry/target-value/index
     Stable: False
 */
 
-int write_entry_targetValue(uint64_t targetValue_index, CoreconfValueT* value) {
+int write_entry_targetValue(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index, CoreconfValueT* value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -430,11 +430,11 @@ int write_entry_targetValue(uint64_t targetValue_index, CoreconfValueT* value) {
     SID: 60115
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/target-value/value
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator , /ietf-schc:schc/rule/entry/target-value/index
     Stable: False
 */
 
-bool read_targetValue_value(void) {
+bool read_targetValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/entry/target-value/value"
     bool mockValue = 0;
     return mockValue;
@@ -445,11 +445,11 @@ bool read_targetValue_value(void) {
     SID: 60115
     Module: data
     Identifier: /ietf-schc:schc/rule/entry/target-value/value
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length , /ietf-schc:schc/rule/entry/field-id , /ietf-schc:schc/rule/entry/field-position , /ietf-schc:schc/rule/entry/direction-indicator , /ietf-schc:schc/rule/entry/target-value/index
     Stable: False
 */
 
-int write_targetValue_value(bool value) {
+int write_targetValue_value(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t entry_fieldId, uint64_t entry_fieldPosition, uint64_t entry_directionIndicator, uint64_t targetValue_index, bool value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -460,11 +460,11 @@ int write_targetValue_value(bool value) {
     SID: 60116
     Module: data
     Identifier: /ietf-schc:schc/rule/fcn-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_fcnSize(void) {
+uint64_t read_rule_fcnSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/fcn-size"
     uint64_t mockValue = 0;
     return mockValue;
@@ -475,11 +475,11 @@ uint64_t read_rule_fcnSize(void) {
     SID: 60116
     Module: data
     Identifier: /ietf-schc:schc/rule/fcn-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_fcnSize(uint64_t value) {
+int write_rule_fcnSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -490,11 +490,11 @@ int write_rule_fcnSize(uint64_t value) {
     SID: 60117
     Module: data
     Identifier: /ietf-schc:schc/rule/fragmentation-mode
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_fragmentationMode(void) {
+uint64_t read_rule_fragmentationMode(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/fragmentation-mode"
     uint64_t mockValue = 0;
     return mockValue;
@@ -505,11 +505,11 @@ uint64_t read_rule_fragmentationMode(void) {
     SID: 60117
     Module: data
     Identifier: /ietf-schc:schc/rule/fragmentation-mode
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_fragmentationMode(uint64_t value) {
+int write_rule_fragmentationMode(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -520,11 +520,11 @@ int write_rule_fragmentationMode(uint64_t value) {
     SID: 60118
     Module: data
     Identifier: /ietf-schc:schc/rule/inactivity-timer
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-CoreconfValueT* read_rule_inactivityTimer(void) {
+CoreconfValueT* read_rule_inactivityTimer(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: Implement read logic for list/container
     // For now, return NULL
     return NULL;
@@ -535,11 +535,11 @@ CoreconfValueT* read_rule_inactivityTimer(void) {
     SID: 60118
     Module: data
     Identifier: /ietf-schc:schc/rule/inactivity-timer
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_inactivityTimer(CoreconfValueT* value) {
+int write_rule_inactivityTimer(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, CoreconfValueT* value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -550,11 +550,11 @@ int write_rule_inactivityTimer(CoreconfValueT* value) {
     SID: 60119
     Module: data
     Identifier: /ietf-schc:schc/rule/inactivity-timer/ticks-duration
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_inactivityTimer_ticksDuration(void) {
+uint64_t read_inactivityTimer_ticksDuration(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/inactivity-timer/ticks-duration"
     uint64_t mockValue = 0;
     return mockValue;
@@ -565,11 +565,11 @@ uint64_t read_inactivityTimer_ticksDuration(void) {
     SID: 60119
     Module: data
     Identifier: /ietf-schc:schc/rule/inactivity-timer/ticks-duration
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_inactivityTimer_ticksDuration(uint64_t value) {
+int write_inactivityTimer_ticksDuration(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -580,11 +580,11 @@ int write_inactivityTimer_ticksDuration(uint64_t value) {
     SID: 60120
     Module: data
     Identifier: /ietf-schc:schc/rule/inactivity-timer/ticks-numbers
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_inactivityTimer_ticksNumbers(void) {
+uint64_t read_inactivityTimer_ticksNumbers(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/inactivity-timer/ticks-numbers"
     uint64_t mockValue = 0;
     return mockValue;
@@ -595,11 +595,11 @@ uint64_t read_inactivityTimer_ticksNumbers(void) {
     SID: 60120
     Module: data
     Identifier: /ietf-schc:schc/rule/inactivity-timer/ticks-numbers
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_inactivityTimer_ticksNumbers(uint64_t value) {
+int write_inactivityTimer_ticksNumbers(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -610,11 +610,11 @@ int write_inactivityTimer_ticksNumbers(uint64_t value) {
     SID: 60121
     Module: data
     Identifier: /ietf-schc:schc/rule/l2-word-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_l2WordSize(void) {
+uint64_t read_rule_l2WordSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/l2-word-size"
     uint64_t mockValue = 0;
     return mockValue;
@@ -625,11 +625,11 @@ uint64_t read_rule_l2WordSize(void) {
     SID: 60121
     Module: data
     Identifier: /ietf-schc:schc/rule/l2-word-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_l2WordSize(uint64_t value) {
+int write_rule_l2WordSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -640,11 +640,11 @@ int write_rule_l2WordSize(uint64_t value) {
     SID: 60122
     Module: data
     Identifier: /ietf-schc:schc/rule/max-ack-requests
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_maxAckRequests(void) {
+uint64_t read_rule_maxAckRequests(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/max-ack-requests"
     uint64_t mockValue = 0;
     return mockValue;
@@ -655,11 +655,11 @@ uint64_t read_rule_maxAckRequests(void) {
     SID: 60122
     Module: data
     Identifier: /ietf-schc:schc/rule/max-ack-requests
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_maxAckRequests(uint64_t value) {
+int write_rule_maxAckRequests(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -670,11 +670,11 @@ int write_rule_maxAckRequests(uint64_t value) {
     SID: 60123
     Module: data
     Identifier: /ietf-schc:schc/rule/max-interleaved-frames
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_maxInterleavedFrames(void) {
+uint64_t read_rule_maxInterleavedFrames(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/max-interleaved-frames"
     uint64_t mockValue = 0;
     return mockValue;
@@ -685,11 +685,11 @@ uint64_t read_rule_maxInterleavedFrames(void) {
     SID: 60123
     Module: data
     Identifier: /ietf-schc:schc/rule/max-interleaved-frames
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_maxInterleavedFrames(uint64_t value) {
+int write_rule_maxInterleavedFrames(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -700,11 +700,11 @@ int write_rule_maxInterleavedFrames(uint64_t value) {
     SID: 60124
     Module: data
     Identifier: /ietf-schc:schc/rule/maximum-packet-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_maximumPacketSize(void) {
+uint64_t read_rule_maximumPacketSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/maximum-packet-size"
     uint64_t mockValue = 0;
     return mockValue;
@@ -715,11 +715,11 @@ uint64_t read_rule_maximumPacketSize(void) {
     SID: 60124
     Module: data
     Identifier: /ietf-schc:schc/rule/maximum-packet-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_maximumPacketSize(uint64_t value) {
+int write_rule_maximumPacketSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -730,11 +730,11 @@ int write_rule_maximumPacketSize(uint64_t value) {
     SID: 60125
     Module: data
     Identifier: /ietf-schc:schc/rule/rcs-algorithm
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_rcsAlgorithm(void) {
+uint64_t read_rule_rcsAlgorithm(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/rcs-algorithm"
     uint64_t mockValue = 0;
     return mockValue;
@@ -745,11 +745,11 @@ uint64_t read_rule_rcsAlgorithm(void) {
     SID: 60125
     Module: data
     Identifier: /ietf-schc:schc/rule/rcs-algorithm
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_rcsAlgorithm(uint64_t value) {
+int write_rule_rcsAlgorithm(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -760,11 +760,11 @@ int write_rule_rcsAlgorithm(uint64_t value) {
     SID: 60126
     Module: data
     Identifier: /ietf-schc:schc/rule/retransmission-timer
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-CoreconfValueT* read_rule_retransmissionTimer(void) {
+CoreconfValueT* read_rule_retransmissionTimer(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: Implement read logic for list/container
     // For now, return NULL
     return NULL;
@@ -775,11 +775,11 @@ CoreconfValueT* read_rule_retransmissionTimer(void) {
     SID: 60126
     Module: data
     Identifier: /ietf-schc:schc/rule/retransmission-timer
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_retransmissionTimer(CoreconfValueT* value) {
+int write_rule_retransmissionTimer(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, CoreconfValueT* value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -790,11 +790,11 @@ int write_rule_retransmissionTimer(CoreconfValueT* value) {
     SID: 60127
     Module: data
     Identifier: /ietf-schc:schc/rule/retransmission-timer/ticks-duration
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_retransmissionTimer_ticksDuration(void) {
+uint64_t read_retransmissionTimer_ticksDuration(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/retransmission-timer/ticks-duration"
     uint64_t mockValue = 0;
     return mockValue;
@@ -805,11 +805,11 @@ uint64_t read_retransmissionTimer_ticksDuration(void) {
     SID: 60127
     Module: data
     Identifier: /ietf-schc:schc/rule/retransmission-timer/ticks-duration
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_retransmissionTimer_ticksDuration(uint64_t value) {
+int write_retransmissionTimer_ticksDuration(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -820,11 +820,11 @@ int write_retransmissionTimer_ticksDuration(uint64_t value) {
     SID: 60128
     Module: data
     Identifier: /ietf-schc:schc/rule/retransmission-timer/ticks-numbers
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_retransmissionTimer_ticksNumbers(void) {
+uint64_t read_retransmissionTimer_ticksNumbers(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/retransmission-timer/ticks-numbers"
     uint64_t mockValue = 0;
     return mockValue;
@@ -835,11 +835,11 @@ uint64_t read_retransmissionTimer_ticksNumbers(void) {
     SID: 60128
     Module: data
     Identifier: /ietf-schc:schc/rule/retransmission-timer/ticks-numbers
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_retransmissionTimer_ticksNumbers(uint64_t value) {
+int write_retransmissionTimer_ticksNumbers(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -850,11 +850,11 @@ int write_retransmissionTimer_ticksNumbers(uint64_t value) {
     SID: 60131
     Module: data
     Identifier: /ietf-schc:schc/rule/rule-nature
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_ruleNature(void) {
+uint64_t read_rule_ruleNature(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/rule-nature"
     uint64_t mockValue = 0;
     return mockValue;
@@ -865,11 +865,11 @@ uint64_t read_rule_ruleNature(void) {
     SID: 60131
     Module: data
     Identifier: /ietf-schc:schc/rule/rule-nature
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_ruleNature(uint64_t value) {
+int write_rule_ruleNature(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -880,11 +880,11 @@ int write_rule_ruleNature(uint64_t value) {
     SID: 60132
     Module: data
     Identifier: /ietf-schc:schc/rule/tile-in-all-1
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_tileInAll1(void) {
+uint64_t read_rule_tileInAll1(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/tile-in-all-1"
     uint64_t mockValue = 0;
     return mockValue;
@@ -895,11 +895,11 @@ uint64_t read_rule_tileInAll1(void) {
     SID: 60132
     Module: data
     Identifier: /ietf-schc:schc/rule/tile-in-all-1
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_tileInAll1(uint64_t value) {
+int write_rule_tileInAll1(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -910,11 +910,11 @@ int write_rule_tileInAll1(uint64_t value) {
     SID: 60133
     Module: data
     Identifier: /ietf-schc:schc/rule/tile-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_tileSize(void) {
+uint64_t read_rule_tileSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/tile-size"
     uint64_t mockValue = 0;
     return mockValue;
@@ -925,11 +925,11 @@ uint64_t read_rule_tileSize(void) {
     SID: 60133
     Module: data
     Identifier: /ietf-schc:schc/rule/tile-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_tileSize(uint64_t value) {
+int write_rule_tileSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -940,11 +940,11 @@ int write_rule_tileSize(uint64_t value) {
     SID: 60134
     Module: data
     Identifier: /ietf-schc:schc/rule/w-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_wSize(void) {
+uint64_t read_rule_wSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/w-size"
     uint64_t mockValue = 0;
     return mockValue;
@@ -955,11 +955,11 @@ uint64_t read_rule_wSize(void) {
     SID: 60134
     Module: data
     Identifier: /ietf-schc:schc/rule/w-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_wSize(uint64_t value) {
+int write_rule_wSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -970,11 +970,11 @@ int write_rule_wSize(uint64_t value) {
     SID: 60135
     Module: data
     Identifier: /ietf-schc:schc/rule/window-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_rule_windowSize(void) {
+uint64_t read_rule_windowSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/window-size"
     uint64_t mockValue = 0;
     return mockValue;
@@ -985,11 +985,11 @@ uint64_t read_rule_windowSize(void) {
     SID: 60135
     Module: data
     Identifier: /ietf-schc:schc/rule/window-size
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_rule_windowSize(uint64_t value) {
+int write_rule_windowSize(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;
@@ -1000,11 +1000,11 @@ int write_rule_windowSize(uint64_t value) {
     SID: 2000010
     Module: data
     Identifier: /ietf-schc:schc/rule/ietf-schc-oam:proxy-behavior
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-uint64_t read_ietfSchcOam_proxyBehavior(void) {
+uint64_t read_ietfSchcOam_proxyBehavior(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength) {
     // TODO: replace with proper return value for the leaf "/ietf-schc:schc/rule/ietf-schc-oam:proxy-behavior"
     uint64_t mockValue = 0;
     return mockValue;
@@ -1015,11 +1015,11 @@ uint64_t read_ietfSchcOam_proxyBehavior(void) {
     SID: 2000010
     Module: data
     Identifier: /ietf-schc:schc/rule/ietf-schc-oam:proxy-behavior
-    function params:
+    function params:/ietf-schc:schc/rule/rule-id-value , /ietf-schc:schc/rule/rule-id-length
     Stable: False
 */
 
-int write_ietfSchcOam_proxyBehavior(uint64_t value) {
+int write_ietfSchcOam_proxyBehavior(uint64_t rule_ruleIdValue, uint64_t rule_ruleIdLength, uint64_t value) {
     // TODO: Implement write logic for this SID
     // For now, just return success
     return 0;

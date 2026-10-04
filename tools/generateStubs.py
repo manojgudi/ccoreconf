@@ -187,7 +187,8 @@ class SIDItem:
         self.identifier = identifier
         self.sid = sid
         self.stable = stable
-        self.sidKeyItems = []
+        self.sidKeyItems = []  # Keys of all enclosing lists (and its own), outermost first
+        self.ownKeyCount = 0   # For a list: how many of sidKeyItems (the last ones) are its own keys
         self.functionPrototype = ""
         self.isList = isList
         self.max_words = max_words
@@ -218,6 +219,17 @@ class SIDItem:
 
     def addSidKey(self, sidKeyItem):
         self.sidKeyItems.append(sidKeyItem)
+
+    def keyContexts(self):
+        """Template context for sidKeyItems: C name, C type and SID of each key"""
+        return [
+            {
+                'name': formatIdentifier(k.identifier, self.max_words),
+                'c_type': cborTypeToCMapping[k.type],
+                'sid': k.sid
+            }
+            for k in self.sidKeyItems
+        ]
 
     def addFunctionPrototype(self, functionPrototype):
         self.functionPrototype = functionPrototype
@@ -263,16 +275,7 @@ class SIDItem:
 
         functionName = formatIdentifier(self.identifier, self.max_words)
 
-        # Prepare keys context
-        keys = []
-        if self.sidKeyItems:
-            keys = [
-                {
-                    'name': formatIdentifier(k.identifier, self.max_words),
-                    'c_type': cborTypeToCMapping[k.type]
-                }
-                for k in self.sidKeyItems
-            ]
+        keys = self.keyContexts()
 
         # Containers, lists and unions all use CoreconfValueT*
         is_container_or_list = self.isList or self.type in ("void", "union")
@@ -326,16 +329,7 @@ class SIDItem:
 
         functionName = formatIdentifier(self.identifier, self.max_words)
 
-        # Prepare keys context
-        keys = []
-        if self.sidKeyItems:
-            keys = [
-                {
-                    'name': formatIdentifier(k.identifier, self.max_words),
-                    'c_type': cborTypeToCMapping[k.type]
-                }
-                for k in self.sidKeyItems
-            ]
+        keys = self.keyContexts()
 
         # Determine value type
         enumType = functionNameWithEnumTypes.get(functionName, "")
@@ -401,18 +395,8 @@ class SIDItem:
             'is_container_or_list': is_container_or_list,
             'return_type': "CoreconfValueT*" if is_container_or_list else cborTypeToCMapping.get(self.type, "void"),
             'constructor_function': coreconfTypeConstructors.get(self.type, ""),
-            'keys': []
+            'keys': self.keyContexts()
         }
-
-        # Add keys if present
-        if self.sidKeyItems:
-            context['keys'] = [
-                {
-                    'name': formatIdentifier(k.identifier, self.max_words),
-                    'c_type': cborTypeToCMapping[k.type]
-                }
-                for k in self.sidKeyItems
-            ]
 
         # Render template
         env = get_jinja_env()
@@ -436,17 +420,11 @@ class SIDItem:
         functionName = formatIdentifier(self.identifier, self.max_words)
         userFunctionName = f"write_{functionName}"
 
-        # Prepare keys context
-        keys = []
-        if self.sidKeyItems:
-            keys = [
-                {
-                    'name': formatIdentifier(k.identifier, self.max_words),
-                    'c_type': cborTypeToCMapping[k.type],
-                    'sid': k.sid
-                }
-                for k in self.sidKeyItems
-            ]
+        # All keys, outermost list first.  The enclosing lists' keys come from
+        # ctx->keys; a list's own keys (the last ownKeyCount) from the written entry.
+        keys = self.keyContexts()
+        ctxKeys = keys[:len(keys) - self.ownKeyCount]
+        valueKeys = keys[len(keys) - self.ownKeyCount:]
 
         env = get_jinja_env()
 
@@ -458,7 +436,9 @@ class SIDItem:
             context = {
                 'sid': self.sid,
                 'user_function': userFunctionName,
-                'keys': keys
+                'keys': keys,
+                'ctx_keys': ctxKeys,
+                'value_keys': valueKeys
             }
             template = env.get_template('write_handler_list.c.jinja')
             return template.render(context) + "\n"
@@ -519,35 +499,18 @@ def unionTypeCheck(members):
 
 def findKeysForLeavesBySID(itemSID, model):
     """
-    Returns a list of keys for a leafSID
+    Returns the key SIDs a node needs: the keys of every enclosing list,
+    outermost list first, each list's keys in key-mapping order.  If the node
+    is itself a list, its own keys come last.  This is the order the library
+    takes keys from ctx->keys (popping from its end).
     """
-
-    itemIdentifier = model.ids[itemSID]
     requiredSIDKeys = []
-
-    # If itemSID is itself in keyMapping, then add its keys to requiredSIDKeys
-    if str(itemSID) in model.key_mapping:
-        sidKeys = model.key_mapping[str(itemSID)]
-        for sidKey in sidKeys:
-            requiredSIDKeys.append(sidKey)
-
-    # Check if its parents are in key_mapping and add their keys to requiredSIDKeys
-    identifier = itemIdentifier
+    identifier = model.ids[itemSID]
     while identifier:
+        if identifier in model.sids:
+            listKeys = model.key_mapping.get(str(model.sids[identifier]), [])
+            requiredSIDKeys = list(listKeys) + requiredSIDKeys
         identifier = identifier.rsplit("/", 1)[0]
-
-        if not identifier:
-            continue
-        if identifier not in model.sids:
-            continue
-
-        currentItemSID = model.sids[identifier]
-
-        if currentItemSID in model.key_mapping:
-            sidKeys = model.key_mapping[str(currentItemSID)]
-            for sidKey in sidKeys:
-                requiredSIDKeys.append(sidKey)
-
     return requiredSIDKeys
 
 
@@ -666,6 +629,8 @@ def main():
         # Generate C code for this item
         # TODO: Do we need to add back in support for stable/unstable?
         sidItem = SIDItem(ccm.namespace[identifier], identifier, sid, itemType, False, isList=isListSID, max_words=args.max_identifier_words)
+        if isListSID:
+            sidItem.ownKeyCount = len(ccm.key_mapping[str(sid)])
         processedSIDs.add(sid)
 
         # Generate C code for this item

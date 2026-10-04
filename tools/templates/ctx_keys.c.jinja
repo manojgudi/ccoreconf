@@ -1,0 +1,11 @@
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < {{ ctx_keys | length }}) {
+        printf("Error: SID {{ sid }} needs {{ ctx_keys | length }} keys\n");
+        return {{ error_return }};
+    }
+{% for key in ctx_keys %}
+    {{ key.c_type }} {{ key.name }} = ({{ key.c_type }})ctx->keys->longList[ctx->keys->size - {{ loop.index }}];
+{% endfor %}
+
+

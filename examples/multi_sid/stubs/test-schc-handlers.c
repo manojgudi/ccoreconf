@@ -53,9 +53,14 @@ int handler_write_60095(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60096(SIDHandlerContextT *ctx) {
-    // Extract keys from context (keys are always stored as uint64_t in longList)
-    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[0];
-    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[1];
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60096 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
 
     // Call user-implemented read function
     CoreconfValueT* result = read_schc_rule(rule_ruleIdValue, rule_ruleIdLength);
@@ -74,7 +79,7 @@ int handler_write_60096(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         return -1;
     }
 
-    // Extract keys from value hashmap (keys are stored with delta SIDs)
+    // The entry's own keys, from the written value (stored with delta SIDs)
     CoreconfValueT* rule_ruleIdValue_value = getCoreconfHashMap(value->data.map_value, 34);
     if (rule_ruleIdValue_value == NULL) {
         printf("Error: Missing key rule_ruleIdValue (SID 60130) in list item\n");
@@ -126,8 +131,17 @@ int handler_write_60096(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60097(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60097 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_ackBehavior();
+    uint64_t result = read_rule_ackBehavior(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint64(result);
@@ -143,8 +157,17 @@ int handler_write_60097(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60097 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_ackBehavior(nativeValue);
+    int result = write_rule_ackBehavior(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -167,8 +190,17 @@ int handler_write_60097(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60098(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60098 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_direction();
+    uint64_t result = read_rule_direction(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint64(result);
@@ -184,8 +216,17 @@ int handler_write_60098(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60098 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_direction(nativeValue);
+    int result = write_rule_direction(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -208,8 +249,17 @@ int handler_write_60098(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60099(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60099 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_dtagSize();
+    uint64_t result = read_rule_dtagSize(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint8(result);
@@ -225,8 +275,17 @@ int handler_write_60099(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60099 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_dtagSize(nativeValue);
+    int result = write_rule_dtagSize(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -249,13 +308,20 @@ int handler_write_60099(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60100(SIDHandlerContextT *ctx) {
-    // Extract keys from context (keys are always stored as uint64_t in longList)
-    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[0];
-    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[1];
-    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[2];
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 5) {
+        printf("Error: SID 60100 needs 5 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
 
     // Call user-implemented read function
-    CoreconfValueT* result = read_rule_entry(entry_fieldId, entry_fieldPosition, entry_directionIndicator);
+    CoreconfValueT* result = read_rule_entry(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator);
 
     if (result == NULL) {
         return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
@@ -271,7 +337,16 @@ int handler_write_60100(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         return -1;
     }
 
-    // Extract keys from value hashmap (keys are stored with delta SIDs)
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60100 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
+    // The entry's own keys, from the written value (stored with delta SIDs)
     CoreconfValueT* entry_fieldId_value = getCoreconfHashMap(value->data.map_value, 6);
     if (entry_fieldId_value == NULL) {
         printf("Error: Missing key entry_fieldId (SID 60106) in list item\n");
@@ -294,7 +369,7 @@ int handler_write_60100(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     uint64_t entry_directionIndicator = (uint64_t)getCoreconfValueAsUint64(entry_directionIndicator_value);
 
     // Call user-implemented write function
-    int result = write_rule_entry(entry_fieldId, entry_fieldPosition, entry_directionIndicator, value);
+    int result = write_rule_entry(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, value);
 
     // If user function succeeded, update the datastore (list item)
     if (result == 0) {
@@ -330,8 +405,20 @@ int handler_write_60100(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60101(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 5) {
+        printf("Error: SID 60101 needs 5 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+
     // Call user-implemented read function
-    uint64_t result = read_entry_compDecompAction();
+    uint64_t result = read_entry_compDecompAction(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint64(result);
@@ -347,8 +434,20 @@ int handler_write_60101(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 5) {
+        printf("Error: SID 60101 needs 5 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+
     // Call user-implemented write function
-    int result = write_entry_compDecompAction(nativeValue);
+    int result = write_entry_compDecompAction(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -371,11 +470,21 @@ int handler_write_60101(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60102(SIDHandlerContextT *ctx) {
-    // Extract keys from context (keys are always stored as uint64_t in longList)
-    uint64_t compDecompActionValue_index = (uint64_t)ctx->keys->longList[0];
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 6) {
+        printf("Error: SID 60102 needs 6 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+    uint64_t compDecompActionValue_index = (uint64_t)ctx->keys->longList[ctx->keys->size - 6];
 
     // Call user-implemented read function
-    CoreconfValueT* result = read_entry_compDecompActionValue(compDecompActionValue_index);
+    CoreconfValueT* result = read_entry_compDecompActionValue(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, compDecompActionValue_index);
 
     if (result == NULL) {
         return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
@@ -391,7 +500,19 @@ int handler_write_60102(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         return -1;
     }
 
-    // Extract keys from value hashmap (keys are stored with delta SIDs)
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 5) {
+        printf("Error: SID 60102 needs 5 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+
+    // The entry's own keys, from the written value (stored with delta SIDs)
     CoreconfValueT* compDecompActionValue_index_value = getCoreconfHashMap(value->data.map_value, 1);
     if (compDecompActionValue_index_value == NULL) {
         printf("Error: Missing key compDecompActionValue_index (SID 60103) in list item\n");
@@ -400,7 +521,7 @@ int handler_write_60102(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     uint64_t compDecompActionValue_index = (uint64_t)getCoreconfValueAsUint64(compDecompActionValue_index_value);
 
     // Call user-implemented write function
-    int result = write_entry_compDecompActionValue(compDecompActionValue_index, value);
+    int result = write_entry_compDecompActionValue(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, compDecompActionValue_index, value);
 
     // If user function succeeded, update the datastore (list item)
     if (result == 0) {
@@ -436,8 +557,20 @@ int handler_write_60102(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60107(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 5) {
+        printf("Error: SID 60107 needs 5 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+
     // Call user-implemented read function
-    CoreconfValueT* result = read_entry_fieldLength();
+    CoreconfValueT* result = read_entry_fieldLength(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator);
 
     if (result == NULL) {
         return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
@@ -454,8 +587,20 @@ int handler_write_60107(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         return -1;
     }
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 5) {
+        printf("Error: SID 60107 needs 5 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+
     // Call user-implemented write function
-    int result = write_entry_fieldLength(value);
+    int result = write_entry_fieldLength(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, value);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -478,8 +623,20 @@ int handler_write_60107(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60109(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 5) {
+        printf("Error: SID 60109 needs 5 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+
     // Call user-implemented read function
-    uint64_t result = read_entry_matchingOperator();
+    uint64_t result = read_entry_matchingOperator(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint64(result);
@@ -495,8 +652,20 @@ int handler_write_60109(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 5) {
+        printf("Error: SID 60109 needs 5 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+
     // Call user-implemented write function
-    int result = write_entry_matchingOperator(nativeValue);
+    int result = write_entry_matchingOperator(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -519,11 +688,21 @@ int handler_write_60109(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60110(SIDHandlerContextT *ctx) {
-    // Extract keys from context (keys are always stored as uint64_t in longList)
-    uint64_t matchingOperatorValue_index = (uint64_t)ctx->keys->longList[0];
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 6) {
+        printf("Error: SID 60110 needs 6 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+    uint64_t matchingOperatorValue_index = (uint64_t)ctx->keys->longList[ctx->keys->size - 6];
 
     // Call user-implemented read function
-    CoreconfValueT* result = read_entry_matchingOperatorValue(matchingOperatorValue_index);
+    CoreconfValueT* result = read_entry_matchingOperatorValue(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, matchingOperatorValue_index);
 
     if (result == NULL) {
         return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
@@ -539,7 +718,19 @@ int handler_write_60110(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         return -1;
     }
 
-    // Extract keys from value hashmap (keys are stored with delta SIDs)
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 5) {
+        printf("Error: SID 60110 needs 5 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+
+    // The entry's own keys, from the written value (stored with delta SIDs)
     CoreconfValueT* matchingOperatorValue_index_value = getCoreconfHashMap(value->data.map_value, 1);
     if (matchingOperatorValue_index_value == NULL) {
         printf("Error: Missing key matchingOperatorValue_index (SID 60111) in list item\n");
@@ -548,7 +739,7 @@ int handler_write_60110(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     uint64_t matchingOperatorValue_index = (uint64_t)getCoreconfValueAsUint64(matchingOperatorValue_index_value);
 
     // Call user-implemented write function
-    int result = write_entry_matchingOperatorValue(matchingOperatorValue_index, value);
+    int result = write_entry_matchingOperatorValue(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, matchingOperatorValue_index, value);
 
     // If user function succeeded, update the datastore (list item)
     if (result == 0) {
@@ -584,11 +775,21 @@ int handler_write_60110(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60113(SIDHandlerContextT *ctx) {
-    // Extract keys from context (keys are always stored as uint64_t in longList)
-    uint64_t targetValue_index = (uint64_t)ctx->keys->longList[0];
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 6) {
+        printf("Error: SID 60113 needs 6 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+    uint64_t targetValue_index = (uint64_t)ctx->keys->longList[ctx->keys->size - 6];
 
     // Call user-implemented read function
-    CoreconfValueT* result = read_entry_targetValue(targetValue_index);
+    CoreconfValueT* result = read_entry_targetValue(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, targetValue_index);
 
     if (result == NULL) {
         return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
@@ -604,7 +805,19 @@ int handler_write_60113(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         return -1;
     }
 
-    // Extract keys from value hashmap (keys are stored with delta SIDs)
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 5) {
+        printf("Error: SID 60113 needs 5 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+    uint64_t entry_fieldId = (uint64_t)ctx->keys->longList[ctx->keys->size - 3];
+    uint64_t entry_fieldPosition = (uint64_t)ctx->keys->longList[ctx->keys->size - 4];
+    uint64_t entry_directionIndicator = (uint64_t)ctx->keys->longList[ctx->keys->size - 5];
+
+    // The entry's own keys, from the written value (stored with delta SIDs)
     CoreconfValueT* targetValue_index_value = getCoreconfHashMap(value->data.map_value, 1);
     if (targetValue_index_value == NULL) {
         printf("Error: Missing key targetValue_index (SID 60114) in list item\n");
@@ -613,7 +826,7 @@ int handler_write_60113(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     uint64_t targetValue_index = (uint64_t)getCoreconfValueAsUint64(targetValue_index_value);
 
     // Call user-implemented write function
-    int result = write_entry_targetValue(targetValue_index, value);
+    int result = write_entry_targetValue(rule_ruleIdValue, rule_ruleIdLength, entry_fieldId, entry_fieldPosition, entry_directionIndicator, targetValue_index, value);
 
     // If user function succeeded, update the datastore (list item)
     if (result == 0) {
@@ -649,8 +862,17 @@ int handler_write_60113(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60116(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60116 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_fcnSize();
+    uint64_t result = read_rule_fcnSize(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint8(result);
@@ -666,8 +888,17 @@ int handler_write_60116(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60116 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_fcnSize(nativeValue);
+    int result = write_rule_fcnSize(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -690,8 +921,17 @@ int handler_write_60116(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60117(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60117 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_fragmentationMode();
+    uint64_t result = read_rule_fragmentationMode(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint64(result);
@@ -707,8 +947,17 @@ int handler_write_60117(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60117 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_fragmentationMode(nativeValue);
+    int result = write_rule_fragmentationMode(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -731,8 +980,17 @@ int handler_write_60117(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60118(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60118 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    CoreconfValueT* result = read_rule_inactivityTimer();
+    CoreconfValueT* result = read_rule_inactivityTimer(rule_ruleIdValue, rule_ruleIdLength);
 
     if (result == NULL) {
         return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
@@ -748,8 +1006,17 @@ int handler_write_60118(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         return -1;
     }
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60118 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_inactivityTimer(value);
+    int result = write_rule_inactivityTimer(rule_ruleIdValue, rule_ruleIdLength, value);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -773,8 +1040,17 @@ int handler_write_60118(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60119(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60119 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_inactivityTimer_ticksDuration();
+    uint64_t result = read_inactivityTimer_ticksDuration(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint8(result);
@@ -790,8 +1066,17 @@ int handler_write_60119(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60119 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_inactivityTimer_ticksDuration(nativeValue);
+    int result = write_inactivityTimer_ticksDuration(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -814,8 +1099,17 @@ int handler_write_60119(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60120(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60120 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_inactivityTimer_ticksNumbers();
+    uint64_t result = read_inactivityTimer_ticksNumbers(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint16(result);
@@ -831,8 +1125,17 @@ int handler_write_60120(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60120 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_inactivityTimer_ticksNumbers(nativeValue);
+    int result = write_inactivityTimer_ticksNumbers(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -855,8 +1158,17 @@ int handler_write_60120(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60121(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60121 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_l2WordSize();
+    uint64_t result = read_rule_l2WordSize(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint8(result);
@@ -872,8 +1184,17 @@ int handler_write_60121(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60121 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_l2WordSize(nativeValue);
+    int result = write_rule_l2WordSize(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -896,8 +1217,17 @@ int handler_write_60121(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60122(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60122 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_maxAckRequests();
+    uint64_t result = read_rule_maxAckRequests(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint8(result);
@@ -913,8 +1243,17 @@ int handler_write_60122(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60122 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_maxAckRequests(nativeValue);
+    int result = write_rule_maxAckRequests(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -937,8 +1276,17 @@ int handler_write_60122(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60123(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60123 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_maxInterleavedFrames();
+    uint64_t result = read_rule_maxInterleavedFrames(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint8(result);
@@ -954,8 +1302,17 @@ int handler_write_60123(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60123 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_maxInterleavedFrames(nativeValue);
+    int result = write_rule_maxInterleavedFrames(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -978,8 +1335,17 @@ int handler_write_60123(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60124(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60124 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_maximumPacketSize();
+    uint64_t result = read_rule_maximumPacketSize(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint16(result);
@@ -995,8 +1361,17 @@ int handler_write_60124(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60124 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_maximumPacketSize(nativeValue);
+    int result = write_rule_maximumPacketSize(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -1019,8 +1394,17 @@ int handler_write_60124(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60125(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60125 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_rcsAlgorithm();
+    uint64_t result = read_rule_rcsAlgorithm(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint64(result);
@@ -1036,8 +1420,17 @@ int handler_write_60125(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60125 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_rcsAlgorithm(nativeValue);
+    int result = write_rule_rcsAlgorithm(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -1060,8 +1453,17 @@ int handler_write_60125(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60126(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60126 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    CoreconfValueT* result = read_rule_retransmissionTimer();
+    CoreconfValueT* result = read_rule_retransmissionTimer(rule_ruleIdValue, rule_ruleIdLength);
 
     if (result == NULL) {
         return ccoreconfModelExamineCoreconfValue(ctx->model, ctx->keys, ctx->pathNode);
@@ -1077,8 +1479,17 @@ int handler_write_60126(SIDHandlerContextT *ctx, CoreconfValueT *value) {
         return -1;
     }
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60126 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_retransmissionTimer(value);
+    int result = write_rule_retransmissionTimer(rule_ruleIdValue, rule_ruleIdLength, value);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -1102,8 +1513,17 @@ int handler_write_60126(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60127(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60127 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_retransmissionTimer_ticksDuration();
+    uint64_t result = read_retransmissionTimer_ticksDuration(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint8(result);
@@ -1119,8 +1539,17 @@ int handler_write_60127(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60127 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_retransmissionTimer_ticksDuration(nativeValue);
+    int result = write_retransmissionTimer_ticksDuration(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -1143,8 +1572,17 @@ int handler_write_60127(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60128(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60128 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_retransmissionTimer_ticksNumbers();
+    uint64_t result = read_retransmissionTimer_ticksNumbers(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint16(result);
@@ -1160,8 +1598,17 @@ int handler_write_60128(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60128 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_retransmissionTimer_ticksNumbers(nativeValue);
+    int result = write_retransmissionTimer_ticksNumbers(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -1184,8 +1631,17 @@ int handler_write_60128(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60131(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60131 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_ruleNature();
+    uint64_t result = read_rule_ruleNature(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint64(result);
@@ -1201,8 +1657,17 @@ int handler_write_60131(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60131 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_ruleNature(nativeValue);
+    int result = write_rule_ruleNature(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -1225,8 +1690,17 @@ int handler_write_60131(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60132(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60132 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_tileInAll1();
+    uint64_t result = read_rule_tileInAll1(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint64(result);
@@ -1242,8 +1716,17 @@ int handler_write_60132(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60132 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_tileInAll1(nativeValue);
+    int result = write_rule_tileInAll1(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -1266,8 +1749,17 @@ int handler_write_60132(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60133(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60133 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_tileSize();
+    uint64_t result = read_rule_tileSize(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint8(result);
@@ -1283,8 +1775,17 @@ int handler_write_60133(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60133 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_tileSize(nativeValue);
+    int result = write_rule_tileSize(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -1307,8 +1808,17 @@ int handler_write_60133(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60134(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60134 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_wSize();
+    uint64_t result = read_rule_wSize(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint8(result);
@@ -1324,8 +1834,17 @@ int handler_write_60134(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60134 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_wSize(nativeValue);
+    int result = write_rule_wSize(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -1348,8 +1867,17 @@ int handler_write_60134(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_60135(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60135 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_rule_windowSize();
+    uint64_t result = read_rule_windowSize(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint16(result);
@@ -1365,8 +1893,17 @@ int handler_write_60135(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 60135 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_rule_windowSize(nativeValue);
+    int result = write_rule_windowSize(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
@@ -1389,8 +1926,17 @@ int handler_write_60135(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 }
 
 CoreconfValueT* handler_read_2000010(SIDHandlerContextT *ctx) {
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 2000010 needs 2 keys\n");
+        return NULL;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented read function
-    uint64_t result = read_ietfSchcOam_proxyBehavior();
+    uint64_t result = read_ietfSchcOam_proxyBehavior(rule_ruleIdValue, rule_ruleIdLength);
 
     // Return the user's value; the caller owns (and frees) the new CoreconfValueT
     return createCoreconfUint64(result);
@@ -1406,8 +1952,17 @@ int handler_write_2000010(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Extract native value from CoreconfValueT
     uint64_t nativeValue = getCoreconfValueAsUint64(value);
 
+    // List keys, outermost list first.  ctx->keys is read from its end: the
+    // same order as ccoreconfModelExamineCoreconfValue
+    if (ctx->keys == NULL || ctx->keys->size < 2) {
+        printf("Error: SID 2000010 needs 2 keys\n");
+        return -1;
+    }
+    uint64_t rule_ruleIdValue = (uint64_t)ctx->keys->longList[ctx->keys->size - 1];
+    uint64_t rule_ruleIdLength = (uint64_t)ctx->keys->longList[ctx->keys->size - 2];
+
     // Call user-implemented write function
-    int result = write_ietfSchcOam_proxyBehavior(nativeValue);
+    int result = write_ietfSchcOam_proxyBehavior(rule_ruleIdValue, rule_ruleIdLength, nativeValue);
 
     // If user function succeeded, update the datastore
     if (result == 0) {

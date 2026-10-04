@@ -26,7 +26,10 @@ typedef enum {
  */
 typedef struct {
     uint64_t SID;                       // The requested SID
-    DynamicLongListT *keys;             // Keys for list items (NULL if not a list)
+    DynamicLongListT *keys;             // Keys of the lists on the path (NULL if none), in the order of
+                                        // ccoreconfModelExamineCoreconfValue: read from the END, outermost
+                                        // list first, each list's keys in key-mapping order.  A list-entry
+                                        // write takes the entry's own keys from the written value instead.
     PathNodeT *pathNode;                // Path information for traversal
     CoreconfModelT *model;              // Model the SID belongs to (tree, lookups, handlers)
 } SIDHandlerContextT;

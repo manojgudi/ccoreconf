@@ -42,11 +42,9 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
 
 {% endif %}
 {% if keys %}
-    // Extract keys from context
-{% for key in keys %}
-    {{ key.c_type }} {{ key.name }} = ({{ key.c_type }})ctx->keys->longList[{{ loop.index0 }}];
-{% endfor %}
-
+{% set ctx_keys = keys %}
+{% set error_return = "-1" %}
+{% include 'ctx_keys.c.jinja' %}
 {% endif %}
     // Call user-implemented write function
 {% if keys %}
