@@ -376,6 +376,8 @@ cd tools
 python3 generateStubs.py -f path/to/your-model.sid your-base-name
 ```
 
+The files are written to the current directory; pass `--output-dir MY_DIR` to write them to `MY_DIR` instead (it is created if needed).
+
 This will generate four files:
 - `your-base-name-handlers.h` - Handler function declarations
 - `your-base-name-handlers.c` - Handler function implementations (auto-generated, can be regenerated)
