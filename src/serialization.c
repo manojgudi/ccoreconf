@@ -299,7 +299,7 @@ static int parseMap(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsi
         }
         CoreconfValueT* mapValue = cborToCoreconfValue(&map, indent + 1);
         if (mapValue == NULL) {
-            printf("Error: cborToCoreconfValue returned NULL for map value at key %lu\n", coreconfKey);
+            printf("Error: cborToCoreconfValue returned NULL for map value at key %" PRIu64 "\n", coreconfKey);
             return -1;
         }
         insertCoreconfHashMap(coreconfValue->data.map_value, coreconfKey, mapValue);

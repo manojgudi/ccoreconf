@@ -410,7 +410,7 @@ void printCoreconf(CoreconfValueT* val) {
             printf("%u", (uint16_t)val->data.u16);
             break;
         case CORECONF_UINT_32:
-            printf("%u", (uint32_t)val->data.u32);
+            printf("%" PRIu32, val->data.u32);
             break;
         case CORECONF_UINT_64:
             printf("%" PRIu64, val->data.u64);
