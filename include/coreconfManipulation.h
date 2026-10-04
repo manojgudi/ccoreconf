@@ -48,7 +48,9 @@ PathNodeT *findRequirementForSID(uint64_t SID, struct hashmap *clookupHashmap, s
 /**
  * Walk `coreconfValue` along `headNode` (from findRequirementForSID), using
  * `requestKeys` to pick YANG list entries.  Keys are consumed from the END of
- * `requestKeys` (it is used as a stack).
+ * `requestKeys` (it is used as a stack): outermost list first, each list's keys
+ * in key-mapping order.  Every key must be used exactly: too few or too many
+ * keys, or an entry without a key leaf, give NULL.
  *
  * @return A new single-entry map { SID: node }, or NULL if not found.
  *         Ownership: the map itself is the caller's, but `node` is BORROWED
@@ -62,8 +64,8 @@ void freeExaminedCoreconfValue(CoreconfValueT *examined);
 
 /**
  * Navigate to the map that holds targetSID: its container, or the YANG list
- * entry selected by requestKeys (consumed from the END, like
- * examineCoreconfValue; the caller's list is not modified).
+ * entry selected by requestKeys (consumed from the END and matched strictly,
+ * like examineCoreconfValue; the caller's list is not modified).
  * @param root Root of the coreconf model
  * @param requestKeys Keys of the lists on the path (may be NULL if there are none)
  * @param pathNode Path to navigate (built by findRequirementForSID)

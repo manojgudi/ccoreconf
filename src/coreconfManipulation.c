@@ -203,54 +203,40 @@ PathNodeT *findRequirementForSID(uint64_t SID, struct hashmap *clookupHashmap, s
 
 /*
  * Pick the entry of YANG list `array` (SID listSID, key leaves SIDKeys) whose key
- * values equal the next keys popped from the END of requestKeys.  On a match the
- * used keys are removed from requestKeys and the entry (a map) is returned; with
- * no match, NULL is returned and requestKeys is unchanged.
+ * values ALL equal the next keys popped from the END of requestKeys.  An entry
+ * missing a key leaf never matches, and too few request keys select nothing.
+ * On a match the used keys are popped from requestKeys and the entry (a map) is
+ * returned; with no match, NULL is returned and requestKeys is unchanged.
  * Shared by examineCoreconfValue (reads) and navigateToParentContainer (writes).
  */
 static CoreconfValueT *selectListEntry(CoreconfValueT *array, DynamicLongListT *SIDKeys, int64_t listSID,
                                        DynamicLongListT *requestKeys) {
-    size_t arraySize = array->data.array_value->size;
-    for (size_t i = 0; i < arraySize; i++) {
+    size_t keyCount = SIDKeys->size;
+    if (requestKeys == NULL || requestKeys->size < keyCount) {
+        return NULL;
+    }
+    for (size_t i = 0; i < array->data.array_value->size; i++) {
         CoreconfValueT *element = &array->data.array_value->elements[i];
         // A list entry is a map of its leaves; skip anything else
         if (element->type != CORECONF_HASHMAP) {
             continue;
         }
 
-        // Create a new DynamicLongListT
-        DynamicLongListT *requestKeysClone = createDynamicLongList();
-        // Clone requestKeys
-        cloneDynamicLongList(requestKeys, requestKeysClone);
-        // Create SIDKeyValueMatchDynamicLongList
-        DynamicLongListT *SIDKeyValueMatchDynamicLongList = createDynamicLongList();
-
-        // Iterate through SIDKeys
-        for (size_t k = 0; k < SIDKeys->size; k++) {
-            uint64_t SIDKey = SIDKeys->longList[k];
-
-            uint64_t SIDDiff = SIDKey - listSID;
-            // Get value from element using SIDDiff
-            CoreconfValueT *elementValueCheck = getCoreconfHashMap(element->data.map_value, SIDDiff);
-            // Get the uint64_t value from elementValueCheck
-            uint64_t elementValueCheckInteger = getCoreconfValueAsUint64(elementValueCheck);
-
-            // pop the value from requestKeysClone
-            uint64_t keyValueCheck = (uint64_t)popLong(requestKeysClone);
-            // If elementValueCheckLong == keyValueCheck then add SIDKey to SIDKeyValueMatchDynamicLongList
-            if (elementValueCheckInteger == keyValueCheck)
-                addUniqueLong(SIDKeyValueMatchDynamicLongList, (long)SIDKey);
+        size_t k = 0;
+        for (; k < keyCount; k++) {
+            // The k-th key of the list is matched with the k-th request key from the end
+            uint64_t requestKey = (uint64_t)requestKeys->longList[requestKeys->size - 1 - k];
+            CoreconfValueT *elementKey = getCoreconfHashMap(element->data.map_value, SIDKeys->longList[k] - listSID);
+            if (elementKey == NULL || getCoreconfValueAsUint64(elementKey) != requestKey) {
+                break;
+            }
         }
-        // Check if all the values in SIDKey exist in SIDKeyValueMatchDynamicLongList, if yes, this is the entry
-        if (compareDynamicLongList(SIDKeys, SIDKeyValueMatchDynamicLongList)) {
-            cloneDynamicLongList(requestKeysClone, requestKeys);
-            freeDynamicLongList(requestKeysClone);
-            freeDynamicLongList(SIDKeyValueMatchDynamicLongList);
+        if (k == keyCount) {
+            for (k = 0; k < keyCount; k++) {
+                popLong(requestKeys);
+            }
             return element;
         }
-
-        freeDynamicLongList(requestKeysClone);
-        freeDynamicLongList(SIDKeyValueMatchDynamicLongList);
     }
     return NULL;
 }
@@ -316,6 +302,11 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
         if (subTree == NULL) {
             return NULL;
         }
+    }
+
+    // Every key must have been used: extra keys address nothing
+    if (requestKeys != NULL && requestKeys->size > 0) {
+        return NULL;
     }
 
     CoreconfValueT *returnMap = createCoreconfHashmap();
@@ -455,10 +446,12 @@ CoreconfValueT *navigateToParentContainer(CoreconfValueT *root, DynamicLongListT
             }
         }
     }
+    // Every key must have been used: extra keys address nothing
+    size_t unusedKeys = keys->size;
     freeDynamicLongList(keys);
 
     if (current == NULL || path == NULL || path->parentSID != (int64_t)targetSID ||
-        current->type != CORECONF_HASHMAP) {
+        current->type != CORECONF_HASHMAP || unusedKeys > 0) {
         return NULL;
     }
 
