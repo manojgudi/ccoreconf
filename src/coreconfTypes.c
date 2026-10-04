@@ -491,42 +491,56 @@ void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value) {
     array->size++;
 }
 
-// Search array for element with matching key, update if found, append if not
-// keySID and parentSID are used to calculate delta SID
-// Returns 0 on success, -1 on error
-int updateCoreconfArrayByKey(CoreconfValueT* arr, uint64_t keySID, uint64_t parentSID, uint64_t keyValue,
-                             CoreconfValueT* newValue) {
-    if (arr == NULL || arr->type != CORECONF_ARRAY || newValue == NULL) {
+// Replace the entry of `arr` whose keys ALL equal those of `newEntry`, or
+// append `newEntry` if there is none.  keyDeltas are the list's key SIDs as
+// deltas from the list SID (how keys are stored inside each entry).
+// On success the array takes ownership of newEntry: the caller must not use or
+// free it afterwards.  On error the caller still owns it.
+// Returns 0 on success, -1 on error (bad arguments, a key missing from
+// newEntry, out of memory)
+int updateCoreconfArrayByKeys(CoreconfValueT* arr, const uint64_t* keyDeltas, size_t keyCount,
+                              CoreconfValueT* newEntry) {
+    if (arr == NULL || arr->type != CORECONF_ARRAY || newEntry == NULL || newEntry->type != CORECONF_HASHMAP ||
+        keyDeltas == NULL || keyCount == 0) {
         return -1;
     }
+    for (size_t k = 0; k < keyCount; k++) {
+        if (getCoreconfHashMap(newEntry->data.map_value, keyDeltas[k]) == NULL) {
+            return -1;
+        }
+    }
 
-    // Calculate delta SID for key lookup
-    uint64_t deltaSID = keySID - parentSID;
-
-    // Search through array elements for one with matching key
     for (size_t i = 0; i < arr->data.array_value->size; i++) {
         CoreconfValueT* element = &arr->data.array_value->elements[i];
-
-        // Element must be a hashmap to contain keys
         if (element->type != CORECONF_HASHMAP) {
             continue;
         }
 
-        // Check if this element has the key we're looking for (using delta SID)
-        CoreconfValueT* keyInElement = getCoreconfHashMap(element->data.map_value, deltaSID);
-        if (keyInElement != NULL) {
-            uint64_t elementKeyValue = getCoreconfValueAsUint64(keyInElement);
-            if (elementKeyValue == keyValue) {
-                // Found it - update this element
-                freeCoreconf(element, false);
-                *element = *newValue;
-                return 0;
+        size_t k = 0;
+        for (; k < keyCount; k++) {
+            CoreconfValueT* existingKey = getCoreconfHashMap(element->data.map_value, keyDeltas[k]);
+            CoreconfValueT* newKey = getCoreconfHashMap(newEntry->data.map_value, keyDeltas[k]);
+            if (existingKey == NULL || getCoreconfValueAsUint64(existingKey) != getCoreconfValueAsUint64(newKey)) {
+                break;
             }
+        }
+        if (k == keyCount) {
+            // All keys match: replace this entry.  The array holds entries by
+            // value, so copy newEntry in and free only its wrapper.
+            freeCoreconf(element, false);
+            *element = *newEntry;
+            free(newEntry);
+            return 0;
         }
     }
 
-    // Key not found - append new element
-    addToCoreconfArray(arr, newValue);
+    // No entry with these keys: append
+    size_t oldSize = arr->data.array_value->size;
+    addToCoreconfArray(arr, newEntry);
+    if (arr->data.array_value->size == oldSize) {
+        return -1;  // Out of memory
+    }
+    free(newEntry);
     return 0;
 }
 

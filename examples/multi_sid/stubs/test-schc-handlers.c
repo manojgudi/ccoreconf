@@ -93,31 +93,22 @@ int handler_write_60096(SIDHandlerContextT *ctx, CoreconfValueT *value) {
             return -1;
         }
 
-        if (parentContainer->type == CORECONF_HASHMAP) {
-            // Get array at list SID using delta
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue == NULL) {
-                printf("Error: List array for SID 60096 not found in coreconfModel\n");
-                return -1;
-            }
-            if (arrayValue->type != CORECONF_ARRAY) {
-                printf("Error: SID 60096 is not an array in coreconfModel\n");
-                return -1;
-            }
+        // Get array at list SID using delta
+        CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
+        if (arrayValue == NULL) {
+            printf("Error: List array for SID 60096 not found in coreconfModel\n");
+            return -1;
+        }
+        if (arrayValue->type != CORECONF_ARRAY) {
+            printf("Error: SID 60096 is not an array in coreconfModel\n");
+            return -1;
+        }
 
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(arrayValue, 60130, 60096, rule_ruleIdValue, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID 60096 with map parent\n");
-            }
-        } else if (parentContainer->type == CORECONF_ARRAY) {
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(parentContainer, 60130, 60096, rule_ruleIdValue, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID 60096 with array parent\n");
-            }
-        } else {
-            printf("Warning: Failed to update array for SID 60096: parent type invalid %d", parentContainer->type);
+        // Replace the entry whose keys all match, or append; the array takes value
+        static const uint64_t keyDeltas[] = { 34, 33 };
+        if (updateCoreconfArrayByKeys(arrayValue, keyDeltas, 2, value) != 0) {
+            printf("Error: Failed to update list entry for SID 60096\n");
+            return -1;
         }
     }
 
@@ -306,31 +297,22 @@ int handler_write_60100(SIDHandlerContextT *ctx, CoreconfValueT *value) {
             return -1;
         }
 
-        if (parentContainer->type == CORECONF_HASHMAP) {
-            // Get array at list SID using delta
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue == NULL) {
-                printf("Error: List array for SID 60100 not found in coreconfModel\n");
-                return -1;
-            }
-            if (arrayValue->type != CORECONF_ARRAY) {
-                printf("Error: SID 60100 is not an array in coreconfModel\n");
-                return -1;
-            }
+        // Get array at list SID using delta
+        CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
+        if (arrayValue == NULL) {
+            printf("Error: List array for SID 60100 not found in coreconfModel\n");
+            return -1;
+        }
+        if (arrayValue->type != CORECONF_ARRAY) {
+            printf("Error: SID 60100 is not an array in coreconfModel\n");
+            return -1;
+        }
 
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(arrayValue, 60106, 60100, entry_fieldId, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID 60100 with map parent\n");
-            }
-        } else if (parentContainer->type == CORECONF_ARRAY) {
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(parentContainer, 60106, 60100, entry_fieldId, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID 60100 with array parent\n");
-            }
-        } else {
-            printf("Warning: Failed to update array for SID 60100: parent type invalid %d", parentContainer->type);
+        // Replace the entry whose keys all match, or append; the array takes value
+        static const uint64_t keyDeltas[] = { 6, 8, 5 };
+        if (updateCoreconfArrayByKeys(arrayValue, keyDeltas, 3, value) != 0) {
+            printf("Error: Failed to update list entry for SID 60100\n");
+            return -1;
         }
     }
 
@@ -421,31 +403,22 @@ int handler_write_60102(SIDHandlerContextT *ctx, CoreconfValueT *value) {
             return -1;
         }
 
-        if (parentContainer->type == CORECONF_HASHMAP) {
-            // Get array at list SID using delta
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue == NULL) {
-                printf("Error: List array for SID 60102 not found in coreconfModel\n");
-                return -1;
-            }
-            if (arrayValue->type != CORECONF_ARRAY) {
-                printf("Error: SID 60102 is not an array in coreconfModel\n");
-                return -1;
-            }
+        // Get array at list SID using delta
+        CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
+        if (arrayValue == NULL) {
+            printf("Error: List array for SID 60102 not found in coreconfModel\n");
+            return -1;
+        }
+        if (arrayValue->type != CORECONF_ARRAY) {
+            printf("Error: SID 60102 is not an array in coreconfModel\n");
+            return -1;
+        }
 
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(arrayValue, 60103, 60102, compDecompActionValue_index, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID 60102 with map parent\n");
-            }
-        } else if (parentContainer->type == CORECONF_ARRAY) {
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(parentContainer, 60103, 60102, compDecompActionValue_index, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID 60102 with array parent\n");
-            }
-        } else {
-            printf("Warning: Failed to update array for SID 60102: parent type invalid %d", parentContainer->type);
+        // Replace the entry whose keys all match, or append; the array takes value
+        static const uint64_t keyDeltas[] = { 1 };
+        if (updateCoreconfArrayByKeys(arrayValue, keyDeltas, 1, value) != 0) {
+            printf("Error: Failed to update list entry for SID 60102\n");
+            return -1;
         }
     }
 
@@ -568,31 +541,22 @@ int handler_write_60110(SIDHandlerContextT *ctx, CoreconfValueT *value) {
             return -1;
         }
 
-        if (parentContainer->type == CORECONF_HASHMAP) {
-            // Get array at list SID using delta
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue == NULL) {
-                printf("Error: List array for SID 60110 not found in coreconfModel\n");
-                return -1;
-            }
-            if (arrayValue->type != CORECONF_ARRAY) {
-                printf("Error: SID 60110 is not an array in coreconfModel\n");
-                return -1;
-            }
+        // Get array at list SID using delta
+        CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
+        if (arrayValue == NULL) {
+            printf("Error: List array for SID 60110 not found in coreconfModel\n");
+            return -1;
+        }
+        if (arrayValue->type != CORECONF_ARRAY) {
+            printf("Error: SID 60110 is not an array in coreconfModel\n");
+            return -1;
+        }
 
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(arrayValue, 60111, 60110, matchingOperatorValue_index, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID 60110 with map parent\n");
-            }
-        } else if (parentContainer->type == CORECONF_ARRAY) {
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(parentContainer, 60111, 60110, matchingOperatorValue_index, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID 60110 with array parent\n");
-            }
-        } else {
-            printf("Warning: Failed to update array for SID 60110: parent type invalid %d", parentContainer->type);
+        // Replace the entry whose keys all match, or append; the array takes value
+        static const uint64_t keyDeltas[] = { 1 };
+        if (updateCoreconfArrayByKeys(arrayValue, keyDeltas, 1, value) != 0) {
+            printf("Error: Failed to update list entry for SID 60110\n");
+            return -1;
         }
     }
 
@@ -642,31 +606,22 @@ int handler_write_60113(SIDHandlerContextT *ctx, CoreconfValueT *value) {
             return -1;
         }
 
-        if (parentContainer->type == CORECONF_HASHMAP) {
-            // Get array at list SID using delta
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue == NULL) {
-                printf("Error: List array for SID 60113 not found in coreconfModel\n");
-                return -1;
-            }
-            if (arrayValue->type != CORECONF_ARRAY) {
-                printf("Error: SID 60113 is not an array in coreconfModel\n");
-                return -1;
-            }
+        // Get array at list SID using delta
+        CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
+        if (arrayValue == NULL) {
+            printf("Error: List array for SID 60113 not found in coreconfModel\n");
+            return -1;
+        }
+        if (arrayValue->type != CORECONF_ARRAY) {
+            printf("Error: SID 60113 is not an array in coreconfModel\n");
+            return -1;
+        }
 
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(arrayValue, 60114, 60113, targetValue_index, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID 60113 with map parent\n");
-            }
-        } else if (parentContainer->type == CORECONF_ARRAY) {
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(parentContainer, 60114, 60113, targetValue_index, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID 60113 with array parent\n");
-            }
-        } else {
-            printf("Warning: Failed to update array for SID 60113: parent type invalid %d", parentContainer->type);
+        // Replace the entry whose keys all match, or append; the array takes value
+        static const uint64_t keyDeltas[] = { 1 };
+        if (updateCoreconfArrayByKeys(arrayValue, keyDeltas, 1, value) != 0) {
+            printf("Error: Failed to update list entry for SID 60113\n");
+            return -1;
         }
     }
 

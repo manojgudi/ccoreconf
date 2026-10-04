@@ -458,11 +458,6 @@ class SIDItem:
                 'user_function': userFunctionName,
                 'keys': keys
             }
-            # Add first key info for updateCoreconfArrayByKey call
-            if self.sidKeyItems:
-                context['first_key_name'] = keys[0]['name']
-                context['first_key_sid'] = keys[0]['sid']
-
             template = env.get_template('write_handler_list.c.jinja')
             return template.render(context) + "\n"
 

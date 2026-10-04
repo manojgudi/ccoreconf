@@ -30,31 +30,22 @@ int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
             return -1;
         }
 
-        if (parentContainer->type == CORECONF_HASHMAP) {
-            // Get array at list SID using delta
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue == NULL) {
-                printf("Error: List array for SID {{ sid }} not found in coreconfModel\n");
-                return -1;
-            }
-            if (arrayValue->type != CORECONF_ARRAY) {
-                printf("Error: SID {{ sid }} is not an array in coreconfModel\n");
-                return -1;
-            }
+        // Get array at list SID using delta
+        CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
+        if (arrayValue == NULL) {
+            printf("Error: List array for SID {{ sid }} not found in coreconfModel\n");
+            return -1;
+        }
+        if (arrayValue->type != CORECONF_ARRAY) {
+            printf("Error: SID {{ sid }} is not an array in coreconfModel\n");
+            return -1;
+        }
 
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(arrayValue, {{ first_key_sid }}, {{ sid }}, {{ first_key_name }}, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID {{ sid }} with map parent\n");
-            }
-        } else if (parentContainer->type == CORECONF_ARRAY) {
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(parentContainer, {{ first_key_sid }}, {{ sid }}, {{ first_key_name }}, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID {{ sid }} with array parent\n");
-            }
-        } else {
-            printf("Warning: Failed to update array for SID {{ sid }}: parent type invalid %d", parentContainer->type);
+        // Replace the entry whose keys all match, or append; the array takes value
+        static const uint64_t keyDeltas[] = { {% for key in keys %}{{ key.sid - sid }}{% if not loop.last %}, {% endif %}{% endfor %} };
+        if (updateCoreconfArrayByKeys(arrayValue, keyDeltas, {{ keys | length }}, value) != 0) {
+            printf("Error: Failed to update list entry for SID {{ sid }}\n");
+            return -1;
         }
     }
 

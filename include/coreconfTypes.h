@@ -107,8 +107,8 @@ int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* v
 CoreconfValueT* getCoreconfHashMap(CoreconfHashMapT* map, uint64_t key);
 void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value);
 void freeCoreconfHashMap(CoreconfHashMapT* map);
-int updateCoreconfArrayByKey(CoreconfValueT* arr, uint64_t keySID, uint64_t parentSID, uint64_t keyValue,
-                             CoreconfValueT* newValue);
+int updateCoreconfArrayByKeys(CoreconfValueT* arr, const uint64_t* keyDeltas, size_t keyCount,
+                              CoreconfValueT* newEntry);
 
 void printCoreconfObject(CoreconfObjectT* obj);
 void printCoreconfMap(CoreconfHashMapT* map);
