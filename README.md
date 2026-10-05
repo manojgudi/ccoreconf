@@ -132,6 +132,12 @@ plus the instance encoded as CBOR.
     --output-dir examples/temperature_sensor/include_model
 ```
 
+Several models at once (multi-SID), as in `examples/multi_sid`: list all their `.sid` files.
+
+```sh
+.venv/bin/python tools/prepareModel.py --sid-files examples/multi_sid/model/ietf-schc@2023-01-28.sid examples/multi_sid/model/ietf-schc-oam@2021-11-10.sid --instance examples/multi_sid/instance/schc.json --name test-schc --output-dir examples/multi_sid/include_model
+```
+
 **4. Generate the stubs** (`generateStubs.py`), only if you want handlers
 that call your code on reads and writes:
 
@@ -141,8 +147,13 @@ that call your code on reads and writes:
     --output-dir examples/temperature_sensor/stubs
 ```
 
-**5. Use it from C**: see the next section. Several models can be combined:
-pass all their `.sid` files to both tools, as `examples/multi_sid` does.
+Multi-SID:
+
+```sh
+.venv/bin/python tools/generateStubs.py test-schc -f examples/multi_sid/model/ietf-schc@2023-01-28.sid examples/multi_sid/model/ietf-schc-oam@2021-11-10.sid --output-dir examples/multi_sid/stubs
+```
+
+**5. Use it from C**: see the next section.
 
 ## Using the library
 
