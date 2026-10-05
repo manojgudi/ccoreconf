@@ -13,8 +13,8 @@ With ccoreconf you can:
 3. **Read and write** leaves, list entries and containers, optionally through generated handlers that call your own code.
 4. **Encode and decode** the data as CORECONF CBOR, interoperable with [pycoreconf](https://github.com/alex-fddz/pycoreconf).
 
-It runs on Linux and on [RIOT OS](#riot-os), through the [manojgudi/RIOT fork](https://github.com/manojgudi/RIOT/tree/coreconf-integration),
-tested on a RAK4631 sending CORECONF over LoRaWAN (the `rak_project` apps, not yet published).
+It runs on Linux and on [RIOT OS](#riot-os), through the [manojgudi/RIOT fork](https://github.com/manojgudi/RIOT/tree/25da06710084e6de9a85b1bc737dbe4f77e47b82),
+tested on a RAK4631 sending CORECONF over LoRaWAN ([temperature_logger](https://github.com/manojgudi/temperature_logger/tree/e76830ad38d8c4a2dc67359c6768b977b30bee70)).
 
 ## Contents
 
@@ -291,7 +291,7 @@ the headers in `<prefix>/include/ccoreconf/`, and a package for
 ## RIOT OS
 
 ccoreconf is a RIOT package in the
-[manojgudi/RIOT fork](https://github.com/manojgudi/RIOT/tree/coreconf-integration),
+[manojgudi/RIOT fork](https://github.com/manojgudi/RIOT/tree/25da06710084e6de9a85b1bc737dbe4f77e47b82),
 `pkg/ccoreconf`. Use it with `USEPKG += ccoreconf`; RIOT fetches the commit
 pinned in `pkg/ccoreconf/Makefile` (`PKG_VERSION`). To build against a local
 checkout instead:
@@ -303,11 +303,11 @@ make PKG_SOURCE_LOCAL_CCORECONF=/path/to/ccoreconf
 The package carries a small NanoCBOR compatibility shim, because RIOT pins
 an older NanoCBOR whose `nanocbor_leave_container()` returns `void`.
 
-Working applications for the RAK4631 (nRF52840 + SX1262), sending
-CORECONF over LoRaWAN, live in the `rak_project` repository (not yet published):
-`rak_coreconf_lorawan` (sensor model) and `rak_coreconf_temperature`
-(`examples/temperature_sensor`, with random values written through the
-generated handlers).
+A working application for the RAK4631 (nRF52840 + SX1262), sending CORECONF
+over LoRaWAN, is [temperature_logger](https://github.com/manojgudi/temperature_logger/tree/e76830ad38d8c4a2dc67359c6768b977b30bee70): it fills
+`examples/temperature_sensor` with random values through the generated
+handlers. It was tested with the RIOT fork at [`25da067`](https://github.com/manojgudi/RIOT/tree/25da06710084e6de9a85b1bc737dbe4f77e47b82), which pins
+ccoreconf `db3de90`.
 
 ## Tools
 
