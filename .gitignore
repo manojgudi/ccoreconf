@@ -4,6 +4,7 @@
 
 # Unignore all with extensions
 !*.*
+!LICENSE
 
 # Unignore all dirs
 !*/

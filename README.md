@@ -347,3 +347,7 @@ Run any of them with `--help` for their options.
 
 Most of this code and documentation was written with MiniMax M3 and Claude
 Opus 5.5, and reviewed and tested extensively by the authors.
+
+## License
+
+MIT, see [LICENSE](LICENSE). `src/hashmap.c` and `include/hashmap.h` are from [tidwall/hashmap.c](https://github.com/tidwall/hashmap.c), also MIT.
