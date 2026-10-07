@@ -38,7 +38,7 @@ tested on a RAK4631 sending CORECONF over LoRaWAN ([temperature_logger](https://
 | `tools/` | Python tools: `prepareModel.py`, `generateStubs.py`, `compareCoreconf.py`, `generateInstanceFromSid.py`; Jinja templates in `tools/templates/` |
 | `cmake/` | `ccoreconfAddModel()` |
 | `examples/multi_sid/` | Runnable example: two SCHC models (ietf-schc + ietf-schc-oam) in one program |
-| `examples/temperature_sensor/` | A small model with generated model files and stubs, used by the RIOT LoRaWAN app |
+| `examples/temperature_sensor/` | Runnable example: a small model; loads it, reads leaves by SID and by YANG identifier, and updates one (voltageADC). Also the model used by the RIOT LoRaWAN app |
 | `archive/` | Earlier documentation (`archive/docs/`) and models (`archive/old_models/`), kept for reference |
 | `readme_img/` | Images used by this README |
 
@@ -62,9 +62,15 @@ cmake -S . -B build -DNANOCBOR_INCLUDE=/path/to/NanoCBOR/include \
                     -DNANOCBOR_BUILD=/path/to/NanoCBOR/build
 ```
 
-To build and run the example:
+To build and run the examples:
 
 ```sh
+# Simplest one: load a small model, print it, read leaves by SID and by identifier, update voltageADC
+cmake -S examples/temperature_sensor -B build-temperature_sensor
+cmake --build build-temperature_sensor
+./build-temperature_sensor/temperature_demo
+
+# Two SCHC models in one program, with nested lists
 cmake -S examples/multi_sid -B build-multi_sid
 cmake --build build-multi_sid
 ./build-multi_sid/schc_demo
