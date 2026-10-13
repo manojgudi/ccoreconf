@@ -1,11 +1,23 @@
-int handler_write_{{ sid }}(SidHandlerContext *ctx, CoreconfValueT *value) {
+int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
     // Validate value type
 {% if type == "boolean" %}
     if (value->type != CORECONF_TRUE && value->type != CORECONF_FALSE) {
         printf("Error: Expected boolean type for SID {{ sid }}\n");
         return -1;
     }
-{% elif type in ["uint8", "uint16", "uint32", "uint64"] %}
+{% elif type == "union" %}
+    // Union leaf: any of its member types ({{ members }})
+    if (!({{ union_check }})) {
+        printf("Error: Expected one of {{ members }} for SID {{ sid }}\n");
+        return -1;
+    }
+{% elif type == "binary" %}
+    // Binary leaf: a byte string, passed on as CoreconfValueT* (data + length)
+    if (!({{ union_check }})) {
+        printf("Error: Expected binary for SID {{ sid }}\n");
+        return -1;
+    }
+{% elif type in ["uint8", "uint16", "uint32", "uint64", "identityref"] %}
     if (!isTypeUint(value->type)) {
         printf("Error: Expected unsigned integer type for SID {{ sid }}\n");
         return -1;
@@ -22,10 +34,11 @@ int handler_write_{{ sid }}(SidHandlerContext *ctx, CoreconfValueT *value) {
     }
 {% endif %}
 
+{% if type not in ["union", "binary"] %}
     // Extract native value from CoreconfValueT
 {% if type == "boolean" %}
     {{ c_type }} nativeValue = (value->type == CORECONF_TRUE);
-{% elif type in ["uint8", "uint16", "uint32", "uint64"] %}
+{% elif type in ["uint8", "uint16", "uint32", "uint64", "identityref"] %}
     {{ c_type }} nativeValue = getCoreconfValueAsUint64(value);
 {% elif type in ["int8", "int16", "int32", "int64"] %}
     {{ c_type }} nativeValue = getCoreconfValueAsInt64(value);
@@ -33,33 +46,32 @@ int handler_write_{{ sid }}(SidHandlerContext *ctx, CoreconfValueT *value) {
     {{ c_type }} nativeValue = value->data.{{ data_field }};
 {% endif %}
 
+{% endif %}
 {% if keys %}
-    // Extract keys from context
-{% for key in keys %}
-    {{ key.c_type }} {{ key.name }} = ({{ key.c_type }})ctx->keys->longList[{{ loop.index0 }}];
-{% endfor %}
-
+{% set ctx_keys = keys %}
+{% set error_return = "-1" %}
+{% include 'ctx_keys.c.jinja' %}
 {% endif %}
     // Call user-implemented write function
 {% if keys %}
-    int result = {{ user_function }}({% for key in keys %}{{ key.name }}, {% endfor %}nativeValue);
+    int result = {{ user_function }}({% for key in keys %}{{ key.name }}, {% endfor %}{{ "value" if type in ["union", "binary"] else "nativeValue" }});
 {% else %}
-    int result = {{ user_function }}(nativeValue);
+    int result = {{ user_function }}({{ "value" if type in ["union", "binary"] else "nativeValue" }});
 {% endif %}
 
     // If user function succeeded, update the datastore
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->coreconfModel, ctx->pathNode, {{ sid }}, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, {{ sid }}, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            int insertResult = insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value);
-            if (insertResult != 0) {
-                printf("Warning: Failed to update coreconfModel for SID {{ sid }}\n");
-            }
-        } else {
+        if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for SID {{ sid }}\n");
+            return -1;
+        }
+
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID {{ sid }}\n");
             return -1;
         }
     }

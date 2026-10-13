@@ -1,7 +1,6 @@
 #include "../include/coreconfManipulation.h"
 
 #include <inttypes.h>
-#include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -9,10 +8,52 @@
 #include "../include/hashmap.h"
 #include "../include/serialization.h"
 
-#define PATH_MAX_LENGTH 100
-#define MAX_STACK_SIZE 100
-#define SID_KEY_SIZE 21
 #define MAX_CORECONF_RECURSION_DEPTH 50
+
+/**
+ * Functions related to the key-mapping HashMap
+ */
+int keyMappingCompare(const void *a, const void *b, void *udata) {
+    // NOTE Keep it unused for compatibility reasons
+    (void)udata;
+
+    const KeyMappingT *keyMapping1 = (KeyMappingT *)a;
+    const KeyMappingT *keyMapping2 = (KeyMappingT *)b;
+    // return strcmp(keyMapping1->key, keyMapping2->key);
+    return (keyMapping1->key != keyMapping2->key);
+}
+
+uint64_t keyMappingHash(const void *item, uint64_t seed0, uint64_t seed1) {
+    const KeyMappingT *keyMapping = (KeyMappingT *)item;
+    return hashmap_murmur(&(keyMapping->key), sizeof(uint64_t), seed0, seed1);
+}
+
+void keyMappingFree(void *item) {
+    KeyMappingT *keyMapping = (KeyMappingT *)item;
+    if (keyMapping && keyMapping->dynamicLongList) {
+        freeDynamicLongList(keyMapping->dynamicLongList);
+        keyMapping->dynamicLongList = NULL;
+    }
+}
+
+void printKeyMappingT(const KeyMappingT *keyMapping) {
+    printf("\nFor the key %d: \n", (int)keyMapping->key);
+
+    // Iterate over DynamicLongListT
+    for (size_t i = 0; i < keyMapping->dynamicLongList->size; i++) {
+        long childSID = *(keyMapping->dynamicLongList->longList + i);
+        printf("%lu, ", childSID);
+    }
+}
+
+void printKeyMappingHashMap(struct hashmap *keyMappingHashMap) {
+    size_t iter = 0;
+    void *item;
+    while (hashmap_iter(keyMappingHashMap, &iter, &item)) {
+        const KeyMappingT *keyMapping = item;
+        printKeyMappingT(keyMapping);
+    }
+}
 
 /**
  * Functions related to CLookup HashMap
@@ -43,17 +84,17 @@ void clookupFree(void *item) {
 /**
  * Functions to Create Path Node used for traversing the coreconf model
  */
-PathNodeT *createPathNode(int64_t parentSID, DynamicLongListT *sidKeys) {
+PathNodeT *createPathNode(int64_t parentSID, DynamicLongListT *SIDKeys) {
     PathNodeT *pathNode = malloc(sizeof(PathNodeT));
     pathNode->parentSID = parentSID;
     // Make a deep copy to decouple PathNodeT from keyMappingHashMap ownership.
     // This prevents use-after-free when either structure is destroyed.
-    if (sidKeys) {
-        DynamicLongListT *sidKeysCopy = malloc(sizeof(DynamicLongListT));
-        cloneDynamicLongList(sidKeys, sidKeysCopy);
-        pathNode->sidKeys = sidKeysCopy;
+    if (SIDKeys) {
+        DynamicLongListT *SIDKeysCopy = createDynamicLongList();
+        cloneDynamicLongList(SIDKeys, SIDKeysCopy);
+        pathNode->SIDKeys = SIDKeysCopy;
     } else {
-        pathNode->sidKeys = NULL;
+        pathNode->SIDKeys = NULL;
     }
     pathNode->nextPathNode = NULL;
     return pathNode;
@@ -63,8 +104,8 @@ PathNodeT *createPathNode(int64_t parentSID, DynamicLongListT *sidKeys) {
  * Function to add a PathNode to the beginning of the PathNode linked list
  * * NOT returning the current address of the newPathNode
  */
-PathNodeT *prependPathNode(PathNodeT *endNode, int64_t parentSID, DynamicLongListT *sidKeys) {
-    PathNodeT *newPathNode = createPathNode(parentSID, sidKeys);
+PathNodeT *prependPathNode(PathNodeT *endNode, int64_t parentSID, DynamicLongListT *SIDKeys) {
+    PathNodeT *newPathNode = createPathNode(parentSID, SIDKeys);
     newPathNode->nextPathNode = endNode;
     // endNode->nextPathNode = newPathNode;
     return newPathNode;
@@ -83,7 +124,7 @@ void printPathNode(PathNodeT *pathNode) {
     PathNodeT *currentPathNode = pathNode;
     while (currentPathNode->parentSID != 0) {
         printf("parentSID = %" PRId64 " ", currentPathNode->parentSID);
-        printDynamicLongList(currentPathNode->sidKeys);
+        printDynamicLongList(currentPathNode->SIDKeys);
         printf("\n");
         currentPathNode = currentPathNode->nextPathNode;
         count++;
@@ -101,8 +142,8 @@ void freePathNode(PathNodeT *headNode) {
     PathNodeT *nextPathNode = NULL;
     while (currentPathNode != NULL) {
         nextPathNode = currentPathNode->nextPathNode;
-        if (currentPathNode->sidKeys != NULL) {
-            freeDynamicLongList(currentPathNode->sidKeys);
+        if (currentPathNode->SIDKeys != NULL) {
+            freeDynamicLongList(currentPathNode->SIDKeys);
         }
         free(currentPathNode);
         currentPathNode = nextPathNode;
@@ -112,25 +153,26 @@ void freePathNode(PathNodeT *headNode) {
 /**
  * Function to find the requirement for a given SID
  */
-PathNodeT *findRequirementForSID(uint64_t sid, struct hashmap *clookupHashmap, struct hashmap *keyMappingHashMap) {
+PathNodeT *findRequirementForSID(uint64_t SID, struct hashmap *clookupHashmap, struct hashmap *keyMappingHashMap) {
     CLookupT *clookup = NULL;
     PathNodeT *pathNodes = createPathNode(0, NULL);
 
     // Check if a keyMapping object exists for the given SID
-    const KeyMappingT *keyMappingForGivenSID = hashmap_get(keyMappingHashMap, &(KeyMappingT){.key = sid});
+    const KeyMappingT *keyMappingForGivenSID = hashmap_get(keyMappingHashMap, &(KeyMappingT){.key = SID});
     if (keyMappingForGivenSID) {
         // Create a new PathNode with the given SID and the keyMappingForGivenSID->dynamicLongList
-        pathNodes = prependPathNode(pathNodes, sid, keyMappingForGivenSID->dynamicLongList);
+        pathNodes = prependPathNode(pathNodes, SID, keyMappingForGivenSID->dynamicLongList);
     } else {
-        pathNodes = prependPathNode(pathNodes, sid, NULL);
+        pathNodes = prependPathNode(pathNodes, SID, NULL);
     }
 
-    int64_t currentSID = sid;
+    int64_t currentSID = SID;
     while (currentSID != 0) {
-        // Check if sid is in clookupHashmap
+        // Check if SID is in clookupHashmap
         clookup = (CLookupT *)hashmap_get(clookupHashmap, &(CLookupT){.childSID = currentSID});
         if (!clookup) {
-            fprintf(stderr, "SID %" PRId64 " not found in the clookupHashmap\n", sid);
+            fprintf(stderr, "SID %" PRId64 " not found in the clookupHashmap\n", SID);
+            freePathNode(pathNodes);
             return NULL;
         }
 
@@ -159,6 +201,46 @@ PathNodeT *findRequirementForSID(uint64_t sid, struct hashmap *clookupHashmap, s
     return pathNodes;
 }
 
+/*
+ * Pick the entry of YANG list `array` (SID listSID, key leaves SIDKeys) whose key
+ * values ALL equal the next keys popped from the END of requestKeys.  An entry
+ * missing a key leaf never matches, and too few request keys select nothing.
+ * On a match the used keys are popped from requestKeys and the entry (a map) is
+ * returned; with no match, NULL is returned and requestKeys is unchanged.
+ * Shared by examineCoreconfValue (reads) and navigateToParentContainer (writes).
+ */
+static CoreconfValueT *selectListEntry(CoreconfValueT *array, DynamicLongListT *SIDKeys, int64_t listSID,
+                                       DynamicLongListT *requestKeys) {
+    size_t keyCount = SIDKeys->size;
+    if (requestKeys == NULL || requestKeys->size < keyCount) {
+        return NULL;
+    }
+    for (size_t i = 0; i < array->data.array_value->size; i++) {
+        CoreconfValueT *element = &array->data.array_value->elements[i];
+        // A list entry is a map of its leaves; skip anything else
+        if (element->type != CORECONF_HASHMAP) {
+            continue;
+        }
+
+        size_t k = 0;
+        for (; k < keyCount; k++) {
+            // The k-th key of the list is matched with the k-th request key from the end
+            uint64_t requestKey = (uint64_t)requestKeys->longList[requestKeys->size - 1 - k];
+            CoreconfValueT *elementKey = getCoreconfHashMap(element->data.map_value, SIDKeys->longList[k] - listSID);
+            if (elementKey == NULL || getCoreconfValueAsUint64(elementKey) != requestKey) {
+                break;
+            }
+        }
+        if (k == keyCount) {
+            for (k = 0; k < keyCount; k++) {
+                popLong(requestKeys);
+            }
+            return element;
+        }
+    }
+    return NULL;
+}
+
 // Examine CORECONF by traversing through headNode
 CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongListT *requestKeys,
                                      PathNodeT *headNode) {
@@ -181,13 +263,17 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
     while (currentPathNode->parentSID != 0) {
         // Get the parentSID from the currentPathNode
         int64_t parentSID = currentPathNode->parentSID;
-        // Get the sidKeys from the currentPathNode
-        DynamicLongListT *sidKeys = currentPathNode->sidKeys;
+        // Get the SIDKeys from the currentPathNode
+        DynamicLongListT *SIDKeys = currentPathNode->SIDKeys;
 
         // Switch to nextPathNode
         currentPathNode = currentPathNode->nextPathNode;
 
         int64_t deltaSID = parentSID - previousSID;
+        // Only a map can be descended into; anything else means the path does not exist here
+        if (subTree->type != CORECONF_HASHMAP) {
+            return NULL;
+        }
         // Fetch the subTree for deltaSID using getCoreconfHashMap
         subTree = getCoreconfHashMap(subTree->data.map_value, deltaSID);
 
@@ -199,8 +285,8 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
 
         previousSID = parentSID;
 
-        // Check if sidKeys is empty
-        if (sidKeys == NULL || sidKeys->size == 0) {
+        // Check if SIDKeys is empty
+        if (SIDKeys == NULL || SIDKeys->size == 0) {
             continue;
         }
 
@@ -210,54 +296,39 @@ CoreconfValueT *examineCoreconfValue(CoreconfValueT *coreconfModel, DynamicLongL
             return NULL;
         }
 
-        // Iterate through the subTree
-        size_t arraySize = subTree->data.array_value->size;
-        for (size_t i = 0; i < arraySize; i++) {
-            CoreconfValueT *element = &subTree->data.array_value->elements[i];
-
-            // Create a new DynamicLongListT
-            DynamicLongListT *requestKeysClone = malloc(sizeof(DynamicLongListT));
-            // Clone requestKeys
-            cloneDynamicLongList(requestKeys, requestKeysClone);
-            // Create sidKeyValueMatchDynamicLongList
-            DynamicLongListT *sidKeyValueMatchDynamicLongList = malloc(sizeof(DynamicLongListT));
-            initializeDynamicLongList(sidKeyValueMatchDynamicLongList);
-
-            // Iterate through sidKeys
-            for (int i = 0; i < (int)sidKeys->size; i++) {
-                uint64_t sidKey = sidKeys->longList[i];
-
-                uint64_t sidDiff = sidKey - parentSID;
-                // Get value from element using sidDiff
-                CoreconfValueT *elementValueCheck = getCoreconfHashMap(element->data.map_value, sidDiff);
-                // Get the uint64_t value from elementValueCheck
-                uint64_t elementValueCheckInteger = getCoreconfValueAsUint64(elementValueCheck);
-
-                // pop the value from requestKeysClone
-                uint64_t keyValueCheck = (uint64_t)popLong(requestKeysClone);
-                // If elementValueCheckLong == keyValueCheck then add sidKey to sidKeyValueMatchDynamicLongList
-                if (elementValueCheckInteger == keyValueCheck)
-                    addUniqueLong(sidKeyValueMatchDynamicLongList, (long)sidKey);
-            }
-            // Check if all the values in sidKey exist in sidKeyValueMatchDynamicLongList, if yes, then subTree =
-            // element
-            if (compareDynamicLongList(sidKeys, sidKeyValueMatchDynamicLongList)) {
-                subTree = element;
-                cloneDynamicLongList(requestKeysClone, requestKeys);
-                freeDynamicLongList(requestKeysClone);
-                freeDynamicLongList(sidKeyValueMatchDynamicLongList);
-                break;
-            }
-
-            freeDynamicLongList(requestKeysClone);
-            freeDynamicLongList(sidKeyValueMatchDynamicLongList);
+        // No entry has these keys: the requested node does not exist.  Without
+        // this, subTree would still be the whole array, read as a map next.
+        subTree = selectListEntry(subTree, SIDKeys, parentSID, requestKeys);
+        if (subTree == NULL) {
+            return NULL;
         }
+    }
+
+    // Every key must have been used: extra keys address nothing
+    if (requestKeys != NULL && requestKeys->size > 0) {
+        return NULL;
     }
 
     CoreconfValueT *returnMap = createCoreconfHashmap();
     // Insert key-value:  previousSID (which is the parentSID) and Subtree Value
     insertCoreconfHashMap(returnMap->data.map_value, previousSID, subTree);
     return returnMap;
+}
+
+void freeExaminedCoreconfValue(CoreconfValueT *examined) {
+    if (examined == NULL || examined->type != CORECONF_HASHMAP) return;
+    // Free the map's entries but not their values: those belong to the model
+    CoreconfHashMapT *map = examined->data.map_value;
+    for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
+        CoreconfObjectT *current = map->table[i];
+        while (current != NULL) {
+            CoreconfObjectT *next = current->next;
+            free(current);
+            current = next;
+        }
+    }
+    free(map);
+    free(examined);
 }
 
 void buildCLookupHashmapFromCoreconf(CoreconfValueT *coreconfValue, struct hashmap *clookupHashmap, int64_t parentSID,
@@ -270,8 +341,8 @@ void buildCLookupHashmapFromCoreconf(CoreconfValueT *coreconfValue, struct hashm
         for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
             CoreconfObjectT *current = coreconfValue->data.map_value->table[i];
             while (current != NULL) {
-                uint64_t sidDiffValue = current->key;
-                uint64_t childSIDValue = sidDiffValue + parentSID;
+                uint64_t SIDDiffValue = current->key;
+                uint64_t childSIDValue = SIDDiffValue + parentSID;
 
                 // Get the dynamicLongList for the childSIDValue from clookupHashmap
                 // if there is none, make a new dynamicLongList element and add it to clookupHashmap
@@ -279,11 +350,12 @@ void buildCLookupHashmapFromCoreconf(CoreconfValueT *coreconfValue, struct hashm
                 if (!clookup) {
                     clookup = malloc(sizeof(CLookupT));
                     clookup->childSID = childSIDValue;
-                    clookup->dynamicLongList = malloc(sizeof(DynamicLongListT));
-                    initializeDynamicLongList(clookup->dynamicLongList);
+                    clookup->dynamicLongList = createDynamicLongList();
                     // Add the parentSID only if it doesn't exist in the dynamicLongList
                     addUniqueLong(clookup->dynamicLongList, parentSID);
+                    // hashmap_set copies the struct; the map now owns the list
                     hashmap_set(clookupHashmap, clookup);
+                    free(clookup);
                 } else {
                     // Add parentSID to the dynamicLongList only if it doesn't exist already
                     addUniqueLong(clookup->dynamicLongList, parentSID);
@@ -312,69 +384,78 @@ void printCLookupHashmap(struct hashmap *clookupHashmap) {
     void *item;
     while (hashmap_iter(clookupHashmap, &iter, &item)) {
         CLookupT *clookupObject = item;
-        printf("(Child SID =%lu) ", (long)clookupObject->childSID);
+        printf("(Child SID =%" PRId64 ") ", clookupObject->childSID);
         printDynamicLongList(clookupObject->dynamicLongList);
     }
 }
 
-// Assume long value is 64bit long,
-void long2str(char *stringValue, long longValue) { sprintf(stringValue, "%ld", longValue); }
-
-void freeCLookupHashmap(struct hashmap *map) {
-    size_t iter = 0;
-    void *item;
-    while (hashmap_iter(map, &iter, &item)) {
-        CLookupT *clookup = (CLookupT *)item;
-        if (clookup->dynamicLongList) {
-            freeDynamicLongList(clookup->dynamicLongList);
-        }
-    }
-}
-
 /**
- * Navigate to parent container of a target SID using delta encoding and PathNode
- * This function traverses the coreconf model hierarchy using the PathNode chain,
- * applying delta SID encoding at each level to find the parent container.
+ * Navigate to the map that holds `targetSID`: the container, or the YANG list
+ * entry selected by `requestKeys`, along the PathNode chain (delta SIDs).
  *
  * @param root Root of the coreconf model (must be a hashmap)
+ * @param requestKeys Keys of the lists on the path, consumed from the END like
+ *        examineCoreconfValue.  Not modified: a copy is consumed.
  * @param pathNode Path to navigate (built by findRequirementForSID)
  * @param targetSID The final target SID
  * @param finalDeltaSID Output parameter for the final delta SID from parent to target
- * @return Pointer to parent container (hashmap), or NULL on error
+ * @return The parent map (borrowed from the model), or NULL if the path or a
+ *         list entry does not exist.  Never an array.
  */
-CoreconfValueT *navigateToParentContainer(CoreconfValueT *root, PathNodeT *pathNode, uint64_t targetSID,
-                                          uint64_t *finalDeltaSID) {
+CoreconfValueT *navigateToParentContainer(CoreconfValueT *root, DynamicLongListT *requestKeys, PathNodeT *pathNode,
+                                          uint64_t targetSID, uint64_t *finalDeltaSID) {
     if (root == NULL || pathNode == NULL || finalDeltaSID == NULL) {
         printf("Error: NULL parameter in navigateToParentContainer\n");
         return NULL;
     }
 
+    // Consume a copy, so the caller's keys stay intact
+    DynamicLongListT *keys = createDynamicLongList();
+    cloneDynamicLongList(requestKeys, keys);
+
     CoreconfValueT *current = root;
     PathNodeT *path = pathNode;
-    uint64_t previousSID = 0;
+    int64_t previousSID = 0;
 
-    while (path->parentSID != (int64_t)targetSID) {
-        // Get the parentSID from the currentPathNode
+    // Stop at the target; the 0 node that ends the path means the target is not on it
+    while (path != NULL && path->parentSID != 0 && path->parentSID != (int64_t)targetSID) {
         int64_t parentSID = path->parentSID;
-
-        // Switch to nextPathNode
+        DynamicLongListT *SIDKeys = path->SIDKeys;
         path = path->nextPathNode;
 
-        int64_t deltaSID = parentSID - previousSID;
-        // Fetch the subTree for deltaSID using getCoreconfHashMap
-        current = getCoreconfHashMap(current->data.map_value, deltaSID);
+        // Only a map can be descended into
+        if (current->type != CORECONF_HASHMAP) {
+            current = NULL;
+            break;
+        }
+        current = getCoreconfHashMap(current->data.map_value, parentSID - previousSID);
+        if (current == NULL) {
+            break;
+        }
         previousSID = parentSID;
+
+        // A YANG list: continue into the entry the keys select
+        if (SIDKeys != NULL && SIDKeys->size > 0) {
+            if (current->type != CORECONF_ARRAY) {
+                current = NULL;
+                break;
+            }
+            current = selectListEntry(current, SIDKeys, parentSID, keys);
+            if (current == NULL) {
+                break;
+            }
+        }
     }
+    // Every key must have been used: extra keys address nothing
+    size_t unusedKeys = keys->size;
+    freeDynamicLongList(keys);
 
-    // Calculate final delta SID from parent to target
-    *finalDeltaSID = targetSID - previousSID;
-
-    // Verify parent is a hashmap
-    if (current->type != CORECONF_HASHMAP && current->type != CORECONF_ARRAY) {
-        printf("Error: Parent container is not a hashmap or array for SID %lu (got type %d)\n", targetSID,
-               current->type);
+    if (current == NULL || path == NULL || path->parentSID != (int64_t)targetSID ||
+        current->type != CORECONF_HASHMAP || unusedKeys > 0) {
         return NULL;
     }
 
+    // Calculate final delta SID from parent to target
+    *finalDeltaSID = targetSID - (uint64_t)previousSID;
     return current;
 }

@@ -29,16 +29,15 @@ typedef enum {
     CORECONF_TRUE,
     CORECONF_FALSE,
     CORECONF_NULL,
-    CORECONF_HASHMAP
-    // Future
-    // CORECONF_BYTEARRAY
+    CORECONF_HASHMAP,
+    CORECONF_BYTES,  // CBOR byte string (YANG binary)
+    CORECONF_TAG     // CBOR tag around another value (RFC 9254 unions: 43 bits, 44 enum, 45 identityref, 46 instance-id)
 } coreconf_type;
 
 typedef struct CoreconfValue {
     coreconf_type type;
     union {
         char* string_value;
-        int string_length;
         double real_value;
         int8_t i8;
         uint8_t u8;
@@ -51,6 +50,14 @@ typedef struct CoreconfValue {
         struct CoreconfObject* object_value;
         struct CoreconfHashMap* map_value;
         struct CoreconfArray* array_value;
+        struct {
+            uint8_t* data;
+            size_t length;
+        } bytes_value;
+        struct {
+            uint64_t number;
+            struct CoreconfValue* value;  // Owned: freed with the tag
+        } tag_value;
     } data;
 } CoreconfValueT;
 
@@ -63,7 +70,6 @@ typedef struct CoreconfObject {
 typedef struct CoreconfHashMap {
     CoreconfObjectT* table[HASHMAP_TABLE_SIZE];
     size_t size;
-    size_t capacity;
 } CoreconfHashMapT;
 
 typedef struct CoreconfArray {
@@ -75,6 +81,11 @@ size_t hashKey(uint64_t key);
 void freeCoreconf(CoreconfValueT* val, bool freeValue);
 
 CoreconfValueT* createCoreconfString(const char* value);
+CoreconfValueT* createCoreconfStringLength(const char* value, size_t length);
+CoreconfValueT* createCoreconfBytes(const uint8_t* data, size_t length);
+// Takes ownership of `value`
+CoreconfValueT* createCoreconfTag(uint64_t number, CoreconfValueT* value);
+CoreconfValueT* createCoreconfNull(void);
 CoreconfValueT* createCoreconfReal(double value);
 CoreconfValueT* createCoreconfBoolean(bool value);
 
@@ -91,26 +102,28 @@ CoreconfValueT* createCoreconfUint64(uint64_t value);
 CoreconfObjectT* createCoreconfObject(void);
 CoreconfValueT* createCoreconfArray(void);
 CoreconfValueT* createCoreconfHashmap(void);
-CoreconfValueT* wrapCoreconfHashmap(CoreconfHashMapT* map);
 
+// Insert or replace (never merges); the map owns `value` on success
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value);
 CoreconfValueT* getCoreconfHashMap(CoreconfHashMapT* map, uint64_t key);
 void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value);
 void freeCoreconfHashMap(CoreconfHashMapT* map);
-int updateCoreconfArrayByKey(CoreconfValueT* arr, uint64_t keySID, uint64_t parentSID, uint64_t keyValue,
-                             CoreconfValueT* newValue);
+int updateCoreconfArrayByKeys(CoreconfValueT* arr, const uint64_t* keyDeltas, size_t keyCount,
+                              CoreconfValueT* newEntry);
 
 void printCoreconfObject(CoreconfObjectT* obj);
 void printCoreconfMap(CoreconfHashMapT* map);
 void printCoreconf(CoreconfValueT* val);
 
-// Iterate over CoreconfHashMap and apply a function to each CoreconfObject value
-void iterateCoreconfHashMap(CoreconfHashMapT* map, void* udata, void (*f)(CoreconfObjectT* object, void* udata));
-
 bool isTypeUint(uint64_t type);
 bool isTypeInt(uint64_t type);
 
-// get uint64_t  from any CoreconfValueT of REAL or UINT or INT type
+// True if `val` is a CORECONF_TAG with tag `number`
+bool isCoreconfTag(const CoreconfValueT* val, uint64_t number);
+// The value inside a tag (through nested tags); `val` itself if it is not a tag
+CoreconfValueT* getCoreconfTagValue(CoreconfValueT* val);
+
+// get uint64_t  from any CoreconfValueT of REAL or UINT or INT type (looks through tags)
 uint64_t getCoreconfValueAsUint64(CoreconfValueT* val);
 uint64_t getCoreconfValueAsInt64(CoreconfValueT* val);
 

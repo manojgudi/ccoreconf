@@ -12,7 +12,6 @@ This script reads SID files and generates a skeletal JSON instance with:
 import argparse
 import json
 import sys
-from pathlib import Path
 from collections import OrderedDict
 import pycoreconf
 

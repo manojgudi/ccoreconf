@@ -1,13 +1,17 @@
-int handler_write_{{ sid }}(SidHandlerContext *ctx, CoreconfValueT *value) {
-{% if keys %}
+int handler_write_{{ sid }}(SIDHandlerContextT *ctx, CoreconfValueT *value) {
+{% set error_return = "-1" %}
+{% if value_keys %}
     // Validate value is a hashmap containing keys and data
     if (value->type != CORECONF_HASHMAP) {
         printf("Error: Expected hashmap for list item write to SID {{ sid }}\n");
         return -1;
     }
 
-    // Extract keys from value hashmap (keys are stored with delta SIDs)
-{% for key in keys %}
+{% if ctx_keys %}
+{% include 'ctx_keys.c.jinja' %}
+{% endif %}
+    // The entry's own keys, from the written value (stored with delta SIDs)
+{% for key in value_keys %}
     CoreconfValueT* {{ key.name }}_value = getCoreconfHashMap(value->data.map_value, {{ key.sid - sid }});
     if ({{ key.name }}_value == NULL) {
         printf("Error: Missing key {{ key.name }} (SID {{ key.sid }}) in list item\n");
@@ -23,57 +27,61 @@ int handler_write_{{ sid }}(SidHandlerContext *ctx, CoreconfValueT *value) {
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->coreconfModel, ctx->pathNode, {{ sid }}, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, {{ sid }}, &finalDeltaSID);
 
         if (parentContainer == NULL) {
             printf("Error: Failed to navigate to parent for list SID {{ sid }}\n");
             return -1;
         }
 
-        if (parentContainer->type == CORECONF_HASHMAP) {
-            // Get array at list SID using delta
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue == NULL) {
-                printf("Error: List array for SID {{ sid }} not found in coreconfModel\n");
-                return -1;
-            }
-            if (arrayValue->type != CORECONF_ARRAY) {
-                printf("Error: SID {{ sid }} is not an array in coreconfModel\n");
-                return -1;
-            }
+        // Get array at list SID using delta
+        CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
+        if (arrayValue == NULL) {
+            printf("Error: List array for SID {{ sid }} not found in coreconfModel\n");
+            return -1;
+        }
+        if (arrayValue->type != CORECONF_ARRAY) {
+            printf("Error: SID {{ sid }} is not an array in coreconfModel\n");
+            return -1;
+        }
 
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(arrayValue, {{ first_key_sid }}, {{ sid }}, {{ first_key_name }}, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID {{ sid }} with map parent\n");
-            }
-        } else if (parentContainer->type == CORECONF_ARRAY) {
-            // Search for existing entry by key, update or append
-            int updateResult = updateCoreconfArrayByKey(parentContainer, {{ first_key_sid }}, {{ sid }}, {{ first_key_name }}, value);
-            if (updateResult != 0) {
-                printf("Warning: Failed to update array for SID {{ sid }} with array parent\n");
-            }
-        } else {
-            printf("Warning: Failed to update array for SID {{ sid }}: parent type invalid %d", parentContainer->type);
+        // Replace the entry whose keys all match, or append; the array takes value
+        static const uint64_t keyDeltas[] = { {% for key in value_keys %}{{ key.sid - sid }}{% if not loop.last %}, {% endif %}{% endfor %} };
+        if (updateCoreconfArrayByKeys(arrayValue, keyDeltas, {{ value_keys | length }}, value) != 0) {
+            printf("Error: Failed to update list entry for SID {{ sid }}\n");
+            return -1;
         }
     }
 
     return result;
 {% else %}
+    // A container is written as a whole: expect a map of its children
+    if (value->type != CORECONF_HASHMAP) {
+        printf("Error: Expected hashmap for container write to SID {{ sid }}\n");
+        return -1;
+    }
+
+{% if ctx_keys %}
+{% include 'ctx_keys.c.jinja' %}
+{% endif %}
     // Call user-implemented write function
-    int result = {{ user_function }}(value);
+    int result = {{ user_function }}({% for key in keys %}{{ key.name }}, {% endfor %}value);
 
     // If user function succeeded, update the datastore
     if (result == 0) {
         uint64_t finalDeltaSID = 0;
         CoreconfValueT* parentContainer = navigateToParentContainer(
-            ctx->coreconfModel, ctx->pathNode, {{ sid }}, &finalDeltaSID);
+            ctx->model->root, ctx->keys, ctx->pathNode, {{ sid }}, &finalDeltaSID);
 
-        if (parentContainer != NULL) {
-            CoreconfValueT* arrayValue = getCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID);
-            if (arrayValue != NULL && arrayValue->type == CORECONF_ARRAY) {
-                addToCoreconfArray(arrayValue, value);
-            }
+        if (parentContainer == NULL) {
+            printf("Error: Failed to navigate to parent for SID {{ sid }}\n");
+            return -1;
+        }
+
+        // A write replaces: the container becomes exactly the written value
+        if (insertCoreconfHashMap(parentContainer->data.map_value, finalDeltaSID, value) != 0) {
+            printf("Error: Failed to update coreconfModel for SID {{ sid }}\n");
+            return -1;
         }
     }
 

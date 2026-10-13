@@ -1,17 +1,121 @@
 #include "../include/coreconfTypes.h"
 
+#include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/sid.h"
+/*
+Convert char* to int64_t, return INTMAX_MIN in case of an error
+*/
+static int64_t char2int64(char *keyString) {
+    // Convert char* to int64_t using strtoimax
+    intmax_t intValue = strtoimax(keyString, NULL, 10);
+    if (intValue == INTMAX_MIN || intValue == INTMAX_MAX) {
+        fprintf(stderr, "Conversion error or out of range");
+        return INTMAX_MIN;
+    }
+
+    // Check for valid conversion
+    if (errno == ERANGE) {
+        fprintf(stderr, "Value out of range");
+        return INTMAX_MIN;
+    }
+
+    // Convert intmax_t to int64_t
+    int64_t int64Value = (int64_t)intValue;
+
+    return int64Value;
+}
+
+/*
+  Convert char* to uint64_t, return UINTMAX_MIN in case of an error
+*/
+static uint64_t char2uint64(char *keyString) {
+    // Convert char* to uint64_t using strtoumax
+    uintmax_t uintValue = strtoumax(keyString, NULL, 10);
+    if (uintValue == UINTMAX_MAX) {
+        fprintf(stderr, "Conversion error or out of range");
+        return 0;
+    }
+
+    // Check for valid conversion
+    if (errno == ERANGE) {
+        fprintf(stderr, "Value out of range");
+        return 0;
+    }
+
+    // Convert uintmax_t to uint64_t
+    uint64_t uint64Value = (uint64_t)uintValue;
+
+    return uint64Value;
+}
 
 CoreconfValueT* createCoreconfString(const char* value) {
     CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
     val->type = CORECONF_STRING;
     val->data.string_value = (char*)strdup(value);
+    return val;
+}
+
+// Copy `length` bytes of a (not necessarily NUL-terminated) text string
+CoreconfValueT* createCoreconfStringLength(const char* value, size_t length) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    if (val == NULL) return NULL;
+    val->type = CORECONF_STRING;
+    val->data.string_value = malloc(length + 1);
+    if (val->data.string_value == NULL) {
+        free(val);
+        return NULL;
+    }
+    if (length > 0) memcpy(val->data.string_value, value, length);
+    val->data.string_value[length] = '\0';
+    return val;
+}
+
+CoreconfValueT* createCoreconfBytes(const uint8_t* data, size_t length) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    if (val == NULL) return NULL;
+    val->type = CORECONF_BYTES;
+    val->data.bytes_value.length = length;
+    val->data.bytes_value.data = NULL;
+    if (length > 0) {
+        val->data.bytes_value.data = malloc(length);
+        if (val->data.bytes_value.data == NULL) {
+            free(val);
+            return NULL;
+        }
+        memcpy(val->data.bytes_value.data, data, length);
+    }
+    return val;
+}
+
+CoreconfValueT* createCoreconfTag(uint64_t number, CoreconfValueT* value) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    if (val == NULL) return NULL;
+    val->type = CORECONF_TAG;
+    val->data.tag_value.number = number;
+    val->data.tag_value.value = value;
+    return val;
+}
+
+CoreconfValueT* createCoreconfNull(void) {
+    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
+    if (val == NULL) return NULL;
+    val->type = CORECONF_NULL;
+    return val;
+}
+
+bool isCoreconfTag(const CoreconfValueT* val, uint64_t number) {
+    return val != NULL && val->type == CORECONF_TAG && val->data.tag_value.number == number;
+}
+
+CoreconfValueT* getCoreconfTagValue(CoreconfValueT* val) {
+    while (val != NULL && val->type == CORECONF_TAG) {
+        val = val->data.tag_value.value;
+    }
     return val;
 }
 
@@ -97,22 +201,14 @@ CoreconfValueT* createCoreconfHashmap(void) {
     val->type = CORECONF_HASHMAP;
     val->data.map_value = malloc(sizeof(CoreconfHashMapT));
     val->data.map_value->size = 0;
-    val->data.map_value->capacity = HASHMAP_TABLE_SIZE;
     for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
         val->data.map_value->table[i] = NULL;
     }
     return val;
 }
 
-// Create CoreconfValueT* from an existing CoreconfHashMapT
-CoreconfValueT* wrapCoreconfHashmap(CoreconfHashMapT* map) {
-    CoreconfValueT* val = malloc(sizeof(CoreconfValueT));
-    val->type = CORECONF_HASHMAP;
-    val->data.map_value = map;
-    return val;
-}
-
-// Insert Coreconf Object into CoreconfHashMap
+// Insert `value` under `key`, or replace (and free) the value already there.
+// The map takes ownership of `value` on success (0); on error (-1) the caller keeps it.
 int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* value) {
     int loopCount = 0;
     size_t index = hashKey(key);
@@ -136,25 +232,7 @@ int insertCoreconfHashMap(CoreconfHashMapT* map, uint64_t key, CoreconfValueT* v
                 return -1;
             }
             if (current->key == key) {
-                // If both existing and new values are hashmaps, recursively merge
-                if (current->value->type == CORECONF_HASHMAP && value->type == CORECONF_HASHMAP) {
-                    // Iterate through all entries in the update hashmap
-                    for (size_t j = 0; j < HASHMAP_TABLE_SIZE; j++) {
-                        CoreconfObjectT* updateEntry = value->data.map_value->table[j];
-                        while (updateEntry != NULL) {
-                            int result = insertCoreconfHashMap(current->value->data.map_value, updateEntry->key,
-                                                               updateEntry->value);
-                            if (result != 0) {
-                                free(coreconfObject_);
-                                return result;
-                            }
-                            updateEntry = updateEntry->next;
-                        }
-                    }
-                    free(coreconfObject_);
-                    return 0;
-                }
-                // Otherwise, replace the value
+                // Replace the value, whatever its type (no merging of maps)
                 freeCoreconf(current->value, true);
                 current->value = value;
                 free(coreconfObject_);
@@ -189,16 +267,11 @@ void freeCoreconfHashMap(CoreconfHashMapT* map) {
     for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
         CoreconfObjectT* current = map->table[i];
         while (current != NULL) {
-            if (current->next != NULL) {
-                CoreconfObjectT* next = current->next;
-                // Free the value only if its not null
-                if (current->value != NULL) freeCoreconf(current->value, false);
-                free(current);
-                current = next;
-            } else {
-                free(current);
-                current = NULL;
-            }
+            CoreconfObjectT* next = current->next;
+            // Map values are allocated one by one (unlike array elements), so free each one entirely
+            freeCoreconf(current->value, true);
+            free(current);
+            current = next;
         }
     }
     free(map);
@@ -218,7 +291,7 @@ void printCoreconfMap(CoreconfHashMapT* map) {
 
 void printCoreconfObject(CoreconfObjectT* obj) {
     if (!obj) return;
-    printf("Key: %d Value: ", (int)obj->key);
+    printf("Key: %" PRIu64 " Value: ", obj->key);
     printCoreconf(obj->value);
     printf(", ");
     // printf("\n");
@@ -233,9 +306,11 @@ bool isTypeInt(uint64_t type) {
     return (type == CORECONF_INT_8 || type == CORECONF_INT_16 || type == CORECONF_INT_32 || type == CORECONF_INT_64);
 }
 
-// Method used in examineCoreconf to match the sidKey value,
+// Method used in examineCoreconf to match the SIDKey value,
 // and to keep all integers stored in 64 bit values, since CBOR does not have a distinction
 uint64_t getCoreconfValueAsUint64(CoreconfValueT* val) {
+    // e.g. an identityref inside a union (tag 45) reads as its SID
+    val = getCoreconfTagValue(val);
     // NULL check to prevent dereference when getCoreconfHashMap returns NULL
     if (val == NULL) {
         return 0;
@@ -272,6 +347,7 @@ uint64_t getCoreconfValueAsUint64(CoreconfValueT* val) {
 
 // Method used to keep all integers stored in 64 bit values, since CBOR does not have a distinction
 uint64_t getCoreconfValueAsInt64(CoreconfValueT* val) {
+    val = getCoreconfTagValue(val);
     // NULL check to prevent dereference when getCoreconfHashMap returns NULL
     if (val == NULL) {
         return 0;
@@ -334,7 +410,7 @@ void printCoreconf(CoreconfValueT* val) {
             printf("%u", (uint16_t)val->data.u16);
             break;
         case CORECONF_UINT_32:
-            printf("%u", (uint32_t)val->data.u32);
+            printf("%" PRIu32, val->data.u32);
             break;
         case CORECONF_UINT_64:
             printf("%" PRIu64, val->data.u64);
@@ -359,6 +435,19 @@ void printCoreconf(CoreconfValueT* val) {
         case CORECONF_HASHMAP:
             printCoreconfMap(val->data.map_value);
             break;
+        case CORECONF_BYTES:
+            // CBOR diagnostic notation: h'0a1b'
+            printf("h'");
+            for (size_t i = 0; i < val->data.bytes_value.length; i++) {
+                printf("%02x", val->data.bytes_value.data[i]);
+            }
+            printf("'");
+            break;
+        case CORECONF_TAG:
+            printf("%" PRIu64 "(", val->data.tag_value.number);
+            printCoreconf(val->data.tag_value.value);
+            printf(")");
+            break;
     }
 }
 
@@ -371,54 +460,70 @@ CoreconfValueT* createCoreconfArray(void) {
     return val;
 }
 
+// Grows by exactly one element: no spare room, since RAM is scarce on embedded
+// targets.  Decoded arrays are allocated once at their full length instead
+// (see parseArray in serialization.c), so this is only used for appends at runtime.
 void addToCoreconfArray(CoreconfValueT* arr, CoreconfValueT* value) {
-    if (arr->data.array_value->elements == NULL) {
-        arr->data.array_value->elements = malloc(sizeof(CoreconfValueT));
-        arr->data.array_value->elements[0] = *value;
-    } else {
-        size_t newSize = arr->data.array_value->size + 1;
-        arr->data.array_value->elements = realloc(arr->data.array_value->elements, newSize * sizeof(CoreconfValueT));
-        arr->data.array_value->elements[newSize - 1] = *value;
+    CoreconfArrayT* array = arr->data.array_value;
+    CoreconfValueT* elements = realloc(array->elements, (array->size + 1) * sizeof(CoreconfValueT));
+    if (elements == NULL) {
+        return;  // Out of memory: the array is left unchanged
     }
-    arr->data.array_value->size++;
+    array->elements = elements;
+    array->elements[array->size] = *value;
+    array->size++;
 }
 
-// Search array for element with matching key, update if found, append if not
-// keySID and parentSID are used to calculate delta SID
-// Returns 0 on success, -1 on error
-int updateCoreconfArrayByKey(CoreconfValueT* arr, uint64_t keySID, uint64_t parentSID, uint64_t keyValue,
-                             CoreconfValueT* newValue) {
-    if (arr == NULL || arr->type != CORECONF_ARRAY || newValue == NULL) {
+// Replace the entry of `arr` whose keys ALL equal those of `newEntry`, or
+// append `newEntry` if there is none.  keyDeltas are the list's key SIDs as
+// deltas from the list SID (how keys are stored inside each entry).
+// On success the array takes ownership of newEntry: the caller must not use or
+// free it afterwards.  On error the caller still owns it.
+// Returns 0 on success, -1 on error (bad arguments, a key missing from
+// newEntry, out of memory)
+int updateCoreconfArrayByKeys(CoreconfValueT* arr, const uint64_t* keyDeltas, size_t keyCount,
+                              CoreconfValueT* newEntry) {
+    if (arr == NULL || arr->type != CORECONF_ARRAY || newEntry == NULL || newEntry->type != CORECONF_HASHMAP ||
+        keyDeltas == NULL || keyCount == 0) {
         return -1;
     }
+    for (size_t k = 0; k < keyCount; k++) {
+        if (getCoreconfHashMap(newEntry->data.map_value, keyDeltas[k]) == NULL) {
+            return -1;
+        }
+    }
 
-    // Calculate delta SID for key lookup
-    uint64_t deltaSID = keySID - parentSID;
-
-    // Search through array elements for one with matching key
     for (size_t i = 0; i < arr->data.array_value->size; i++) {
         CoreconfValueT* element = &arr->data.array_value->elements[i];
-
-        // Element must be a hashmap to contain keys
         if (element->type != CORECONF_HASHMAP) {
             continue;
         }
 
-        // Check if this element has the key we're looking for (using delta SID)
-        CoreconfValueT* keyInElement = getCoreconfHashMap(element->data.map_value, deltaSID);
-        if (keyInElement != NULL) {
-            uint64_t elementKeyValue = getCoreconfValueAsUint64(keyInElement);
-            if (elementKeyValue == keyValue) {
-                // Found it - update this element
-                freeCoreconf(element, false);
-                *element = *newValue;
-                return 0;
+        size_t k = 0;
+        for (; k < keyCount; k++) {
+            CoreconfValueT* existingKey = getCoreconfHashMap(element->data.map_value, keyDeltas[k]);
+            CoreconfValueT* newKey = getCoreconfHashMap(newEntry->data.map_value, keyDeltas[k]);
+            if (existingKey == NULL || getCoreconfValueAsUint64(existingKey) != getCoreconfValueAsUint64(newKey)) {
+                break;
             }
+        }
+        if (k == keyCount) {
+            // All keys match: replace this entry.  The array holds entries by
+            // value, so copy newEntry in and free only its wrapper.
+            freeCoreconf(element, false);
+            *element = *newEntry;
+            free(newEntry);
+            return 0;
         }
     }
 
-    // Key not found - append new element
-    addToCoreconfArray(arr, newValue);
+    // No entry with these keys: append
+    size_t oldSize = arr->data.array_value->size;
+    addToCoreconfArray(arr, newEntry);
+    if (arr->data.array_value->size == oldSize) {
+        return -1;  // Out of memory
+    }
+    free(newEntry);
     return 0;
 }
 
@@ -434,24 +539,14 @@ void freeCoreconf(CoreconfValueT* val, bool freeValue) {
         free(val->data.array_value);
     } else if (val->type == CORECONF_HASHMAP) {
         freeCoreconfHashMap(val->data.map_value);
+    } else if (val->type == CORECONF_BYTES) {
+        free(val->data.bytes_value.data);
+    } else if (val->type == CORECONF_TAG) {
+        freeCoreconf(val->data.tag_value.value, true);
     }
 
     // freeValue is true when the value is not part of an array
     if (freeValue) free(val);
-
-    // Set val as NULL
-    val = NULL;
-}
-
-// Iterate over CoreconfHashMap and apply a function to each CoreconfObject value
-void iterateCoreconfHashMap(CoreconfHashMapT* map, void* udata, void (*f)(CoreconfObjectT* object, void* udata)) {
-    for (size_t i = 0; i < HASHMAP_TABLE_SIZE; i++) {
-        CoreconfObjectT* current = map->table[i];
-        while (current != NULL) {
-            f(current, udata);
-            current = current->next;
-        }
-    }
 }
 
 // 64-bit MurmurHash3-inspired hash for CoreconfHashMap Keys
@@ -459,7 +554,7 @@ static size_t murmurHash(uint64_t key);
 
 size_t hashKey(uint64_t key) { return murmurHash(key); }
 
-size_t murmurHash(uint64_t key) {
+static size_t murmurHash(uint64_t key) {
     const uint64_t m = 0xc6a4a7935bd1e995ULL;
     const int r = 47;
 

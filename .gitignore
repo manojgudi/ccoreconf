@@ -4,6 +4,7 @@
 
 # Unignore all with extensions
 !*.*
+!LICENSE
 
 # Unignore all dirs
 !*/
@@ -63,3 +64,23 @@ install_manifest.txt
 CTestTestfile.cmake
 compile_commands.json
 __pycache__
+ccoreconfConfig.cmake
+ccoreconfConfigVersion.cmake
+ccoreconfTargets*.cmake
+
+# Misc
+.pi-lens/
+*.cmake.in
+
+
+# Local review notes, never committed
+pending/
+
+# Claude files
+.claude/
+patches/
+# Local design notes, never committed
+plans/
+
+# Python virtual env
+myenv/

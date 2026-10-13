@@ -3,83 +3,92 @@
 #include <nanocbor/nanocbor.h>
 #include <stdio.h>
 
-#include "../include/sid.h"
+#include "../include/coreconfManipulation.h"
 
 /**
  * Internal methods, not exposed to the user
  */
-int _parse_array(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent);
-int _parse_map(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent);
-int _parse_float(nanocbor_value_t* value);
-
-void serializeCoreconfObject(CoreconfObjectT* object, void* cbor_) {
-    nanocbor_encoder_t* cbor = (nanocbor_encoder_t*)cbor_;
-    nanocbor_fmt_uint(cbor, object->key);
-    coreconfToCBOR(object->value, cbor);
-}
+static int parseArray(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent);
+static int parseMap(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent);
 
 // Serialization and Deserialization into CBOR
+// Returns 0 on success, -1 on an unsupported value or when the encoder buffer is too small
 int coreconfToCBOR(CoreconfValueT* coreconfValue, nanocbor_encoder_t* cbor) {
+    if (coreconfValue == NULL) return -1;
+    int res = 0;
     switch (coreconfValue->type) {
         case CORECONF_HASHMAP: {
-            nanocbor_fmt_map(cbor, coreconfValue->data.map_value->size);
-            iterateCoreconfHashMap(coreconfValue->data.map_value, (void*)cbor, serializeCoreconfObject);
-            // nanocbor_fmt_end_indefinite(cbor);
+            CoreconfHashMapT* map = coreconfValue->data.map_value;
+            res = nanocbor_fmt_map(cbor, map->size);
+            for (size_t i = 0; res >= 0 && i < HASHMAP_TABLE_SIZE; i++) {
+                for (CoreconfObjectT* object = map->table[i]; res >= 0 && object != NULL; object = object->next) {
+                    res = nanocbor_fmt_uint(cbor, object->key);
+                    if (res >= 0) res = coreconfToCBOR(object->value, cbor);
+                }
+            }
             break;
         }
         case CORECONF_ARRAY: {
             size_t arrayLength = coreconfValue->data.array_value->size;
-            nanocbor_fmt_array(cbor, arrayLength);
-            for (size_t i = 0; i < arrayLength; i++) {
-                coreconfToCBOR(&coreconfValue->data.array_value->elements[i], cbor);
+            res = nanocbor_fmt_array(cbor, arrayLength);
+            for (size_t i = 0; res >= 0 && i < arrayLength; i++) {
+                res = coreconfToCBOR(&coreconfValue->data.array_value->elements[i], cbor);
             }
+            break;
         }
-        // nanocbor_fmt_end_indefinite(cbor);
-        break;
         case CORECONF_REAL:
-            nanocbor_fmt_double(cbor, coreconfValue->data.real_value);
+            res = nanocbor_fmt_double(cbor, coreconfValue->data.real_value);
             break;
         case CORECONF_INT_8:
-            nanocbor_fmt_int(cbor, coreconfValue->data.i8);
+            res = nanocbor_fmt_int(cbor, coreconfValue->data.i8);
             break;
         case CORECONF_INT_16:
-            nanocbor_fmt_int(cbor, coreconfValue->data.i16);
+            res = nanocbor_fmt_int(cbor, coreconfValue->data.i16);
             break;
         case CORECONF_INT_32:
-            nanocbor_fmt_int(cbor, coreconfValue->data.i32);
+            res = nanocbor_fmt_int(cbor, coreconfValue->data.i32);
             break;
         case CORECONF_INT_64:
-            nanocbor_fmt_int(cbor, coreconfValue->data.i64);
+            res = nanocbor_fmt_int(cbor, coreconfValue->data.i64);
             break;
-
         case CORECONF_UINT_8:
-            nanocbor_fmt_uint(cbor, coreconfValue->data.u8);
+            res = nanocbor_fmt_uint(cbor, coreconfValue->data.u8);
             break;
         case CORECONF_UINT_16:
-            nanocbor_fmt_uint(cbor, coreconfValue->data.u16);
+            res = nanocbor_fmt_uint(cbor, coreconfValue->data.u16);
             break;
         case CORECONF_UINT_32:
-            nanocbor_fmt_uint(cbor, coreconfValue->data.u32);
+            res = nanocbor_fmt_uint(cbor, coreconfValue->data.u32);
             break;
         case CORECONF_UINT_64:
-            nanocbor_fmt_uint(cbor, coreconfValue->data.u64);
+            res = nanocbor_fmt_uint(cbor, coreconfValue->data.u64);
             break;
         case CORECONF_STRING:
-            // Null terminate string value and then put it
-            nanocbor_put_tstr(cbor, (const char*)coreconfValue->data.string_value);
+            res = nanocbor_put_tstr(cbor, (const char*)coreconfValue->data.string_value);
             break;
         case CORECONF_TRUE:
-            nanocbor_fmt_uint(cbor, 1);
+            res = nanocbor_fmt_bool(cbor, true);
             break;
         case CORECONF_FALSE:
-            nanocbor_fmt_uint(cbor, 0);
+            res = nanocbor_fmt_bool(cbor, false);
+            break;
+        case CORECONF_NULL:
+            res = nanocbor_fmt_null(cbor);
+            break;
+        case CORECONF_BYTES:
+            res = nanocbor_put_bstr(cbor, coreconfValue->data.bytes_value.data,
+                                    coreconfValue->data.bytes_value.length);
+            break;
+        case CORECONF_TAG:
+            res = nanocbor_fmt_tag(cbor, coreconfValue->data.tag_value.number);
+            if (res >= 0) res = coreconfToCBOR(coreconfValue->data.tag_value.value, cbor);
             break;
         default:
             // Something wrong happened
             return -1;
     }
 
-    return 0;
+    return (res < 0) ? -1 : 0;
 }
 
 // Deserialization from CBOR to Coreconf
@@ -149,54 +158,61 @@ CoreconfValueT* cborToCoreconfValue(nanocbor_value_t* value, unsigned indent) {
 
         } break;
         case NANOCBOR_TYPE_BSTR: {
+            // Not NUL-terminated and may contain 0x00: copy exactly `len` bytes
             const uint8_t* buf = NULL;
             size_t len = 0;
             res = nanocbor_get_bstr(value, &buf, &len);
             if (res >= 0) {
-                if (!buf) {
-                    return NULL;
-                }
-                coreconfValue = createCoreconfString((const char*)buf);
+                coreconfValue = createCoreconfBytes(buf, len);
             }
         } break;
         case NANOCBOR_TYPE_TSTR: {
             const uint8_t* buf = NULL;
             size_t len = 0;
             res = nanocbor_get_tstr(value, &buf, &len);
-
-            char formattedString[len + 1];
-            // Copy the source string into the destination string using snprintf
-            snprintf(formattedString, (int)len + 1, "%.*s", (int)len, buf);
-
             if (res >= 0) {
-                coreconfValue = createCoreconfString((const char*)formattedString);
+                coreconfValue = createCoreconfStringLength((const char*)buf, len);
+            }
+        } break;
+        case NANOCBOR_TYPE_TAG: {
+            // Keep any tag (RFC 9254 uses 43-47 inside unions) around its decoded value
+            uint32_t tagNumber = 0;
+            res = nanocbor_get_tag(value, &tagNumber);
+            if (res >= 0) {
+                CoreconfValueT* tagged = cborToCoreconfValue(value, indent + 1);
+                if (tagged == NULL) {
+                    return NULL;
+                }
+                coreconfValue = createCoreconfTag(tagNumber, tagged);
+                if (coreconfValue == NULL) {
+                    freeCoreconf(tagged, true);
+                }
             }
         } break;
         case NANOCBOR_TYPE_ARR: {
             coreconfValue = createCoreconfArray();
-            res = _parse_array(value, coreconfValue, indent);
+            res = parseArray(value, coreconfValue, indent);
             if (res < 0) {
-                freeCoreconfHashMap(coreconfValue->data.map_value);
-                free(coreconfValue);
+                freeCoreconf(coreconfValue, true);
                 return NULL;
             }
         } break;
         case NANOCBOR_TYPE_MAP: {
             coreconfValue = createCoreconfHashmap();
-            res = _parse_map(value, coreconfValue, indent);
+            res = parseMap(value, coreconfValue, indent);
             if (res < 0) {
-                freeCoreconfHashMap(coreconfValue->data.map_value);
-                free(coreconfValue);
+                freeCoreconf(coreconfValue, true);
                 return NULL;
             }
         } break;
         // NOTE: There is no NANOCBOR_TYPE_DOUBLE mask, which is weird?!
         // NANOCBOR_TYPE_FLOAT includes both floating-point numbers and simple values (bool, null, etc.)
         case NANOCBOR_TYPE_FLOAT: {
-            // Try boolean first
+            // null first (YANG empty, RFC 9254 section 6.9), then boolean, then double
             bool boolValue = false;
-            res = nanocbor_get_bool(value, &boolValue);
-            if (res >= 0) {
+            if (nanocbor_get_null(value) >= 0) {
+                coreconfValue = createCoreconfNull();
+            } else if (nanocbor_get_bool(value, &boolValue) >= 0) {
                 coreconfValue = createCoreconfBoolean(boolValue);
             } else {
                 // Try double
@@ -207,26 +223,53 @@ CoreconfValueT* cborToCoreconfValue(nanocbor_value_t* value, unsigned indent) {
                 }
             }
         } break;
-        // TODO Future Custom TAGS for Coreconf
         default:
             break;
     }
     return coreconfValue;
 }
 
-int _parse_array(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent) {
+static int parseArray(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent) {
     nanocbor_value_t cborArrayValue;
     if (nanocbor_enter_array(value, &cborArrayValue) < NANOCBOR_OK) {
         printf("Error entering array\n");
         return -1;
     }
+
+    // A definite-length CBOR array states its item count up front: allocate
+    // exactly that once, instead of growing per item.  Indefinite-length
+    // arrays have no count, so they grow one item at a time.
+    CoreconfArrayT* array = coreconfValue->data.array_value;
+    bool definite = !nanocbor_container_indefinite(&cborArrayValue);
+    size_t count = 0;
+    if (definite) {
+        count = nanocbor_array_items_remaining(&cborArrayValue);
+        // Every item takes at least one byte, so a larger count is malformed input
+        if (count > (size_t)(cborArrayValue.end - cborArrayValue.cur)) {
+            printf("Error: array length exceeds the input\n");
+            return -1;
+        }
+        if (count > 0) {
+            array->elements = malloc(count * sizeof(CoreconfValueT));
+            if (array->elements == NULL) {
+                return -1;
+            }
+        }
+    }
+
     while (!nanocbor_at_end(&cborArrayValue)) {
         CoreconfValueT* arrayValue = cborToCoreconfValue(&cborArrayValue, indent + 1);
         if (arrayValue == NULL) {
             printf("Error: cborToCoreconfValue returned NULL in array\n");
             return -1;
         }
-        addToCoreconfArray(coreconfValue, arrayValue);
+        if (definite && array->size < count) {
+            array->elements[array->size++] = *arrayValue;
+        } else {
+            addToCoreconfArray(coreconfValue, arrayValue);
+        }
+        // The array stores a copy of the value struct; free the now-empty wrapper
+        free(arrayValue);
     }
     if (nanocbor_leave_container(value, &cborArrayValue) < 0) {
         printf("Error leaving array container\n");
@@ -235,7 +278,7 @@ int _parse_array(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigne
     return NANOCBOR_OK;
 }
 
-int _parse_map(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent) {
+static int parseMap(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned indent) {
     nanocbor_value_t map;
     int loopCount = 0;
     if (nanocbor_enter_map(value, &map) < NANOCBOR_OK) {
@@ -256,7 +299,7 @@ int _parse_map(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned 
         }
         CoreconfValueT* mapValue = cborToCoreconfValue(&map, indent + 1);
         if (mapValue == NULL) {
-            printf("Error: cborToCoreconfValue returned NULL for map value at key %lu\n", coreconfKey);
+            printf("Error: cborToCoreconfValue returned NULL for map value at key %" PRIu64 "\n", coreconfKey);
             return -1;
         }
         insertCoreconfHashMap(coreconfValue->data.map_value, coreconfKey, mapValue);
@@ -267,16 +310,6 @@ int _parse_map(nanocbor_value_t* value, CoreconfValueT* coreconfValue, unsigned 
         return -1;
     }
     return NANOCBOR_OK;
-}
-
-// Parse float
-int _parse_float(nanocbor_value_t* value) {
-    double f = 0;
-    int res = nanocbor_get_double(value, &f);
-    if (res >= NANOCBOR_OK) {
-        printf("%f", f);
-    }
-    return res;
 }
 
 int keyMappingHashMapToCBOR(struct hashmap* keyMappingHashMap, nanocbor_encoder_t* cbor) {
@@ -295,8 +328,8 @@ int keyMappingHashMapToCBOR(struct hashmap* keyMappingHashMap, nanocbor_encoder_
         nanocbor_fmt_array(cbor, keyMapping->dynamicLongList->size);
         for (size_t i = 0; i < keyMapping->dynamicLongList->size; i++) {
             // Dereference the pointer and add to the array
-            uint64_t sidKey = *(keyMapping->dynamicLongList->longList + i);
-            nanocbor_fmt_uint(cbor, sidKey);
+            uint64_t SIDKey = *(keyMapping->dynamicLongList->longList + i);
+            nanocbor_fmt_uint(cbor, SIDKey);
         }
         // End the Array
     }
@@ -323,8 +356,7 @@ struct hashmap* cborToKeyMappingHashMap(nanocbor_value_t* value) {
         }
         KeyMappingT* keyMapping = malloc(sizeof(KeyMappingT));
         keyMapping->key = key;
-        keyMapping->dynamicLongList = malloc(sizeof(DynamicLongListT));
-        initializeDynamicLongList(keyMapping->dynamicLongList);
+        keyMapping->dynamicLongList = createDynamicLongList();
 
         nanocbor_value_t array;
         if (nanocbor_enter_array(&map, &array) < NANOCBOR_OK) {
@@ -340,19 +372,20 @@ struct hashmap* cborToKeyMappingHashMap(nanocbor_value_t* value) {
                 return NULL;
             }
 
-            uint64_t sidKey = 0;
-            int res = nanocbor_get_uint64(&array, &sidKey);
+            uint64_t SIDKey = 0;
+            int res = nanocbor_get_uint64(&array, &SIDKey);
             if (res < 0) {
                 printf("Error parsing array value\n");
             }
             // Add to the dynamicLongList
-            addLong(keyMapping->dynamicLongList, sidKey);
+            addLong(keyMapping->dynamicLongList, SIDKey);
             loopCounter++;
         }
         nanocbor_leave_container(&map, &array);
 
-        // Insert into the hashmap
+        // Insert into the hashmap: hashmap_set copies the struct, the map now owns the list
         hashmap_set(keyMappingHashMap, keyMapping);
+        free(keyMapping);
         loopCounter++;
     }
     nanocbor_leave_container(value, &map);

@@ -1,4 +1,7 @@
-# Libraries to use the python tools
-pyang
+# Python dependencies of the ccoreconf tools. Install into a venv, not globally:
+#   python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt
+# pyang must be the ltn22 fork: upstream pyang has no --sid-extension
+pycoreconf @ git+https://github.com/alex-fddz/pycoreconf@9fd5dd459d5ec7364e4e7b3c505b1418ef7fd282
+pyang @ git+https://github.com/ltn22/pyang@b57d9cfb7745d6c369d5b3cb46d08f9d50063f44
+jinja2
 cbor2
-pycoreconf

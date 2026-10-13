@@ -61,14 +61,9 @@ void hashmap_set_grow_by_power(struct hashmap *map, size_t power) {
 }
 
 static struct bucket *bucket_at0(void *buckets, size_t bucketsz, size_t i) {
-#ifdef BOARD_IM880B
-    // Use memcpy instead of casting to avoid alignment warnings
-    struct bucket *bucket = (struct bucket *)malloc(sizeof(struct bucket));
-    memcpy(bucket, (((char *)buckets) + (bucketsz * i)), sizeof(struct bucket));
-    return bucket;
-#else
-    return (struct bucket *)(((char *)buckets) + (bucketsz * i));
-#endif
+    // Buckets come from malloc and bucketsz is a multiple of the strictest
+    // alignment (see hashmap_new_with_allocator), so every bucket is aligned
+    return (struct bucket *)(void *)(((char *)buckets) + (bucketsz * i));
 }
 
 static struct bucket *bucket_at(struct hashmap *map, size_t index) {
@@ -105,7 +100,8 @@ struct hashmap *hashmap_new_with_allocator(void *(*_malloc)(size_t), void *(*_re
     }
     // printf("%d\n", (int)cap);
     size_t bucketsz = sizeof(struct bucket) + elsize;
-    while (bucketsz & (sizeof(uintptr_t) - 1)) {
+    // Round up to the strictest alignment, so every bucket and its item are aligned
+    while (bucketsz & (_Alignof(max_align_t) - 1)) {
         bucketsz++;
     }
     // hashmap + spare + edata
@@ -562,18 +558,15 @@ static uint64_t MM86128(const void *key, const int len, uint32_t seed) {
     uint32_t c3 = 0x38b34ae5;
     uint32_t c4 = 0xa1e38b93;
 
-#ifdef BOARD_IM880B
-    // Use memcpy instead of casting to avoid alignment warnings
-    uint32_t *blocks = (uint32_t *)malloc(nblocks * 16);
-    memcpy(blocks, (data + nblocks * 16), nblocks * 16);
-#else
-    const uint32_t *blocks = (const uint32_t *)(data + nblocks * 16);
-#endif
+    const uint8_t *blocks = data + nblocks * 16;
     for (int i = -nblocks; i; i++) {
-        uint32_t k1 = blocks[i * 4 + 0];
-        uint32_t k2 = blocks[i * 4 + 1];
-        uint32_t k3 = blocks[i * 4 + 2];
-        uint32_t k4 = blocks[i * 4 + 3];
+        // Copy the 16-byte block: the key need not be 4-byte aligned
+        uint32_t k[4];
+        memcpy(k, blocks + i * 16, sizeof(k));
+        uint32_t k1 = k[0];
+        uint32_t k2 = k[1];
+        uint32_t k3 = k[2];
+        uint32_t k4 = k[3];
         k1 *= c1;
         k1 = ROTL32(k1, 15);
         k1 *= c2;

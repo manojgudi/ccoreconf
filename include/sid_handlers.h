@@ -9,6 +9,7 @@
 typedef struct CoreconfValue CoreconfValueT;
 typedef struct DynamicLongListStruct DynamicLongListT;
 typedef struct PathNode PathNodeT;
+typedef struct CoreconfModel CoreconfModelT;
 
 /**
  * Handler capabilities - indicates what operations a handler supports
@@ -17,91 +18,92 @@ typedef enum {
     SID_HANDLER_READ       = 0x01,  // Handler supports read operations
     SID_HANDLER_WRITE      = 0x02,  // Handler supports write operations
     SID_HANDLER_READWRITE  = 0x03   // Handler supports both read and write
-} SidHandlerCapability;
+} SIDHandlerCapability;
 
 /**
  * Context passed to handler functions
  * Contains all information needed to process a SID request
  */
 typedef struct {
-    uint64_t sid;                       // The requested SID
-    DynamicLongListT *keys;             // Keys for list items (NULL if not a list)
+    uint64_t SID;                       // The requested SID
+    DynamicLongListT *keys;             // Keys of the lists on the path (NULL if none), in the order of
+                                        // ccoreconfModelExamineCoreconfValue: read from the END, outermost
+                                        // list first, each list's keys in key-mapping order.  A list-entry
+                                        // write takes the entry's own keys from the written value instead.
     PathNodeT *pathNode;                // Path information for traversal
-    CoreconfValueT *coreconfModel;      // Full model for fallback access
-} SidHandlerContext;
+    CoreconfModelT *model;              // Model the SID belongs to (tree, lookups, handlers)
+} SIDHandlerContextT;
 
 /**
  * Read handler function signature
  * @param ctx Context containing SID, keys, and model reference
  * @return Pointer to CoreconfValueT with the result, or NULL to fall back to hashmap
  */
-typedef CoreconfValueT* (*SidReadHandler)(SidHandlerContext *ctx);
+typedef CoreconfValueT* (*SIDReadHandler)(SIDHandlerContextT *ctx);
 
 /**
  * Write handler function signature
+ *
+ * A write REPLACES the node at ctx->SID: a leaf gets the new value, and a
+ * container or list entry becomes exactly `value` (children not in `value`
+ * are removed).  Writes never merge.
+ *
  * @param ctx Context containing SID, keys, and model reference
- * @param value The value to write
+ * @param value The value to write.  On success (0) the model takes ownership
+ *              of it; on failure the caller still owns it.
  * @return 0 on success, non-zero error code on failure
  */
-typedef int (*SidWriteHandler)(SidHandlerContext *ctx, CoreconfValueT *value);
+typedef int (*SIDWriteHandler)(SIDHandlerContextT *ctx, CoreconfValueT *value);
 
 /**
  * Handler registry entry
  * Stores handler functions and metadata for a specific SID
  */
 typedef struct {
-    uint64_t sid;                       // The SID this handler is for
-    SidHandlerCapability capability;    // What operations this handler supports
-    SidReadHandler readHandler;         // Read function pointer (NULL if not supported)
-    SidWriteHandler writeHandler;       // Write function pointer (NULL if not supported)
+    uint64_t SID;                       // The SID this handler is for
+    SIDHandlerCapability capability;    // What operations this handler supports
+    SIDReadHandler readHandler;         // Read function pointer (NULL if not supported)
+    SIDWriteHandler writeHandler;       // Write function pointer (NULL if not supported)
     const char *identifier;             // YANG identifier for debugging (e.g., "/simple-example:data-store/value")
     const char *type;                   // YANG type for debugging (e.g., "uint32")
-} SidHandlerEntry;
+} SIDHandlerEntryT;
 
 /**
- * Initialize the SID handler registry
- * Must be called before any other handler registry functions
- * @return 0 on success, non-zero on error
- */
-int initializeSidHandlerRegistry(void);
-
-/**
- * Register a handler for a specific SID
- * @param sid The SID to register a handler for
+ * Register a handler for a SID in `model`.  Each model keeps its own
+ * registry, so the same SID can have different handlers in different models.
+ * Registering a SID twice replaces the earlier handler.
+ * `identifier` and `type` are borrowed, not copied: they must outlive the model
+ * (string literals from generated code do).
+ * @param model Model to register the handler in
+ * @param SID The SID to register a handler for
  * @param readHandler Read function pointer (can be NULL if not supported)
  * @param writeHandler Write function pointer (can be NULL if not supported)
  * @param identifier YANG identifier string for debugging
  * @param type YANG type string for debugging
- * @return 0 on success, non-zero on error
+ * @return 0 on success, -1 on error (NULL model, no handlers, out of memory)
  */
-int registerSidHandler(uint64_t sid,
-                       SidReadHandler readHandler,
-                       SidWriteHandler writeHandler,
-                       const char *identifier,
-                       const char *type);
+int ccoreconfModelRegisterHandler(CoreconfModelT *model,
+                                  uint64_t SID,
+                                  SIDReadHandler readHandler,
+                                  SIDWriteHandler writeHandler,
+                                  const char *identifier,
+                                  const char *type);
 
 /**
- * Lookup a handler for a specific SID
- * @param sid The SID to look up
- * @return Pointer to SidHandlerEntry if found, NULL if not found
+ * Look up the handler registered for `SID` in `model`.
+ * @return Pointer to the entry (owned by the model; valid until the next
+ *         registration or ccoreconfModelFree), or NULL if none
  */
-SidHandlerEntry* lookupSidHandler(uint64_t sid);
+const SIDHandlerEntryT *ccoreconfModelLookupHandler(CoreconfModelT *model, uint64_t SID);
 
 /**
- * Free the SID handler registry and all registered handlers
- * Should be called during cleanup
+ * @return Number of handlers registered in `model` (0 for NULL)
  */
-void freeSidHandlerRegistry(void);
+size_t ccoreconfModelHandlerCount(CoreconfModelT *model);
 
 /**
- * Get the number of registered handlers
- * @return Number of handlers in the registry
+ * Print all handlers registered in `model` (for debugging)
  */
-size_t getHandlerCount(void);
-
-/**
- * Print all registered handlers (for debugging)
- */
-void printHandlerRegistry(void);
+void ccoreconfModelPrintHandlers(CoreconfModelT *model);
 
 #endif // SID_HANDLERS_H
